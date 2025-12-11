@@ -3,6 +3,7 @@
 	2025 12 10
 --]]
 
+
 UPAction = {}
 UPAction.__index = UPAction
 
@@ -29,23 +30,7 @@ local function isupaction(obj)
     return false
 end
 
-local function CheckDefault(self, ply, ...)
-    UPar.printdata(string.format('Action Check "%s" %s', self.Name, ply), ...)
-    return false
-end
 
-local function StartDefault(self, ply, ...)
-    UPar.printdata(string.format('Action Start "%s" %s', self.Name, ply), ...)
-end
-
-local function PlayDefault(self, ply, mv, cmd, ...)
-    UPar.printdata(string.format('Action Play "%s" %s %s %s', self.Name, ply, mv, cmd), ...)
-    return true
-end
-
-local function ClearDefault(self, ply, ...)
-    UPar.printdata(string.format('Action Clear "%s" %s', self.Name, ply), ...)
-end
 
 function UPAction:new(name, initData)
     if string.find(name, '[\\/:*?\"<>|]') then
@@ -63,10 +48,10 @@ function UPAction:new(name, initData)
 
     self:InitCVarDisabled(initData.disabled)
 
-    self.Check = initData.Check or CheckDefault
-    self.Start = initData.Start or StartDefault
-    self.Play = initData.Play or PlayDefault
-    self.Clear = initData.Clear or ClearDefault
+    self.Check = initData.Check or UPar.emptyfunc
+    self.Start = initData.Start or UPar.emptyfunc
+    self.Play = initData.Play or UPar.emptyfunc
+    self.Clear = initData.Clear or UPar.emptyfunc
 
     self:SetIcon(initData.icon)
     self:SetLabel(initData.label)
@@ -120,10 +105,7 @@ function UPAction:InitCVarDisabled(default)
     local cvName = sanitizeConVarName(self.Name) .. '_disabled'
     local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
 
-    local cvar = GetConVar(cvName)
-    if not cvar then
-        cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
-    end
+    local cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
     self.CV_Disabled = cvar
 end
 
@@ -139,10 +121,7 @@ function UPAction:InitCVarPredictionMode(default)
     local cvName = sanitizeConVarName(self.Name) .. '_pred_mode'
     local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
 
-    local cvar = GetConVar(cvName)
-    if not cvar then
-        cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
-    end
+    local cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
     self.CV_PredictionMode = cvar
 end
 
@@ -158,11 +137,7 @@ function UPAction:InitCVarKeybind(default)
     if SERVER then return end
 
     local cvName = sanitizeConVarName(self.Name) .. '_keybind'
-    local cvar = GetConVar(cvName)
-
-    if not cvar then
-        cvar = CreateClientConVar(cvName, tostring(default), true, false, '')
-    end
+    local cvar = CreateClientConVar(cvName, tostring(default), true, false, '')
 
     self.CV_Keybind = cvar
 end
@@ -201,6 +176,27 @@ function UPAction:SetKeybind(keynums)
     end
 
     self.CV_Keybind:SetString(table.concat(keys, ' '))
+end
+
+function UPAction:InitConVars(config)
+    if not istable(config) then
+        error(string.format('Invalid config "%s" (not a table)', config))
+    end
+
+    self.ConVars = {}
+    for i, v in ipairs(config) do
+        if SERVER and v.client == false then
+            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+        elseif CLIENT and v.client == true then
+            self.ConVars[v.name] = CreateClientConVar(v.name, v.default, true, false)
+        elseif v.client == nil then
+            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+        else
+            error(string.format('Invalid field "client" (not a boolean or nil), name = "%s"', v.name))
+        end
+    end
+
+    self.ConVarsConfig = config
 end
 
 UPar.GetAllActions = function() return Instances end
