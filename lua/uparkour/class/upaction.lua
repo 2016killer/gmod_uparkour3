@@ -30,21 +30,21 @@ local function isupaction(obj)
 end
 
 local function CheckDefault(self, ply, ...)
-    UPar.printdata(string.format('Check Action "%s" %s', self.Name, ply), ...)
+    UPar.printdata(string.format('Action Check "%s" %s', self.Name, ply), ...)
     return false
 end
 
 local function StartDefault(self, ply, ...)
-    UPar.printdata(string.format('Start Action "%s" %s', self.Name, ply), ...)
+    UPar.printdata(string.format('Action Start "%s" %s', self.Name, ply), ...)
 end
 
 local function PlayDefault(self, ply, mv, cmd, ...)
-    UPar.printdata(string.format('Play Action "%s" %s %s %s', self.Name, ply, mv, cmd), ...)
+    UPar.printdata(string.format('Action Play "%s" %s %s %s', self.Name, ply, mv, cmd), ...)
     return true
 end
 
 local function ClearDefault(self, ply, ...)
-    UPar.printdata(string.format('Clear Action "%s" %s', self.Name, ply), ...)
+    UPar.printdata(string.format('Action Clear "%s" %s', self.Name, ply), ...)
 end
 
 function UPAction:new(name, initData)
@@ -208,38 +208,35 @@ UPar.GetAction = function(name) return Instances[name] end
 UPar.isupaction = isupaction
 
 
--- ===================== 测试 ===================== 
-local action = UPAction:new('testt', {
-    Effects = {
-        default = 'SP-VManip-白狼',
-    },
-})
+// -- ===================== 测试 ===================== 
+// local action = UPAction:new('testt', {
+//     Effects = {
+//         default = 'SP-VManip-白狼',
+//     },
+// })
 
 
-action:SetIcon('icon16/star.png')
-action:SetLabel('测试动作')
+// action:SetIcon('icon16/star.png')
+// action:SetLabel('测试动作')
 
-action:InitCVarPredictionMode(true)
-print(action:GetPredictionMode())
-if SERVER then
-    print(action:GetDisabled())
-    action:SetDisabled(false)
-elseif CLIENT then
-    action:InitCVarKeybind('0 0 0')
-    action:SetKeybind({50, 0111, 20})
+// action:InitCVarPredictionMode(true)
+// print(action:GetPredictionMode())
+// if SERVER then
+//     print(action:GetDisabled())
+//     action:SetDisabled(false)
+// elseif CLIENT then
+//     action:InitCVarKeybind('0 0 0')
+//     action:SetKeybind({50, 0111, 20})
 
-    print(action:GetKeybind())
-    PrintTable(action:GetKeybind())
+//     print(action:GetKeybind())
+//     PrintTable(action:GetKeybind())
 
-    print(action:GetPlayerEffect(LocalPlayer(), 'default'))
-    action:Play(LocalPlayer(), nil, nil, 1, 2, 3, 4)
-    action:Clear(LocalPlayer())
-    action:Check(LocalPlayer())
+//     print(action:GetPlayerEffect(LocalPlayer(), 'default'))
+//     action:Play(LocalPlayer(), nil, nil, 1, 2, 3, 4)
+//     action:Clear(LocalPlayer())
+//     action:Check(LocalPlayer())
 
-    print(action:GetPredictionMode())
-end
-
-
-
+//     print(action:GetPredictionMode())
+// end
 // PrintTable(action)
 

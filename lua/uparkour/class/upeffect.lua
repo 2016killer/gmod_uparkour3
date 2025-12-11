@@ -3,7 +3,6 @@
 	2025 12 11
 --]]
 
-
 UPEffect = {}
 UPEffect.__index = UPEffect
 
@@ -24,6 +23,18 @@ local function isupeffect(obj)
     return false
 end
 
+local function StartDefault(self, ply, ...)
+	UPar.printdata(string.format('Effect Start "%s" %s', self.Name, ply), ...)
+end
+
+local function ClearDefault(self, ply, ...)
+	UPar.printdata(string.format('Effect Clear "%s" %s', self.Name, ply), ...)
+end
+
+local function OnRhythmChangeDefault(self, ply, ...)
+	UPar.printdata(string.format('Effect OnRhythmChange "%s" %s', self.Name, ply), ...)
+end
+
 function UPEffect:new(name, initData)
     if string.find(name, '[\\/:*?\"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
@@ -36,15 +47,9 @@ function UPEffect:new(name, initData)
     local self = setmetatable({}, UPEffect)
 
 	self.Name = name
-	self.Start = self.Start or function(self, ply, ...)
-		UPar.printdata(string.format('Effect "%s" Start', effectName), ply, ...)
-	end
-
-	self.Clear = self.Clear or function(self, ply, ...)
-		UPar.printdata(string.format('Effect "%s" Clear', effectName), ply, ...)
-	end
-
-	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
+	self.Start = self.Start or StartDefault
+	self.Clear = self.Clear or ClearDefault
+	self.OnRhythmChange = self.OnRhythmChange or OnRhythmChangeDefault
 
     self:SetIcon(initData.icon)
     self:SetLabel(initData.label)
@@ -115,4 +120,22 @@ end
 
 UPar.isupeffect = isupeffect
 
+
+-- ===================== 测试 ===================== 
+// local effect = UPEffect:new('testt', {
+//     Effects = {
+//         default = 'SP-VManip-白狼',
+//     },
+// })
+
+// effect:SetIcon('icon16/star.png')
+// effect:SetLabel('测试特效')
+
+// if SERVER then
+// elseif CLIENT then
+//     effect:Start(LocalPlayer(), nil, nil, 1, 2, 3, 4)
+//     effect:Clear(LocalPlayer())
+//     effect:OnRhythmChange(LocalPlayer())
+// end
+// PrintTable(effect)
 

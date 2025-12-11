@@ -160,8 +160,8 @@ UPar.PackResult = function(...)
     return result, dataSize
 end
 
-UPar.LoadLuaFiles('core')
 UPar.LoadLuaFiles('class')
+UPar.LoadLuaFiles('core')
 // UPar.LoadLuaFiles('actions')
 // UPar.LoadLuaFiles('effects')
 // UPar.LoadLuaFiles('effectseasy')
@@ -170,5 +170,6 @@ UPar.LoadLuaFiles('class')
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()
 	PrintTable(UPar)
-	PrintTable(UPAction.Instances)
+	print('================== All Actions ==================')
+	PrintTable(UPar.GetAllActions())
 end)
