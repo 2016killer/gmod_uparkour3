@@ -30,8 +30,6 @@ local function isupaction(obj)
     return false
 end
 
-
-
 function UPAction:new(name, initData)
     if string.find(name, '[\\/:*?\"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
@@ -196,7 +194,9 @@ function UPAction:InitConVars(config)
         end
     end
 
-    self.ConVarsConfig = config
+    if CLIENT then
+        self.ConVarsConfig = config
+    end
 end
 
 UPar.GetAllActions = function() return Instances end

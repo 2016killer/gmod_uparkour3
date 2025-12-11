@@ -6,7 +6,9 @@
 
 ## 一、开发时所需要关注的部分
 ### 1.1 关于接口实现
-这里不再采用2.1.0版本的参数对齐写法，虽然序列表在网络传输中表现良好，但与高频unpack、pack造成的开销相比微不足道。所以这里改为与1.0.0版本相同的传参，我们直接传递哈希表，这样好处有很多，比如某些需要持久的数据可以直接放表中，或者需要继承的数据也可以直接扔进去。
+这里不再采用2.1.0版本的参数对齐写法, 虽然序列表在网络传输中表现良好, 
+但是代码不好维护, 所以退回1.0.0版本的方法。
+当然, 这样也有很多好处, 比如某些需要持久的数据可以直接放表中, 或者需要继承的数据也可以直接扔进去。
 
 ## 二、需要实现的接口
 ```lua
@@ -32,17 +34,17 @@ end
 --- @param mv CMoveData
 --- @param cmd CUserCmd
 --- @param checkResult table
---- @return table endResult 执行结果表（必须返回表才进入下个周期）
+--- @return table endReason 执行结果表（必须返回表才进入下个周期）
 --- @usage 仅服务端调用
 function action:Play(ply, mv, cmd, checkResult)
-    return endResult
+    return endReason
 end
 
 --- 动作清理接口
 --- @param ply Player
---- @param endResult table
+--- @param endReason table
 --- @usage 双端调用
-function action:Clear(ply, endResult)
+function action:Clear(ply, endReason)
     -- 可以不实现, 不影响流程
 end
 ```
@@ -84,6 +86,24 @@ action:InitCVarKeybind('33 83 65') -- KEY_W + KEY_LCONTROL + KEY_SPACE
 --- @param customData table
 --- @usage 仅服务端调用（建议在Play接口中调用）
 action:ChangeRhythm(ply, customData) 
+
+--- 初始化动作参数
+--- @param config table
+--- @usage 双端调用
+action:InitConVars(
+    {
+        {
+            name = 'example',
+            default = '0.64',
+            widget = 'NumSlider',
+            min = 0,
+            max = 1,
+            decimals = 2,
+            help = true,
+            visible = false
+        }
+    }
+) 
 ```
 
 # UPEffect类
@@ -108,9 +128,9 @@ end
 
 --- 特效清理接口
 --- @param ply Player
---- @param endResult table
+--- @param endReason table
 --- @usage 双端调用
-function effect:Clear(ply, endResult)
+function effect:Clear(ply, endReason)
     -- 当动作结束时候调用
 end
 ```

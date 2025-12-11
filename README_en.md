@@ -6,13 +6,15 @@
 
 ## I. Key Considerations for Development
 ### 1.1 Regarding Interface Implementation
-The parameter alignment syntax used in version 2.1.0 is no longer adopted here. Although sequential tables perform well in network transmission, their advantages are negligible compared to the overhead caused by high-frequency unpack/pack operations. Therefore, we revert to the parameter-passing method used in version 1.0.0—directly passing hash tables. This approach offers multiple benefits: for example, certain persistent data can be stored directly in the table, or inherited data can be directly included in it.
+The parameter alignment syntax used in version 2.1.0 is no longer adopted here. Although sequential tables perform well in network transmission, the code is difficult to maintain—thus, we revert to the approach used in version 1.0.0.  
+
+Naturally, this approach also offers numerous benefits: for example, certain persistent data can be stored directly in the table, or inherited data can be directly included in it.  
 
 ## II. Interfaces to Be Implemented
 ```lua
 --- Action Pre-Check Interface
 --- @param ply Player
---- @param data table
+--- @param data any
 --- @return table checkResult Check result table (Must return a table to proceed to the next cycle)
 --- @usage Called on both client and server
 function action:Check(ply, data)
@@ -32,17 +34,17 @@ end
 --- @param mv CMoveData
 --- @param cmd CUserCmd
 --- @param checkResult table
---- @return table endResult Execution result table (Must return a table to proceed to the next cycle)
+--- @return table endReason Execution result table (Must return a table to proceed to the next cycle)
 --- @usage Called only on server
 function action:Play(ply, mv, cmd, checkResult)
-    return endResult
+    return endReason
 end
 
 --- Action Cleanup Interface
 --- @param ply Player
---- @param endResult table
+--- @param endReason table
 --- @usage Called on both client and server
-function action:Clear(ply, endResult)
+function action:Clear(ply, endReason)
     -- Optional implementation; does not affect the workflow
 end
 ```
@@ -84,6 +86,24 @@ action:InitCVarKeybind('33 83 65') -- KEY_W + KEY_LCONTROL + KEY_SPACE
 --- @param customData table
 --- @usage Called only on server (recommended to call in Play interface)
 action:ChangeRhythm(ply, customData) 
+
+--- Initialize action parameters
+--- @param config table
+--- @usage Called on both client and server
+action:InitConVars(
+    {
+        {
+            name = 'example',
+            default = '0.64',
+            widget = 'NumSlider',
+            min = 0,
+            max = 1,
+            decimals = 2,
+            help = true,
+            visible = false
+        }
+    }
+) 
 ```
 
 # UPEffect Class
@@ -108,9 +128,9 @@ end
 
 --- Effect Cleanup Interface
 --- @param ply Player
---- @param endResult table
+--- @param endReason table
 --- @usage Called on both client and server
-function effect:Clear(ply, endResult)
+function effect:Clear(ply, endReason)
     -- Called when the action ends
 end
 ```
