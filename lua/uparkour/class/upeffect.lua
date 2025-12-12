@@ -73,13 +73,16 @@ function UPEffect:SetLabel(label)
     self.label = label
 end
 
-function UPEffect:Register(actionName)
-	local action = UPar.GetAction(actionName)
+function UPEffect:Register(actName)
+	local action = UPar.GetAction(actName)
     if not action then
-        error(string.format('Invalid action "%s"', actionName))
+        error(string.format('Invalid action "%s"', actName))
     end
-	action.Effects[name] = self
-    hook.Run('UParRegisterEffect', actionName, name, self)
+
+    if hook.Run('UParRegisterEffect', actName, self.Name, self) then 
+        return 
+    end
+	action.Effects[self.Name] = self
 end
 
 function UPEffect:IsCustom()
@@ -94,20 +97,20 @@ function UPEffect:CreateCustom(name)
 	}
 end
 
-function UPEffect:InitCustom(actionName, name)
+function UPEffect:InitCustom(actName, name)
 	if not self.linkName then 
 		return true
 	end
 
-	local action = UPar.GetAction(actionName)
+	local action = UPar.GetAction(actName)
 	if not action then
-		print(string.format('[UPar]: init custom effect failed, action "%s" not found', actionName))
+		print(string.format('[UPar]: init custom effect failed, action "%s" not found', actName))
 		return false
 	end
 
 	local target = action:GetEffect(self.linkName)
 	if not target then
-		print(string.format('[UPar]: init custom effect failed, action "%s" effect "%s" not found', actionName, linkName))
+		print(string.format('[UPar]: init custom effect failed, action "%s" effect "%s" not found', actName, linkName))
 		return false
 	end
 

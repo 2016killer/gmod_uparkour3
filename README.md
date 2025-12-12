@@ -2,94 +2,216 @@
 - 翻译: 豆小姐
 - 日期：2025 12 10
 
-# UPAction类
-
-## 一、开发时所需要关注的部分
-### 1.1 关于接口实现
+# 关于接口实现
 这里不再采用2.1.0版本的参数对齐写法, 虽然序列表在网络传输中表现良好, 
 但是代码不好维护, 所以退回1.0.0版本的方法。
 当然, 这样也有很多好处, 比如某些需要持久的数据可以直接放表中, 或者需要继承的数据也可以直接扔进去。
 
-## 二、需要实现的接口
+# 关于生命周期
+![shared](materials\uparkour\shared.jpg)
+**UPAction:Check**
 ```lua
---- 动作前置校验接口
---- @param ply Player
---- @param data table
---- @return table checkResult 校验结果表（必须返回表才进入下个周期）
---- @usage 双端调用
+@param ply Player
+@param data table
 function action:Check(ply, data)
     return checkResult
 end
-
---- 动作启动接口
---- @param ply Player
---- @param checkResult table
---- @usage 双端调用
-function action:Start(ply, checkResult)
-    -- 可以不实现, 不影响流程
-end
-
---- 动作执行核心接口
---- @param ply Player
---- @param mv CMoveData
---- @param cmd CUserCmd
---- @param checkResult table
---- @return table endReason 执行结果表（必须返回表才进入下个周期）
---- @usage 仅服务端调用
-function action:Play(ply, mv, cmd, checkResult)
-    return endReason
-end
-
---- 动作清理接口
---- @param ply Player
---- @param endReason table
---- @usage 双端调用
-function action:Clear(ply, endReason)
-    -- 可以不实现, 不影响流程
-end
+@Returns table checkResult
+```
+```note
+返回表后进入Start
 ```
 
-## 三、可以额外添加的接口
-```lua
---- 自定义参数面板覆盖接口
---- @param panel table
---- @usage 仅客户端调用
-function action:ConVarsPanelOverride(panel)
-    -- 可以在这里自定义参数界面
-end
 
---- 额外参数面板配置（表结构）
---- @usage 仅客户端调用
--- 可以在这里添加额外的参数界面
+# Hook
+## 普通的
+
+![shared](materials\uparkour\shared.jpg)
+**UParRegisterAction**
+```lua
+@param actName string
+@param action UPAction
+@Returns bool
+hook.Add('UParRegisterAction', 'example', function(name, action)
+    return prevent
+end)
+```
+```note
+返回 true 阻止动作注册
+```
+
+![shared](materials\uparkour\shared.jpg)
+**UParRegisterEffect**
+```lua
+@param actName string
+@param effName string
+@param effect UPEffect
+@Returns bool
+hook.Add('UParRegisterEffect', 'example', function(actName, effName, effect)
+    return prevent
+end)
+```
+```note
+返回 true 阻止特效注册
+```
+
+## 序列的
+![shared](materials\uparkour\shared.jpg)
+**'UPActInterrupt' + actName**
+```lua
+@param action UPAction
+@param checkResult table
+@Returns bool(返回 true 阻止动作启动)
+UPar.RunActPreStartHook(action, checkResult)
+```
+```note
+在UPAction:Check通过后调用
+返回 true 阻止动作启动
+```
+
+--- 中断检查
+@param playing string
+@param action UPAction
+@Returns bool(返回 true 阻止动作启动)
+UPar.RunActInterruptHook(playing, playingData, action, checkResult)
+
+UPar.RunActStartHook(action, checkResult)
+UPar.RunActClearHook(action, endReason)
+UPar.RunActOnRhythmChangeHook(action, customData)
+```
+
+
+# UPAction类
+## 需要实现的接口
+
+![shared](materials\uparkour\shared.jpg) 
+**UPAction:Check**
+```lua
+@param ply Player
+@param data table
+function action:Check(ply, data)
+    return checkResult
+end
+@Returns table checkResult
+```
+```note
+返回表后进入Start
+```
+
+![shared](materials\uparkour\shared.jpg)
+**UPAction:Start**
+```lua
+@param ply Player
+@param checkResult table
+function action:Start(ply, checkResult) 
+end
+```
+```note
+可以不实现, 不影响流程, 只执行一次, 然后进入Think
+```
+
+![server](materials\uparkour\server.jpg)
+**UPAction:Think**
+```lua
+@param ply Player
+@param mv CMoveData
+@param cmd CUserCmd
+@param checkResult table
+@Returns table endReason
+function action:Think(ply, mv, cmd, checkResult)
+    return endReason
+end
+```
+```note
+返回表进入Clear, 否则维持当前状态
+```
+
+![shared](materials\uparkour\shared.jpg)
+**UPAction:Clear**
+```lua
+@param ply Player
+@param endReason table
+function action:Clear(ply, endReason) 
+end
+```
+```note
+可选, 这将会在Play返回、强制中断(玩家死亡等)、中断后调用
+```
+
+## 可选接口
+![client](materials\uparkour\client.jpg)
+**UPAction:ConVarsPanelOverride**
+```lua 
+@param panel panel
+function action:ConVarsPanelOverride(panel) 
+end
+```
+```note
+可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
+```
+
+
+![client](materials\uparkour\client.jpg)
+**UPAction.CreateSundryPanels**
+```lua 
 action.CreateSundryPanels = {
     {
         label = 'Example', 
         func = function(panel)
-            --- @param panel table
             ...
         end
     }
 }
 ```
 
-## 四、可以额外附加的参数
-这些参数本身没有意义，只是在初始化后会出现在Q菜单中，需要自己处理：
+## 可用方法
+![shared](materials\uparkour\shared.jpg)
+**UPAction:InitCVarPredictionMode**
 ```lua
-action:InitCVarPredictionMode('0') -- 我们默认 false 是 服务器预测
-action:InitCVarKeybind('33 83 65') -- KEY_W + KEY_LCONTROL + KEY_SPACE
+@param default string
+action:InitCVarPredictionMode(default) 
+```
+```note
+在初始化后会出现在Q菜单中
+
+false: 使用服务端预测
+true: 使用客户端预测
+
+参数本身无作用，需要自行处理。
 ```
 
-## 五、可用方法
+![client](materials\uparkour\client.jpg)
+**UPAction:InitCVarKeybind**
 ```lua
---- 更新特效节奏（自动同步客户端）
---- @param ply Player
---- @param customData table
---- @usage 仅服务端调用（建议在Play接口中调用）
-action:ChangeRhythm(ply, customData) 
+@param default string 组合键用空格隔开
+action:InitCVarKeybind(default) 
+```
+```note
+在初始化后会出现在Q菜单中
 
---- 初始化动作参数
---- @param config table
---- @usage 双端调用
+例: '33 83 65': KEY_W + KEY_LCONTROL + KEY_SPACE
+
+参数本身无作用，需要自行处理。
+```
+
+![server](materials\uparkour\server.jpg)
+**UPAction:ChangeRhythm**
+```lua
+@param ply Player
+@param customData table
+action:ChangeRhythm(ply, customData) 
+```
+```note
+应当在Play接口中调用
+将会使用net自动同步客户端, 不建议每帧调用
+
+通常用于节奏多变的动作, 比如Double Vault
+```
+
+![shared](materials\uparkour\shared.jpg)
+**UPAction:InitConVars**
+```lua 
+@param config table
 action:InitConVars(
     {
         {
@@ -100,52 +222,78 @@ action:InitConVars(
             max = 1,
             decimals = 2,
             help = true,
-            visible = false
+            visible = false,
+            client = nil,
         }
     }
 ) 
 ```
+```note
+初始化后会出现在动作编辑器中
+使用self.ConVars可访问
+```
 
 # UPEffect类
 
-## 一、需要实现的接口
+## 需要实现的接口
+
+![shared](materials\uparkour\shared.jpg)
+**UPEffect:Start**
 ```lua
---- 特效启动接口
---- @param ply Player
---- @param checkResult table
---- @usage 双端调用
-function effect:Start(ply, checkResult)
-    -- 当动作触发时候调用
+@param ply Player
+@param checkResult table
+function effect:Start(ply, checkResult) 
 end
+```
+```note
+会在UPAction:Start后自动调用
+```
 
---- 特效节奏变更回调接口
---- @param ply Player
---- @param customData table
---- @usage 双端调用
+![shared](materials\uparkour\shared.jpg)
+**UPEffect:OnRhythmChange**
+```lua
+@param ply Player
+@param customData table
 function effect:OnRhythmChange(ply, customData)
-    -- 当节奏变化时候调用, 使用action:ChangeRhythm(ply, customData)手动触发
 end
+```
+```note
+会在UPAction:ChangeRhythm后自动调用
+```
 
---- 特效清理接口
---- @param ply Player
---- @param endReason table
---- @usage 双端调用
+![shared](materials\uparkour\shared.jpg)
+**UPEffect:Clear**
+```lua
+@param ply Player
+@param endReason table
 function effect:Clear(ply, endReason)
     -- 当动作结束时候调用
 end
 ```
+```note
+会在UPAction:Clear后自动调用
+```
 
-## 二、可以额外添加的接口
-```lua
---- 预览面板覆盖接口
---- @param panel table
---- @usage 仅客户端调用
+## 可选接口
+
+![client](materials\uparkour\client.jpg)
+**UPEffect:PreviewPanelOverride**
+```lua 
+@param panel panel
 function effect:PreviewPanelOverride(panel)
 end
+```
+```note
+预览面板覆盖
+```
 
---- 编辑器面板覆盖接口
---- @param panel table
---- @usage 仅客户端调用
+![client](materials\uparkour\client.jpg)
+**UPEffect:EditorPanelOverride**
+```lua
+@param panel panel
 function effect:EditorPanelOverride(panel)
 end
+```
+```note
+编辑器面板覆盖
 ```

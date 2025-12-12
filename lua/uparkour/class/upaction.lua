@@ -74,28 +74,30 @@ function UPAction:SetLabel(label)
 end
 
 function UPAction:Register()
-    Instances[name] = self
-    hook.Run('UParRegisterAction', name, self)
+    if hook.Run('UParRegisterAction', self.Name, self) then 
+        return 
+    end
+    Instances[self.Name] = self
 end
 
-function UPAction:GetEffect(effectName)
-    return self.Effects[effectName]
+function UPAction:GetEffect(effName)
+    return self.Effects[effName]
 end
 
-function UPAction:GetPlayerEffect(ply, effectName)
-    if effectName == 'CUSTOM' then
-        return ply.upeffect_custom_cache[self.Name] or self.Effects.default
+function UPAction:GetPlayerEffect(ply, effName)
+    if effName == 'CACHE' then
+        return ply.upeffect_cache[self.Name] or self.Effects.default
     else
-        return self.Effects[effectName] or self.Effects.default
+        return self.Effects[effName] or self.Effects.default
     end
 end
 
 function UPAction:GetPlayerUsingEffect(ply)
-    local effectName = ply.upeffect_config[self.Name] or 'default'
-    if effectName == 'CUSTOM' then
-        return ply.upeffect_custom_cache[self.Name] or self.Effects.default
+    local effName = ply.upeffect_config[self.Name] or 'default'
+    if effName == 'CACHE' then
+        return ply.upeffect_cache[self.Name] or self.Effects.default
     else
-        return self.Effects[effectName] or self.Effects.default
+        return self.Effects[effName] or self.Effects.default
     end
 end
 

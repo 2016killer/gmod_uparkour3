@@ -8,15 +8,15 @@ local UPar = UPar
 file.CreateDir('uparkour_effect')
 file.CreateDir('uparkour_effect/custom')
 
-UPar.RegisterEasy = function(actionName, effectName, initData)
-	local action = UPar.GetAction(actionName)
+UPar.RegisterEasy = function(actName, effName, initData)
+	local action = UPar.GetAction(actName)
 	if not action then
-		error(string.format('Invalid action "%s"', actionName))
+		error(string.format('Invalid action "%s"', actName))
 	end
 
-	local defaultEffect = action:GetEffect(effectName)
+	local defaultEffect = action:GetEffect(effName)
 	if not defaultEffect then
-		error(string.format('Invalid effect "%s" for action "%s"', effectName, actionName))
+		error(string.format('Invalid effect "%s" for action "%s"', effName, actName))
 		return
 	end
 
@@ -30,10 +30,10 @@ if SERVER then
 	util.AddNetworkString('UParEffectTest')
 
 	net.Receive('UParEffectTest', function(len, ply)
-		local actionName = net.ReadString()
-		local effectName = net.ReadString()
+		local actName = net.ReadString()
+		local effName = net.ReadString()
 		
-		UPar.EffectTest(ply, actionName, effectName)
+		UPar.EffectTest(ply, actName, effName)
 	end)
 
 	net.Receive('UParEffectConfig', function(len, ply)
@@ -109,7 +109,7 @@ elseif CLIENT then
 		return UPar.LoadUserDataFromDisk('uparkour_effect/custom_cache.json')
 	end
 
-	UPar.GetCustomEffectNamesFromDisk = function()
+	UPar.GetCustomEffNamesFromDisk = function()
 		return file.Find('uparkour_effect/custom/*.json', 'DATA')
 	end
 
