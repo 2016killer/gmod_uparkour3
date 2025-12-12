@@ -22,6 +22,7 @@ UPar.Version = '3.0.0 building'
 UPar.emptyfunc = function() end
 UPar.truefunc = function() return true end
 UPar.tablefunc = function() return {} end
+UPar.emptyTable = {}
 UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
 UPar.SnakeTranslate = function(key, prefix, sep, joint)

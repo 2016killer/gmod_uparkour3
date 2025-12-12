@@ -3,113 +3,69 @@
 	2025 11 5
 --]]
 local SeqHookRun = UPar.SeqHookRun
+local emptyTable = UPar.emptyTable
 
+local function ActStart(ply, action, checkResult)
+	local prevent = SeqHookRun('UParStart', ply, action, checkResult)
+	if not prevent then
+		action:Start(ply, checkResult)
+		local effect = action:GetPlayerUsingEffect(ply)
+		if effect then effect:Start(ply, checkResult) end
+	end
+end
 
+local function ActClear(ply, playing, playingData, mv, cmd, interruptSource, interruptData)
+	local prevent = SeqHookRun('UParClear', ply, playing, playingData, mv, cmd, interruptSource, interruptData)
+	if not prevent then
+		playing:Clear(ply, playingData, mv, cmd, interruptSource, interruptData)
+		local effect = playing:GetPlayerUsingEffect(ply)
+		if effect then effect:Clear(ply, playingData, interruptSource, interruptData) end
+	end
+end
+
+local function ActChangeRhythm(ply, action, customData)
+	local effect = action:GetPlayerUsingEffect(ply)
+	local prevent = SeqHookRun('UParChangeRhythm', ply, action, effect, customData)
+	if not prevent and effect then
+		effect:ChangeRhythm(ply, customData)
+	end
+
+	if SERVER then
+		local netData = {
+			{
+				method = 'ChangeRhythm',
+				actName = action.Name,
+				args = customData,
+			}
+		}
+
+		net.Start('UParCallClientAction')
+			net.WriteTable(netData)
+		net.Send(ply)
+	end
+end
+
+UPar.ActChangeRhythm = ActChangeRhythm
+UPar.ActStart = ActStart
+UPar.ActClear = ActClear
 
 
 if SERVER then
     util.AddNetworkString('UParCallClientAction')
+	util.AddNetworkString('UParStart')
 
-    UPar.CallClientAction = function(ply, data)
+	local function Trigger(ply, action, data, checkResult)
         if not IsValid(ply) or not ply:IsPlayer() then
             error('Invalid ply\n') 
         end
 
-        net.Start('UParCallClientAction')
-            net.WriteTable(data)
-        net.Send(ply)
-    end
-
-	util.AddNetworkString('UParStart')
-	
-	net.Receive('UParStart', function(len, ply)
-		local actName = net.ReadString()
-		local trackId = net.ReadString()
-		local checkResult = net.ReadTable()
-
-		local action = GetAction(actName)
-		if not action then 
-			return 
+		if action:GetDisabled() then
+			return
 		end
 
-		UPar.Trigger(ply, action, nil, checkResult, trackId)
-	end)
-
-elseif CLIENT then
-    net.Receive('UParCallClientAction', function()
-        local data = net.ReadTable()
-		local ply = LocalPlayer()
-        for _, v in ipairs(data) do
-			local action = UPar.GetAction(v.actName)
-			local checkResult = v.args
-			if not action then 
-				continue 
-			end
-
-			if v.method == 'Start' then
-				local prevent = SeqHookRun('UParStart', ply, action, checkResult)
-				if not prevent then
-					action:Start(ply, checkResult)
-					local effect = action:GetPlayerUsingEffect(ply)
-					if effect then effect:Start(ply, checkResult) end
-				end
-			elseif v.method == 'Clear' then
-				local iSource = UPar.GetAction(v.isource)
-				local iData = v.iargs
-				 
-				local prevent = SeqHookRun('UParClear', ply, action, checkResult, nil, nil, iSource, iData)
-				if not prevent then
-					action:Clear(ply, checkResult, nil, nil, iSource, iData)
-					local effect = action:GetPlayerUsingEffect(ply)
-					if effect then effect:Clear(ply, checkResult, iSource, iData) end
-				end
-			elseif v.method == 'RhythmChange' then
-				
-			end
-        end
-    end)
-end
-
-if SERVER then
-	// function a1() return 1 end
-	// function a2() return 1, nil end
-	// function a3() return 1, nil, nil end
-
-	// local a1, a1size = PackResult(a1())
-	// local a2, a2size = PackResult(a2())
-	// local a3, a3size = PackResult(a3())
-
-	// local ply = Entity(1)
-	// UPar.NWBatchInit(ply, nil)
-	// 	UPar.NWWriteBatch(ply, nil, UPNW_FLAG_START, 'testAction', a1, a1size)
-	// 	UPar.NWWriteBatch(ply, nil, UPNW_FLAG_END, 'testAction', a2, a2size)
-	// 	UPar.NWWriteBatch(ply, nil, UPNW_FLAG_INTERRUPT, 'testAction', a3, a3size)
-	// 	UPar.NWWriteBatch(ply, nil, UPNW_FLAG_RHYTHM_CHANGE, 'testAction', a3, a3size)
-		
-	// 	PrintTable(ply['upnwbatch_'])
-	// UPar.NWSendBatch(ply, nil)
-end
-
-local CreateTrack = function(trackId)
-	local timeout =
-	return 'uptrack_' .. (trackId or '')
-end
-UPar.CreateTrack = CreateTrack
-
-
-UPar.Trigger = function(ply, action, data, checkResult, trackId)
-	if action:GetDisabled() then
-		return
-	end
-
-	-- checkResult 用于绕过 Check直接跳转
-	local actName = action.Name
-	
-	if SERVER then
-		local trackKey = 'uptrack_' .. (trackId or '')
-		local trackDataKey = trackKey .. '_data'
-		local playing = ply[trackKey]
-		local playingData = ply[trackDataKey]
+		local actName = action.Name
+		local trackId = action.TrackId
+		local playing, playingData = unpack(ply.uptracks[trackId] or emptyTable)
 
 		if playing and not SeqHookRun('UParInterrupt', ply, playing, playingData, action) then
 			return
@@ -122,15 +78,9 @@ UPar.Trigger = function(ply, action, data, checkResult, trackId)
 
 		local netData = {}
 		if playing then
-			ply[trackKey] = nil
-			ply[trackDataKey] = nil
+			ply.uptracks[trackId] = nil
 
-			local prevent = SeqHookRun('UParClear', ply, playing, playingData, nil, nil, action, checkResult)
-			if not prevent then
-				playing:Clear(ply, playingData, nil, nil, action, checkResult)
-				local effect = playing:GetPlayerUsingEffect(ply)
-				if effect then effect:Clear(ply, playingData, action, checkResult) end
-			end
+			ActClear(ply, playing, playingData, nil, nil, action, checkResult)
 
 			table.insert(netData, {
 				method = 'Clear',
@@ -141,15 +91,9 @@ UPar.Trigger = function(ply, action, data, checkResult, trackId)
 			})
 		end
 
-		local prevent = SeqHookRun('UParStart', ply, action, checkResult)
-		if not prevent then
-			action:Start(ply, checkResult)
-			local effect = action:GetPlayerUsingEffect(ply)
-			if effect then effect:Start(ply, checkResult) end
-		end
+		ActStart(ply, action, checkResult)
 
-		ply[trackKey] = action
-		ply[trackDataKey] = checkResult
+		ply.uptracks[trackId] = {action, checkResult}
 
 		table.insert(netData, {
 			method = 'Start',
@@ -157,10 +101,130 @@ UPar.Trigger = function(ply, action, data, checkResult, trackId)
 			args = checkResult,
 		})
 	
-		CallClientAction(ply, netData)
-		
+        net.Start('UParCallClientAction')
+            net.WriteTable(netData)
+        net.Send(ply)
+
 		return checkResult
-	elseif CLIENT then
+	end
+
+	local function ForceEnd(ply, trackId)
+		local playing, playingData = unpack(ply.uptracks[trackId] or emptyTable)
+
+		ply.uptracks[trackId] = nil
+
+		ActClear(ply, playing, playingData, nil, nil, true, nil)
+
+		local netData = {
+			{
+				method = 'Clear',
+				actName = playing.Name,
+				args = playingData,
+				iactName = true,
+				iargs = nil,
+			}
+		}
+
+		net.Start('UParCallClientAction')
+			net.WriteTable(netData)
+		net.Send(ply)
+	end
+
+	local function ForceEndAll(ply)
+		local netData = {}
+		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
+			local playing, playingData = unpack(trackContent or emptyTable)
+
+			ply.uptracks[trackId] = nil
+
+			ActClear(ply, playing, playingData, nil, nil, true, nil)
+
+			table.insert(netData, {
+				method = 'Clear',
+				actName = playing.Name,
+				args = playingData,
+				iactName = true,
+				iargs = nil,
+			})
+		end
+
+		net.Start('UParCallClientAction')
+			net.WriteTable(netData)
+		net.Send(ply)
+	end
+
+	UPar.ForceEnd = ForceEnd
+	UPar.ForceEndAll = ForceEndAll
+
+	UPar.Trigger = Trigger
+	UPar.CallClientAction = CallClientAction
+
+	net.Receive('UParStart', function(len, ply)
+		local actName = net.ReadString()
+		local checkResult = net.ReadTable()
+
+		local action = GetAction(actName)
+		if not action then 
+			return 
+		end
+
+		Trigger(ply, action, nil, checkResult)
+	end)
+
+	hook.Add('SetupMove', 'upar.think', function(ply, mv, cmd)
+		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
+			local action, checkResult = unpack(trackContent or emptyTable)
+
+			if not action then
+				continue
+			end
+
+			local succ, err = pcall(action.Think, action, ply, mv, cmd, checkResult)
+			if not succ then
+				ForceEnd(ply, trackId)
+				error(string.format('Action "%s" Think error: %s\n', action.Name, err))
+			end
+
+			local toclear = err
+			if not toclear then
+				continue
+			end
+
+			ply.uptracks[trackId] = nil
+			
+			ActClear(ply, action, checkResult, mv, cmd, nil, nil)
+
+			local netData = {
+				{
+					method = 'Clear',
+					actName = action.Name,
+					args = checkResult,
+					iactName = nil,
+					iargs = nil,
+				}
+			}
+
+			net.Start('UParCallClientAction')
+				net.WriteTable(netData)
+			net.Send(ply)
+		end
+	end)
+
+	hook.Add('PlayerInitialSpawn', 'upar.init.tracks', function(ply)
+		ply.uptracks = {}
+	end)
+
+	hook.Add('PlayerSpawn', 'upar.clear', ForceEndAll)
+	hook.Add('PlayerDeath', 'upar.clear', ForceEndAll)
+	hook.Add('PlayerSilentDeath', 'upar.clear', ForceEndAll)
+elseif CLIENT then
+	UPar.Trigger = function(ply, action, data, checkResult)
+		if action:GetDisabled() then
+			return
+		end
+
+		local actName = action.Name
+		
 		checkResult = checkResult or action:Check(ply, data)
 		if not istable(checkResult) then
 			return
@@ -168,73 +232,12 @@ UPar.Trigger = function(ply, action, data, checkResult, trackId)
 
 		net.Start('UParStart')
 			net.WriteString(actName)
-			net.WriteString(trackId or '')
 			net.WriteTable(checkResult)
 		net.SendToServer()
 
 		return checkResult
 	end
-end
 
-
-if SERVER then
-	hook.Add('SetupMove', 'upar.play', function(ply, mv, cmd)
-		local playing = ply.upar_playing
-		if not playing then 
-			return 
-		end
-
-		local playingData = ply.upar_playing_data
-
-		local endReason = table.Pack(pcall(playing.Play, playing, ply, mv, cmd, unpack(playingData)))
-
-		-- 异常处理
-		local succ, err = endReason[1], endReason[2]
-		if not succ then
-			ForceEnd(ply)
-			error(string.format('Action "%s" Play error: %s\n', playing.Name, err))
-			return
-		end
-
-		if not endReason[2] then
-			return
-		end
-
-		if endReason then
-			ply.upar_playing = nil
-			ply.upar_playing_data = nil
-			StartTriggerNet(ply)
-				playing:Clear(ply, mv, cmd, unpack(endReason, 2))
-
-				local effect = GetPlayerCurrentEffect(ply, playing)
-				if effect then 
-					effect:clear(ply, unpack(endReason, 2)) 
-				end
-
-				-- 这里endReason第一位是pcall的返回值, 客户端需要去掉
-				WriteEnd(ply, playing.Name, endReason)
-				WriteMoveControl(ply, false, false, 0, 0)
-			SendTriggerNet(ply)
-
-			hook.Run('UParEnd', ply, playing, endReason)
-		end
-	end)
-
-	UPar.GetPlaying = function(ply, trackId)
-		local trackKey = 'uptrack_' .. (trackId or '')
-		local trackDataKey = trackKey .. '_data'
-
-		return ply[trackKey], ply[trackDataKey]
-	end
-
-	UPar.SetPlaying = function(ply, action, data, trackId)
-		local trackKey = 'uptrack_' .. (trackId or '')
-		local trackDataKey = trackKey .. '_data'
-
-		ply[trackKey] = action
-		ply[trackDataKey] = data
-	end
-elseif CLIENT then
 	local MoveControl = {
 		enable = false,
 		ClearMovement = false,
@@ -266,6 +269,27 @@ elseif CLIENT then
 		MoveControl.RemoveKeys = removeKeys
 		MoveControl.AddKeys = addKeys
 	end
+
+	local GetAction = UPar.GetAction
+    net.Receive('UParCallClientAction', function()
+        local data = net.ReadTable()
+		local ply = LocalPlayer()
+
+        for _, v in ipairs(data) do
+			local action = GetAction(v.actName)
+			local checkResult = v.args
+			if not action then 
+				continue 
+			end
+
+			if v.method == 'Start' then
+				ActStart(ply, action, checkResult)
+			elseif v.method == 'Clear' then
+				ActClear(ply, action, checkResult, nil, nil, GetAction(v.isource), v.iargs)
+			elseif v.method == 'ChangeRhythm' then
+				local customData = checkResult
+				ActChangeRhythm(ply, action, customData)
+			end
+        end
+    end)
 end
-
-

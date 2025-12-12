@@ -9,19 +9,19 @@ file.CreateDir('uparkour_effect')
 file.CreateDir('uparkour_effect/custom')
 
 UPar.RegisterEasy = function(actName, effName, initData)
-	local action = UPar.GetAction(actName)
-	if not action then
-		error(string.format('Invalid action "%s"', actName))
-	end
+	// local action = UPar.GetAction(actName)
+	// if not action then
+	// 	error(string.format('Invalid action "%s"', actName))
+	// end
 
-	local defaultEffect = action:GetEffect(effName)
-	if not defaultEffect then
-		error(string.format('Invalid effect "%s" for action "%s"', effName, actName))
-		return
-	end
+	// local defaultEffect = action:GetEffect(effName)
+	// if not defaultEffect then
+	// 	error(string.format('Invalid effect "%s" for action "%s"', effName, actName))
+	// 	return
+	// end
 
-	action.Effects[self.Name] = table.Merge(table.Copy(defaultEffect), self)
-	return action.Effects[self.Name]
+	// action.Effects[self.Name] = table.Merge(table.Copy(defaultEffect), self)
+	// return action.Effects[self.Name]
 end
 
 if SERVER then
@@ -46,7 +46,7 @@ if SERVER then
 			return
 		end
 
-		table.Merge(ply.upar_effect_config, effectConfig)
+		table.Merge(ply.upeff_cfg, effectConfig)
 	end)
 
 	net.Receive('UParEffectCustom', function(len, ply)
@@ -64,13 +64,13 @@ if SERVER then
 			UPar.InitCustomEffect(k, v)
 		end
 
-		table.Merge(ply.upar_effects_custom, customEffects)
+		table.Merge(ply.upeff_cache, customEffects)
 	end)
 
 
 	hook.Add('PlayerInitialSpawn', 'upar.init.effect', function(ply)
-		ply.upar_effect_config = ply.upar_effect_config or {}
-		ply.upar_effects_custom = ply.upar_effects_custom or {}
+		ply.upeff_cfg = ply.upeff_cfg or {}
+		ply.upeff_cache = ply.upeff_cache or {}
 	end)
 
 elseif CLIENT then
@@ -131,7 +131,7 @@ elseif CLIENT then
 			UPar.InitCustomEffect(k, v)
 		end
 
-		ply.upar_effect_config = effectConfig or {}
-		ply.upar_effects_custom = customEffects or {}
+		ply.upeff_cfg = effectConfig or {}
+		ply.upeff_cache = customEffects or {}
 	end)
 end

@@ -54,6 +54,8 @@ function UPAction:new(name, initData)
     self:SetIcon(initData.icon)
     self:SetLabel(initData.label)
 
+    self.TrackId = initData.TrackId or 0
+
     return self
 end
 
@@ -86,16 +88,16 @@ end
 
 function UPAction:GetPlayerEffect(ply, effName)
     if effName == 'CACHE' then
-        return ply.upeffect_cache[self.Name] or self.Effects.default
+        return ply.upeff_cache[self.Name] or self.Effects.default
     else
         return self.Effects[effName] or self.Effects.default
     end
 end
 
 function UPAction:GetPlayerUsingEffect(ply)
-    local effName = ply.upeffect_config[self.Name] or 'default'
+    local effName = ply.upeff_cfg[self.Name] or 'default'
     if effName == 'CACHE' then
-        return ply.upeffect_cache[self.Name] or self.Effects.default
+        return ply.upeff_cache[self.Name] or self.Effects.default
     else
         return self.Effects[effName] or self.Effects.default
     end
