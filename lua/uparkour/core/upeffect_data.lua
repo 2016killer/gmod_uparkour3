@@ -14,7 +14,7 @@ UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 		error(string.format('Invalid effect "%s" for action "%s"', tarName, actName))
 	end
 
-	local effect = table.Merge(table.Copy(targetEffect), initData)
+	local effect = table.Merge(UPar.Clone(targetEffect), initData)
 	effect.Name = name
 	effect:Register()
 	

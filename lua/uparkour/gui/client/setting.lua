@@ -7,8 +7,8 @@
 local function CreateMenu(panel)
 	panel:Clear()
 
-	local button = panel:Button('#upgui.menu.loadluafile')
-	button.DoClick = function()
+	local loadButton = panel:Button('#upgui.menu.loadluafile')
+	loadButton.DoClick = function()
 		UPar.LoadLuaFiles('class')
 		UPar.LoadLuaFiles('core')
 		UPar.LoadLuaFiles('actions')

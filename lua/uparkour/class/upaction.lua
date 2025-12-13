@@ -50,9 +50,9 @@ function UPAction:new(name, initData)
 
     self:InitCVarDisabled(initData.disabled)
 
-    self.Check = initData.Check or UPar.emptyfunc
+    self.Check = initData.Check or UPar.tablefunc
     self.Start = initData.Start or UPar.emptyfunc
-    self.Play = initData.Play or UPar.emptyfunc
+    self.Think = initData.Think or UPar.tablefunc
     self.Clear = initData.Clear or UPar.emptyfunc
 
     self:SetIcon(initData.icon)

@@ -25,6 +25,20 @@ UPar.tablefunc = function() return {} end
 UPar.emptyTable = {}
 UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
+UPar.Clone = function(obj)
+    if not istable(obj) then
+		print('[UPar]: clone faild, obj is not a table')
+        return obj
+    end
+    
+    local cloned = table.Copy(obj)
+    
+    local mt = getmetatable(obj)
+    if mt then setmetatable(cloned, mt) end
+    
+    return cloned
+end
+
 UPar.SnakeTranslate = function(key, prefix, sep, joint)
 	-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
 	-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
@@ -40,23 +54,6 @@ UPar.SnakeTranslate = function(key, prefix, sep, joint)
 	end
 
 	return table.concat(split, joint, 1, #split)
-end
-
-UPar.printdata = function(flag, ...)
-    local total = select('#', ...)
-	local temp = {...}
-	print('[UPar]: ---------------' .. flag .. '---------------')
-	print('total:', total)
-    for i = 1, total do
-        local data = temp[i]
-        if istable(data) then
-			print('arg'..tostring(i)..':', data)
-			PrintTable(data)
-		else
-			print('arg'..tostring(i)..':', data)
-		end
-    end
-	print('\n\n')
 end
 
 UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)

@@ -49,7 +49,7 @@ UPar.ActChangeRhythm = ActChangeRhythm
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
 
-
+local GetAction = UPar.GetAction
 if SERVER then
     util.AddNetworkString('UParCallClientAction')
 	util.AddNetworkString('UParStart')
@@ -270,7 +270,6 @@ elseif CLIENT then
 		MoveControl.AddKeys = addKeys
 	end
 
-	local GetAction = UPar.GetAction
     net.Receive('UParCallClientAction', function()
         local data = net.ReadTable()
 		local ply = LocalPlayer()
@@ -285,7 +284,10 @@ elseif CLIENT then
 			if v.method == 'Start' then
 				ActStart(ply, action, checkResult)
 			elseif v.method == 'Clear' then
-				ActClear(ply, action, checkResult, nil, nil, GetAction(v.isource), v.iargs)
+				local iactName = v.iactName
+				local interruptSource = isbool(iactName) and iactName or GetAction(iactName)
+				local interruptData = v.iargs
+				ActClear(ply, action, checkResult, nil, nil, interruptSource, interruptData)
 			elseif v.method == 'ChangeRhythm' then
 				local customData = checkResult
 				ActChangeRhythm(ply, action, customData)

@@ -1,6 +1,6 @@
 --[[
 	作者:白狼
-	2025 11 1
+	2025 12 13
 ]]--
 
 -- ==================== 低爬 ===============
@@ -90,7 +90,7 @@ function action:Start(ply, data)
 	end
 end
 
-function action:Play(ply, mv, cmd, data)
+function action:Think(ply, mv, cmd, data)
 	local startpos = data.startpos
 	local endpos = data.endpos
 	local startspeed = data.startspeed
