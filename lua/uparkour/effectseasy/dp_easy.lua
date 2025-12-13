@@ -5,8 +5,8 @@
 // 		punch = true,
 // 		upunch = false,
 
-// 		AAAContributor = '余智博',
-// 		AAADescription = '#dp.pceffect.description',
+// 		AAAContrib = '余智博',
+// 		AAADesc = '#dp.pceffect.description',
 // 	}
 // )
 
@@ -17,8 +17,8 @@
 // 		punch = true,
 // 		upunch = false,
 
-// 		AAAContributor = '余智博',
-// 		AAADescription = '#dp.pceffect.description',
+// 		AAAContrib = '余智博',
+// 		AAADesc = '#dp.pceffect.description',
 // 	}
 // )
 
@@ -29,8 +29,8 @@
 // 		punch = true,
 // 		upunch = false,
 
-// 		AAAContributor = '余智博',
-// 		AAADescription = '#dp.pceffect.description',
+// 		AAAContrib = '余智博',
+// 		AAADesc = '#dp.pceffect.description',
 // 	}
 // )
 

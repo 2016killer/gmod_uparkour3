@@ -18,8 +18,8 @@ local effect = UPEffect:new('default', {
 		punch = false,
 		punch_ang = Angle(0, 0, -5),
 
-		AAAContributor = '白狼',
-		AAADescription = '默认的低爬动作特效',
+		AAAContrib = '白狼',
+		AAADesc = '默认的低爬动作特效',
 	}
 )
 
