@@ -6,7 +6,7 @@
 -- ==================== 生命期 ===============
 if not GetConVar('developer'):GetBool() then return end
 
-local action = UPAction:new('test_lifecycle', {})
+local action = UPAction:new('test_lifecycle', {AAACreat = '白狼'})
 action:Register()
 
 function action:Check(ply, data)
@@ -48,7 +48,7 @@ function action:Clear(ply, checkResult, mv, cmd, interruptSource, interruptData)
 	print('interruptData:', interruptData)
 end
 
-local effect = UPEffect:new('default', {})
+local effect = UPEffect:new('default', {AAACreat = '白狼'})
 effect:Register(action.Name)
 
 function effect:Start(ply, checkResult)

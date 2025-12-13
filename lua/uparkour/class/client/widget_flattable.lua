@@ -104,7 +104,7 @@ function FlatTableEditor:Update(key, newVal)
 	self:OnUpdate(key, newVal)
 end
 
-FlatTableEditor:OnUpdate = UPar.emptyFunc
+FlatTableEditor.OnUpdate = UPar.emptyFunc
 
 vgui.Register('UPFlatTableEditor', FlatTableEditor, 'DForm')
 FlatTableEditor = nil

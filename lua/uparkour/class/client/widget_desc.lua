@@ -13,27 +13,22 @@ function Description:Init2(action)
 		return
 	end
 
-	local actCreater = action.AAACreat
-	local actContrib = action.AAAContrib
-	local actDesc = action.AAADesc
-
-	self:Help(language.GetPhrase('upgui.desc'), actDesc)
-	self:Help('==========================================')
-	self:ControlHelp(language.GetPhrase('upgui.creat') .. tostring(actCreater))
-	self:ControlHelp(language.GetPhrase('upgui.contrib') .. tostring(actContrib))
-	self:Help('==========================================')
-	self:Help(language.GetPhrase('upgui.effect') .. language.GetPhrase('upgui.creat'))
+	self:Help(string.format('%s: %s', language.GetPhrase('upgui.desc'), language.GetPhrase(tostring(action.AAADesc))))
+	self:Help('====================')
+	self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), action.AAACreat))
+	self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), action.AAAContrib))
+	self:Help('====================')
 	for effName, effect in pairs(action.Effects) do
 		if not UPar.isupeffect(effect) then
 			print(string.format('Invalid effect "%s" (not upeffect)', effName))
 			continue
 		end
-		local effDesc = effect.AAADesc
-		local effCreater = effect.AAACreat
-		local effContrib = effect.AAAContrib
+		self:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))
+		self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), effect.AAACreat))
+		self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), effect.AAAContrib))
+		self:Help('')
 	end
 end
-
 
 vgui.Register('UParDescription', Description, 'DForm')
 Description = nil

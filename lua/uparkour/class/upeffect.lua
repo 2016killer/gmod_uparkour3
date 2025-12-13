@@ -43,32 +43,14 @@ function UPEffect:new(name, initData)
 	self.Clear = self.Clear or UPar.emptyfunc
 	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
 
-    self:SetIcon(initData.icon)
-    self:SetLabel(initData.label)
+    
+    self.icon = SERVER and nil or initData.icon
+    self.label = SERVER and nil or initData.label
+    self.AAACreate = SERVER and nil or initData.AAACreate
+    self.AAADesc = SERVER and nil or initData.AAADesc
+    self.AAAContrib = SERVER and nil or initData.AAAContrib
 
     return self
-end
-
-function UPEffect:SetIcon(icon)
-    if SERVER then 
-        self.icon = nil 
-    elseif CLIENT then
-        if icon ~= nil and not isstring(icon) then
-            error(string.format('Invalid icon "%s" (not a string)', icon))
-        end
-        self.icon = icon 
-    end
-end
-
-function UPEffect:SetLabel(label)
-    if SERVER then
-        self.label = nil
-    elseif CLIENT then
-        if label ~= nil and not isstring(label) then
-            error(string.format('Invalid label "%s" (not a string)', label))
-        end
-        self.label = label
-    end
 end
 
 function UPEffect:Register(actName)
@@ -77,10 +59,7 @@ function UPEffect:Register(actName)
         error(string.format('Invalid action "%s"', actName))
     end
 
-    if hook.Run('UParRegisterEffect', actName, self.Name, self) then 
-        return 
-    end
-    
+    hook.Run('UParRegisterEffect', actName, self.Name, self) 
 	action.Effects[self.Name] = self
 end
 

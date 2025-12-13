@@ -55,40 +55,19 @@ function UPAction:new(name, initData)
     self.Think = initData.Think or UPar.tablefunc
     self.Clear = initData.Clear or UPar.emptyfunc
 
-    self:SetIcon(initData.icon)
-    self:SetLabel(initData.label)
+    self.icon = SERVER and nil or initData.icon
+    self.label = SERVER and nil or initData.label
+    self.AAACreate = SERVER and nil or initData.AAACreate
+    self.AAADesc = SERVER and nil or initData.AAADesc
+    self.AAAContrib = SERVER and nil or initData.AAAContrib
 
     self.TrackId = initData.TrackId or 0
 
     return self
 end
 
-function UPAction:SetIcon(icon)
-    if SERVER then 
-        self.icon = nil 
-    elseif CLIENT then
-        if icon ~= nil and not isstring(icon) then
-            error(string.format('Invalid icon "%s" (not a string)', icon))
-        end
-        self.icon = icon 
-    end
-end
-
-function UPAction:SetLabel(label)
-    if SERVER then
-        self.label = nil
-    elseif CLIENT then
-        if label ~= nil and not isstring(label) then
-            error(string.format('Invalid label "%s" (not a string)', label))
-        end
-        self.label = label
-    end
-end
-
 function UPAction:Register()
-    if hook.Run('UParRegisterAction', self.Name, self) then 
-        return 
-    end
+    hook.Run('UParRegisterAction', self.Name, self) 
     Instances[self.Name] = self
 end
 
@@ -126,7 +105,11 @@ function UPAction:GetDisabled()
 end
 
 function UPAction:SetDisabled(disabled)
-    self.CV_Disabled:SetBool(!!disabled)
+    if SERVER then 
+        self.CV_Disabled:SetBool(!!disabled)
+    elseif CLIENT then
+        RunConsoleCommand(self.CV_Disabled:GetName(), (!!disabled) and '1' or '0')
+    end
 end
 
 function UPAction:InitCVarPredictionMode(default)
@@ -138,11 +121,16 @@ function UPAction:InitCVarPredictionMode(default)
 end
 
 function UPAction:GetPredictionMode()
+    if not self.CV_PredictionMode then return nil end
     return self.CV_PredictionMode:GetBool()
 end
 
 function UPAction:SetPredictionMode(predictionMode)
-    self.CV_PredictionMode:SetBool(!!predictionMode)
+    if SERVER then 
+        self.CV_PredictionMode:SetBool(!!predictionMode)
+    elseif CLIENT then
+        RunConsoleCommand(self.CV_PredictionMode:GetName(), (!!predictionMode) and '1' or '0')
+    end
 end
 
 function UPAction:InitCVarKeybind(default)
@@ -155,7 +143,7 @@ function UPAction:InitCVarKeybind(default)
 end
 
 function UPAction:GetKeybind()
-    if SERVER then return end
+    if SERVER or not self.CV_Keybind then return nil end
 
     local keys = string.Split(self.CV_Keybind:GetString(), ' ') 
     local result = {}

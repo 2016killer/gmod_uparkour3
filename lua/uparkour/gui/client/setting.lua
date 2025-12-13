@@ -7,16 +7,17 @@
 local function CreateMenu(panel)
 	panel:Clear()
 
-	local loadButton = panel:Button('#upgui.menu.loadluafile')
-	loadButton.DoClick = function()
-		UPar.LoadLuaFiles('class')
-		UPar.LoadLuaFiles('core')
-		UPar.LoadLuaFiles('actions')
-		UPar.LoadLuaFiles('effects')
-		UPar.LoadLuaFiles('effectseasy')
-		UPar.LoadLuaFiles('expansion')
-		UPar.LoadLuaFiles('gui')
-		UPar.LoadLuaFiles('version_compat')
+	local loadclButton = panel:Button('#upgui.loadcllua')
+	loadclButton.DoClick = function()
+		UPar.LoadAllLuaFiles()
+	end
+	panel:ControlHelp('#upgui.loadcllua.help')
+
+	if LocalPlayer():IsSuperAdmin() then
+		local loadsvButton = panel:Button('#upgui.loadsvlua')
+		loadsvButton.DoClick = function()
+			UPar.SendLoadAllLuaFiles()
+		end
 	end
 
 	panel:CheckBox('#up.gmodlegs3_compat', 'up_gmodlegs3_compat')
@@ -26,11 +27,11 @@ local function CreateMenu(panel)
 	panel:ControlHelp(UPar.Version)
 end
 
-hook.Add('PopulateToolMenu', 'upar.menu.cl_setting', function()
+hook.Add('PopulateToolMenu', 'upar.menu.setting', function()
 	spawnmenu.AddToolMenuOption('Options', 
-		'UParkour 3', 
-		'upar.menu.cl_setting', 
-		'#upgui.menu.cl_setting', '', '', 
+		'UParkour', 
+		'upar.menu.setting', 
+		'#upgui.menu.setting', '', '', 
 		CreateMenu
 	)
 end)
