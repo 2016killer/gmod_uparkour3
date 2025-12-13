@@ -23,18 +23,6 @@ local function isupeffect(obj)
     return false
 end
 
-local function StartDefault(self, ply, ...)
-	UPar.printdata(string.format('Effect Start "%s" %s', self.Name, ply), ...)
-end
-
-local function ClearDefault(self, ply, ...)
-	UPar.printdata(string.format('Effect Clear "%s" %s', self.Name, ply), ...)
-end
-
-local function OnRhythmChangeDefault(self, ply, ...)
-	UPar.printdata(string.format('Effect OnRhythmChange "%s" %s', self.Name, ply), ...)
-end
-
 function UPEffect:new(name, initData)
     if string.find(name, '[\\/:*?\"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
@@ -47,9 +35,9 @@ function UPEffect:new(name, initData)
     local self = setmetatable({}, UPEffect)
 
 	self.Name = name
-	self.Start = self.Start or StartDefault
-	self.Clear = self.Clear or ClearDefault
-	self.OnRhythmChange = self.OnRhythmChange or OnRhythmChangeDefault
+	self.Start = self.Start or UPar.emptyfunc
+	self.Clear = self.Clear or UPar.emptyfunc
+	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
 
     self:SetIcon(initData.icon)
     self:SetLabel(initData.label)
@@ -82,63 +70,9 @@ function UPEffect:Register(actName)
     if hook.Run('UParRegisterEffect', actName, self.Name, self) then 
         return 
     end
+    
 	action.Effects[self.Name] = self
 end
 
-function UPEffect:IsCustom()
-	return !!self.linkName
-end
-
-function UPEffect:CreateCustom(name)
-	return {
-		Name = name,
-		linkName = self.Name,
-		icon = 'icon64/tool.png'
-	}
-end
-
-function UPEffect:InitCustom(actName, name)
-	if not self.linkName then 
-		return true
-	end
-
-	local action = UPar.GetAction(actName)
-	if not action then
-		print(string.format('[UPar]: init custom effect failed, action "%s" not found', actName))
-		return false
-	end
-
-	local target = action:GetEffect(self.linkName)
-	if not target then
-		print(string.format('[UPar]: init custom effect failed, action "%s" effect "%s" not found', actName, linkName))
-		return false
-	end
-
-	for k, v in pairs(target) do
-		if custom[k] == nil then custom[k] = v end
-	end
-
-	return true
-end
-
 UPar.isupeffect = isupeffect
-
-
--- ===================== 测试 ===================== 
-// local effect = UPEffect:new('testt', {
-//     Effects = {
-//         default = 'SP-VManip-白狼',
-//     },
-// })
-
-// effect:SetIcon('icon16/star.png')
-// effect:SetLabel('测试特效')
-
-// if SERVER then
-// elseif CLIENT then
-//     effect:Start(LocalPlayer(), nil, nil, 1, 2, 3, 4)
-//     effect:Clear(LocalPlayer())
-//     effect:OnRhythmChange(LocalPlayer())
-// end
-// PrintTable(effect)
 

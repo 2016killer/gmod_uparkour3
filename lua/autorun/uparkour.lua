@@ -145,23 +145,6 @@ if CLIENT then
 	end
 end
 
-UPar.PackResult = function(...)
-    local first = ...
-    if not first then 
-		return nil 
-	end
-
-    local dataSize = select('#', ...)
-	local result = {...}
-    for i = 1, dataSize do
-        if result[i] == nil then
-            result[i] = ''
-        end
-    end
-
-    return result, dataSize
-end
-
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
 // UPar.LoadLuaFiles('actions')
@@ -169,6 +152,7 @@ UPar.LoadLuaFiles('core')
 // UPar.LoadLuaFiles('effectseasy')
 // UPar.LoadLuaFiles('expansion')
 // UPar.LoadLuaFiles('gui')
+UPar.LoadLuaFiles('version_compat')
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()
 	PrintTable(UPar)

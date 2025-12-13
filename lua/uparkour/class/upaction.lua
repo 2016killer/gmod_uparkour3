@@ -207,36 +207,3 @@ UPar.GetAllActions = function() return Instances end
 UPar.GetAction = function(name) return Instances[name] end
 UPar.isupaction = isupaction
 
-
-// -- ===================== 测试 ===================== 
-// local action = UPAction:new('testt', {
-//     Effects = {
-//         default = 'SP-VManip-白狼',
-//     },
-// })
-
-
-// action:SetIcon('icon16/star.png')
-// action:SetLabel('测试动作')
-
-// action:InitCVarPredictionMode(true)
-// print(action:GetPredictionMode())
-// if SERVER then
-//     print(action:GetDisabled())
-//     action:SetDisabled(false)
-// elseif CLIENT then
-//     action:InitCVarKeybind('0 0 0')
-//     action:SetKeybind({50, 0111, 20})
-
-//     print(action:GetKeybind())
-//     PrintTable(action:GetKeybind())
-
-//     print(action:GetPlayerEffect(LocalPlayer(), 'default'))
-//     action:Play(LocalPlayer(), nil, nil, 1, 2, 3, 4)
-//     action:Clear(LocalPlayer())
-//     action:Check(LocalPlayer())
-
-//     print(action:GetPredictionMode())
-// end
-// PrintTable(action)
-
