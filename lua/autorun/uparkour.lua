@@ -123,7 +123,7 @@ if CLIENT then
 	end
 
 
-	UPar.SaveUserDataToDisk = function(data, path)
+	UPar.SaveUserDataToDisk = function(data, path, noMetadata)
 		-- 保存用户数据到磁盘, 返回 是否成功
 		-- 此操作会自动添加元数据 AAAMetadata
 
@@ -131,11 +131,15 @@ if CLIENT then
 			error(string.format('SaveUserDataToDisk: data must be a table, but got %s\n', type(data)))
 			return
 		end
-		
-		data.AAAMetadata = {
-			version = UPar.Version,
-			date = os.date('%Y-%m-%d %H:%M:%S'),
-		}
+
+		if noMetadata then
+			data.AAAMetadata = nil
+		else
+			data.AAAMetadata = {
+				version = UPar.Version,
+				date = os.date('%Y-%m-%d %H:%M:%S'),
+			}
+		end
 
 		local content = util.TableToJSON(data, true) or '{}'
 		local succ = file.Write(path, content)
@@ -147,11 +151,11 @@ end
 
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
-// UPar.LoadLuaFiles('actions')
-// UPar.LoadLuaFiles('effects')
-// UPar.LoadLuaFiles('effectseasy')
-// UPar.LoadLuaFiles('expansion')
-// UPar.LoadLuaFiles('gui')
+UPar.LoadLuaFiles('actions')
+UPar.LoadLuaFiles('effects')
+UPar.LoadLuaFiles('effectseasy')
+UPar.LoadLuaFiles('expansion')
+UPar.LoadLuaFiles('gui')
 UPar.LoadLuaFiles('version_compat')
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()

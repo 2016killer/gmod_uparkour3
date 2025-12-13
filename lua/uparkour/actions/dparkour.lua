@@ -4,9 +4,11 @@
 ]]--
 
 -- ==================== 耻辱跑酷 ===============
-local action = UPAction:new('DParkour', {})
+local action = UPAction:new('DParkour', {
+	icon = 'dparkour/icon.jpg',
+	label = 'dp',
+})
 action:Register()
-action:SetIcon('dparkour/icon.jpg')
 action:InitConVars({
 	{
 		name = 'dp_los_cos',

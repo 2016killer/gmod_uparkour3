@@ -131,8 +131,8 @@ if SERVER then
 	end)
 
 elseif CLIENT then
-	file.CreateDir('uparkour_effect')
-	file.CreateDir('uparkour_effect/custom')
+	file.CreateDir('uparkour3_effect')
+	file.CreateDir('uparkour3_effect/custom')
 
 	UPar.SendEffectCacheToServer = function(data)
 		-- 为了过滤掉一些不能序列化的数据
@@ -162,27 +162,27 @@ elseif CLIENT then
 	end
 
 	UPar.LoadEffectConfigFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
+		return UPar.LoadUserDataFromDisk('uparkour3_effect/config.json')
 	end
 
 	UPar.LoadEffectCacheFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
+		return UPar.LoadUserDataFromDisk('uparkour3_effect/cache.json')
 	end
 
 	UPar.SaveEffectConfigToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour_effect/config.json')
+		UPar.SaveUserDataToDisk(data, 'uparkour3_effect/config.json')
 	end
 
 	UPar.SaveEffectCacheToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour_effect/cache.json')
+		UPar.SaveUserDataToDisk(data, 'uparkour3_effect/cache.json')
 	end
 
 	UPar.GetCustomEffectFile = function()
-		return file.Find('uparkour_effect/custom/*.json', 'DATA')
+		return file.Find('uparkour3_effect/custom/*.json', 'DATA')
 	end
 
 	UPar.LoadCustomEffectFromDisk = function(filename)
-		return UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
+		return UPar.LoadUserDataFromDisk('uparkour3_effect/custom/' .. filename)
 	end
 
 	hook.Add('KeyPress', 'upar.init.effect', function(ply, key)
@@ -194,7 +194,6 @@ elseif CLIENT then
 		UPar.SendEffectCacheToServer(effectCache)
 		UPar.SendEffectConfigToServer(effectConfig)
 
-		-- 初始化自定义特效
 		for actName, custom in pairs(effectCache) do
 			UPar.InitCustomEffect(actName, custom)
 		end

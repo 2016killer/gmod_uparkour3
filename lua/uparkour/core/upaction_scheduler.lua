@@ -25,9 +25,9 @@ end
 
 local function ActChangeRhythm(ply, action, customData)
 	local effect = action:GetPlayerUsingEffect(ply)
-	local prevent = SeqHookRun('UParChangeRhythm', ply, action, effect, customData)
+	local prevent = SeqHookRun('UParOnChangeRhythm', ply, action, effect, customData)
 	if not prevent and effect then
-		effect:ChangeRhythm(ply, customData)
+		effect:OnRhythmChange(ply, customData)
 	end
 
 	if SERVER then

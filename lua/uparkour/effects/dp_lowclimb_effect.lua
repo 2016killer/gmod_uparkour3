@@ -25,7 +25,7 @@ local effect = UPEffect:new('default', {
 
 effect:Register('DParkour-LowClimb')
 
-function effect:Start(self, ply)
+function effect:Start(ply)
 	-- WOS动画
 	if self.WOSAnim and self.WOSAnim ~= '' then
 		if SERVER then

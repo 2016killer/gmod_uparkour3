@@ -4,11 +4,12 @@
 ]]--
 
 -- ==================== 低爬 ===============
+local action = UPAction:new('DParkour-LowClimb', {
+	icon = 'dparkour/icon.jpg',
+	label = 'dp_lc',
+})
 
-
-local action = UPAction:new('DParkour-LowClimb', {})
 action:Register()
-action:SetIcon('dparkour/icon.jpg')
 action:InitConVars({
 	{
 		name = 'dp_los_cos',

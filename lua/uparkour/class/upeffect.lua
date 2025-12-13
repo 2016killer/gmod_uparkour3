@@ -34,6 +34,10 @@ function UPEffect:new(name, initData)
 
     local self = setmetatable({}, UPEffect)
 
+    for k, v in pairs(initData) do
+        self[k] = v
+    end
+
 	self.Name = name
 	self.Start = self.Start or UPar.emptyfunc
 	self.Clear = self.Clear or UPar.emptyfunc
@@ -46,19 +50,25 @@ function UPEffect:new(name, initData)
 end
 
 function UPEffect:SetIcon(icon)
-    if SERVER or icon == nil then return end
-    if not isstring(icon) then
-        error(string.format('Invalid icon "%s" (not a string)', icon))
+    if SERVER then 
+        self.icon = nil 
+    elseif CLIENT then
+        if icon ~= nil and not isstring(icon) then
+            error(string.format('Invalid icon "%s" (not a string)', icon))
+        end
+        self.icon = icon 
     end
-    self.icon = icon
 end
 
 function UPEffect:SetLabel(label)
-    if SERVER or label == nil then return end
-    if not isstring(label) then
-        error(string.format('Invalid label "%s" (not a string)', label))
+    if SERVER then
+        self.label = nil
+    elseif CLIENT then
+        if label ~= nil and not isstring(label) then
+            error(string.format('Invalid label "%s" (not a string)', label))
+        end
+        self.label = label
     end
-    self.label = label
 end
 
 function UPEffect:Register(actName)

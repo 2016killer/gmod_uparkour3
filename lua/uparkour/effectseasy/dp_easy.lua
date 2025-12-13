@@ -1,38 +1,37 @@
-UPar.RegisterEffectEasy(
-	'DParkour-HighClimb', 
-	'PunchCompat',
-	{
-		punch = true,
-		upunch = false,
+// UPar.RegisterEffectEasy(
+// 	'DParkour-HighClimb', 
+// 	'PunchCompat',
+// 	{
+// 		punch = true,
+// 		upunch = false,
 
-		AAAContributor = '余智博',
-		AAADescription = '#dp.pceffect.description',
-	}
-)
+// 		AAAContributor = '余智博',
+// 		AAADescription = '#dp.pceffect.description',
+// 	}
+// )
 
-UPar.RegisterEffectEasy(
-	'DParkour-LowClimb', 
-	'PunchCompat',
-	{
-		punch = true,
-		upunch = false,
+// UPar.RegisterEffectEasy(
+// 	'DParkour-LowClimb', 
+// 	'PunchCompat',
+// 	{
+// 		punch = true,
+// 		upunch = false,
 
-		AAAContributor = '余智博',
-		AAADescription = '#dp.pceffect.description',
-	}
-)
+// 		AAAContributor = '余智博',
+// 		AAADescription = '#dp.pceffect.description',
+// 	}
+// )
 
-UPar.RegisterEffectEasy(
-	'DParkour-Vault', 
-	'PunchCompat',
-	{
-		punch = true,
-		upunch = false,
+// UPar.RegisterEffectEasy(
+// 	'DParkour-Vault', 
+// 	'PunchCompat',
+// 	{
+// 		punch = true,
+// 		upunch = false,
 
-		AAAContributor = '余智博',
-		AAADescription = '#dp.pceffect.description',
-	}
-)
+// 		AAAContributor = '余智博',
+// 		AAADescription = '#dp.pceffect.description',
+// 	}
+// )
 
-
-
+print('fuck you')

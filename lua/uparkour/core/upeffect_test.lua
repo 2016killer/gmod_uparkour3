@@ -1,7 +1,21 @@
 --[[
 	作者:白狼
-	2025 11 1
+	2025 12 13
 --]]
+
+UPar.GeneralEffectClear = function(self, ply, interruptSource, _)
+	if SERVER then
+		ply:SetNWString('UP_WOS', '')
+	elseif CLIENT and interruptSource then
+		VManip:Remove()
+	elseif CLIENT then
+		local currentAnim = VManip:GetCurrentAnim()
+		if currentAnim and currentAnim == self.VManipAnim then
+			VManip:QuitHolding(currentAnim)
+		end
+	end
+end
+
 
 UPar.EffectTest = function(ply, actName, effName)
 	local action = UPar.GetAction(actName)
@@ -16,15 +30,9 @@ UPar.EffectTest = function(ply, actName, effName)
 		return
 	end
 
-	effect:start(ply)
-	timer.Simple(1, function() effect:clear(ply) end)
-	
-	if CLIENT then
-		net.Start('UParEffectTest')
-			net.WriteString(actName)
-			net.WriteString(effName)
-		net.SendToServer()
-	end
+	effect:Start(ply)
+	timer.Simple(1, function() effect:OnRhythmChange(ply) end)
+	timer.Simple(2, function() effect:Clear(ply) end)
 end
 
 if SERVER then
@@ -37,9 +45,10 @@ if SERVER then
 		UPar.EffectTest(ply, actName, effName)
 	end)
 elseif CLIENT then
-	UPar.SendEffectTest = function(actName, effName)
-		UPar.EffectTest(LocalPlayer(), actName, effName)
-
+	UPar.CallServerEffectTest = function(actName, effName)
+		net.Start('UParEffectTest')
+			net.WriteString(actName)
+			net.WriteString(effName)
+		net.SendToServer()
 	end
 end
-
