@@ -1,12 +1,17 @@
-# Implementation of the UPAction Interface  
+<p align="center">
+  <a href="./README_en.md">English</a> |
+  <a href="./README.md">简体中文</a>
+</p>
+
 - Author: 白狼 
 - Translator: Miss DouBao  
 - Date: December 10, 2025  
+- Version: 3.0.0
 
+# Implementation of the UPAction Interface  
+This version abandons the parameter-aligned syntax used in version 2.1.0. Although sequence tables performed well in network transmission, frequent unpacking operations were cumbersome and made code maintenance difficult. Therefore, we have reverted to the approach from version 1.0.0.  
 
-This document abandons the parameter-aligned syntax used in version 2.1.0. Although sequence tables performed well in network transmission, frequent unpacking operations were cumbersome and made code maintenance difficult. Therefore, we have reverted to the approach from version 1.0.0.  
-
-This reversion also brings several advantages: for example, persistent data can be directly stored in tables, and inheritable data can be easily integrated. This significantly reduces development complexity.  
+This reversion also brings several advantages: for example, persistent data can be directly stored in tables, and inheritable data can be easily integrated. This significantly reduces development complexity. 
 
 
 # The UPAction Class  
