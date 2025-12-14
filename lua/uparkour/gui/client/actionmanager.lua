@@ -124,13 +124,20 @@ local function CreateMenu(panel)
 	actionManager:RefreshNode()
 	panel:AddItem(actionManager)
 
+	local refreshButton = panel:Button('#upgui.refresh', '')
+	refreshButton.DoClick = function()
+		actionManager:RefreshNode()
+	end
+
 	panel:Help('==========Version==========')
 	panel:ControlHelp(UPar.Version)
 
 	UPar.ActionManager = actionManager
 
-	hook.Add('UParRegisterAction', 'upar.update.actionmanager', function()
-		actionManager:RefreshNode()
+	hook.Add('UParRegisterAction', 'upar.update.actionmanager', function(actName, action)
+		timer.Create('upar.update.actionmanager', 0.5, 1, function()
+			actionManager:RefreshNode()
+		end)
 	end)
 end
 

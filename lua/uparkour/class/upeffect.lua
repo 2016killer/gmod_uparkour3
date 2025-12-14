@@ -50,6 +50,14 @@ function UPEffect:new(name, initData)
     self.AAADesc = SERVER and nil or initData.AAADesc
     self.AAAContrib = SERVER and nil or initData.AAAContrib
 
+    self.PreviewPanelOverride = SERVER and nil or initData.PreviewPanelOverride
+    self.EditorPanelOverride = SERVER and nil or initData.EditorPanelOverride
+
+    self.EditorKVExpand = SERVER and nil or initData.EditorKVExpand
+    self.EditorKVVisible = SERVER and nil or initData.EditorKVVisible
+    self.PreviewKVExpand = SERVER and nil or initData.PreviewKVExpand
+    self.PreviewKVVisible = SERVER and nil or initData.PreviewKVVisible
+    
     return self
 end
 

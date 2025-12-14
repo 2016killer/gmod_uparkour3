@@ -3,11 +3,12 @@
 	2025 12 09
 --]]
 
-local white = Color(255, 255, 255)
+local lightblue = Color(0, 170, 255)
 -- ==================== 特效管理器 ===============
 local EffectManager = {}
 
 EffectManager.EditorKeyFilter = {
+	AAACreat = true,
 	AAAContrib = true,
 	AAADesc = true,
 	Name = true,
@@ -32,12 +33,13 @@ EffectManager.PreviewFilter = function(_, val)
 end
 
 EffectManager.PreviewKeyImportant = {
-	AAAContrib = Color(0, 170, 255),
-	AAADesc = Color(0, 170, 255),
+	AAACreat = lightblue,
+	AAAContrib = lightblue,
+	AAADesc = lightblue,
 }
 
-function EffectManager:CreateEffectPreview(effect)
-	if not istable(effect) then
+function EffectManager:CreatePreview(effect)
+	if not UPar.isupeffect(effect) then
 		return
 	end
 
@@ -46,7 +48,8 @@ function EffectManager:CreateEffectPreview(effect)
 	customButton:SetText('#upgui.custom')
 	customButton:SetIcon('icon64/tool.png')
 	customButton.DoClick = function()
-		self:OnClickCustomButton(effect.Name)
+		
+		self:OnCreateCustom()
 	end
 	customButton:Dock(TOP)
 	customButton:DockMargin(0, 5, 0, 5)
@@ -54,14 +57,14 @@ function EffectManager:CreateEffectPreview(effect)
 	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
 	scrollPanel:Dock(FILL)
 
-	if effect.upgui_prop_PreviewOverride then
-		effect:upgui_prop_PreviewOverride(scrollPanel, self)
+	if isfunction(effect.PreviewPanelOverride) then
+		effect:PreviewPanelOverride(scrollPanel, self)
 		return mainPanel
 	end
 
-	local keyFilter = effect.upgui_prop_previewKeyFilter or self.PreviewKeyFilter
-	local funcFilter = effect.upgui_prop_PreviewFilter or self.PreviewFilter
-	local keyImportant = effect.upgui_prop_previewKeyImportant or self.PreviewKeyImportant
+	local keyFilter = effect.PreviewKeyFilter or self.PreviewKeyFilter
+	local funcFilter = effect.PreviewFilter or self.PreviewFilter
+	local keyImportant = effect.PreviewKeyImportant or self.PreviewKeyImportant
 
 	local preview = vgui.Create('UParTablePreview', scrollPanel)
 	preview:Dock(FILL)
@@ -237,7 +240,7 @@ function EffectManager:OnNodeSelected(selNode)
 		if iscustom then
 			rightPanel = self:CreateEffectEditor(effect)
 		else
-			rightPanel = self:CreateEffectPreview(effect)
+			rightPanel = self:CreatePreview(effect)
 		end
 		rightPanel:SetParent(effectPanel)
 		
@@ -295,17 +298,17 @@ function EffectManager:PlayEffect(effName)
 	UPar.EffectTest(LocalPlayer(), actName, effName)
 end
 
-EffectManager.OnClickPlayButton = UPar.emptyfunc
-EffectManager.OnClickSaveButton = UPar.emptyfunc
-EffectManager.OnSelectedChange = UPar.emptyfunc
-EffectManager.OnDoubleSelect = UPar.emptyfunc
-EffectManager.OnClickCustomButton = UPar.emptyfunc
+// EffectManager.OnClickPlayButton = UPar.emptyfunc
+// EffectManager.OnClickSaveButton = UPar.emptyfunc
+// EffectManager.OnSelectedChange = UPar.emptyfunc
+// EffectManager.OnDoubleSelect = UPar.emptyfunc
+// EffectManager.OnClickCustomButton = UPar.emptyfunc
 
-// EffectManager.OnClickPlayButton = function(self, ...) print('OnClickPlayButton', ...) end
-// EffectManager.OnClickSaveButton = function(self, ...) print('OnClickSaveButton', ...) end
-// EffectManager.OnSelectedChange = function(self, ...) print('OnSelectedChange', ...) end
-// EffectManager.OnDoubleSelect = function(self, ...) print('OnDoubleSelect', ...) end
-// EffectManager.OnClickCustomButton = function(self, ...) print('OnClickCustomButton', ...) end
+EffectManager.OnClickPlayButton = function(self, ...) print('OnClickPlayButton', ...) end
+EffectManager.OnClickSaveButton = function(self, ...) print('OnClickSaveButton', ...) end
+EffectManager.OnSelectedChange = function(self, ...) print('OnSelectedChange', ...) end
+EffectManager.OnDoubleSelect = function(self, ...) print('OnDoubleSelect', ...) end
+EffectManager.OnClickCustomButton = function(self, ...) print('OnClickCustomButton', ...) end
 
 vgui.Register('UParEffectManager', EffectManager, 'DPanel')
 EffectManager = nil

@@ -11,7 +11,17 @@
 <a href="./HOOK.md">Hook</a>  
 <a href="./LIFECYCLE.md">Lifecycle</a>  
 
-- 作者：白狼
-- 翻译: 豆小姐
-- 日期：2025 12 10
-- 版本: 3.0.0
+
+# Hook
+
+![shared](materials/upgui/shared.jpg)
+**UParRegisterAction**(**string** actName, **UPAction** action)
+```note
+注册动作时触发
+```
+
+![shared](materials/upgui/shared.jpg)
+**UParRegisterEffect**(**string** actName, **string** effName, **UPEffect** effect)
+```note
+注册特效时触发
+```

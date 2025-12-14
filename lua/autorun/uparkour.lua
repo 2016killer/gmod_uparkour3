@@ -13,6 +13,11 @@
 	/effects/*.lua: UPEffect实例
 	/effectseasy/*.lua: UPEffect实例的简单拓展
 	/gui/*.lua: 控件的实现(q菜单等)
+
+	文档:
+		https://github.com/2016killer/gmod_uparkour3/blob/main/README.md
+		https://github.com/2016killer/gmod_uparkour3/blob/main/README_en.md
+
 --]]
 
 AddCSLuaFile()
@@ -146,36 +151,14 @@ if CLIENT then
 	end
 end
 
-UPar.LoadAllLuaFiles = function()
-	UPar.LoadLuaFiles('class')
-	UPar.LoadLuaFiles('core')
-	UPar.LoadLuaFiles('actions')
-	UPar.LoadLuaFiles('effects')
-	UPar.LoadLuaFiles('effectseasy')
-	UPar.LoadLuaFiles('expansion')
-	UPar.LoadLuaFiles('gui')
-	UPar.LoadLuaFiles('version_compat')
-end
-
-if SERVER then
-	util.AddNetworkString('UParLoadAllLuaFiles')
-
-	net.Receive('UParLoadAllLuaFiles', function(len, ply)
-		if not ply:IsSuperAdmin() then
-			ply:ChatPrint('You are not super admin, can not do this.')
-			return
-		end
-
-		UPar.LoadAllLuaFiles()
-	end)
-elseif CLIENT then
-	UPar.SendLoadAllLuaFiles = function()
-		net.Start('UParLoadAllLuaFiles')
-		net.SendToServer()
-	end
-end
-
-UPar.LoadAllLuaFiles()
+UPar.LoadLuaFiles('class')
+UPar.LoadLuaFiles('core')
+UPar.LoadLuaFiles('actions')
+UPar.LoadLuaFiles('effects')
+UPar.LoadLuaFiles('effectseasy')
+UPar.LoadLuaFiles('expansion')
+UPar.LoadLuaFiles('gui')
+UPar.LoadLuaFiles('version_compat')
 
 
 

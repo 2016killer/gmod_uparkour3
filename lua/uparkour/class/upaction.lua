@@ -61,6 +61,10 @@ function UPAction:new(name, initData)
     self.AAADesc = SERVER and nil or initData.AAADesc
     self.AAAContrib = SERVER and nil or initData.AAAContrib
 
+    self.ConVarsPanelOverride = SERVER and nil or initData.ConVarsPanelOverride
+    self.SundryPanels = SERVER and nil or initData.SundryPanels
+
+
     self.TrackId = initData.TrackId or 0
 
     return self
