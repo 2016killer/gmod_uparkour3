@@ -12,7 +12,7 @@
 <a href="./LIFECYCLE_en.md">Lifecycle</a>  
 <a href="./LRU_en.md">LRU</a>  
 
-- Author: 白狼  
+- Author: 白狼 2322012547@qq.com
 - Translator: Miss DouBao  
 - Date: December 10, 2025  
 - Version: 3.0.0  

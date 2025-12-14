@@ -29,7 +29,7 @@
 
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.PreviewKVVisible: ***table***  
+**UPEffect**.PreviewKVVisible: ***table*** or ***function***  
 ```lua
 -- 预览界面显示AAACreat为红色
 -- 隐藏AAADesc
@@ -40,6 +40,19 @@ effect.PreviewKVVisible = {
     AAAContrib = nil
 }
 ```
+```lua
+-- 预览界面显示AAACreat, AAADesc, AAAContrib为红色
+-- 过滤val为函数
+local filter = {
+    AAACreat = Color(255, 0, 0),
+    AAADesc = Color(255, 0, 0),
+    AAAContrib = Color(255, 0, 0),
+}
+effect.PreviewKVVisible = function(key, val)
+    return filter[key] or !isfunction(val)
+end
+```
+
 
 ![client](materials/upgui/client.jpg)
 **UPEffect**.PreviewKVExpand: ***function***  
@@ -56,7 +69,7 @@ end
 
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.EditorKVVisible: ***table***  
+**UPEffect**.EditorKVVisible: ***table*** or ***function***  
 ```lua
 -- 编辑器隐藏AAACreat, AAADesc, AAAContrib
 effect.EditorKVVisible = {
@@ -64,6 +77,17 @@ effect.EditorKVVisible = {
     AAADesc = false,
     AAAContrib = false
 }
+```
+```lua
+-- 编辑器隐藏AAACreat, AAADesc, AAAContrib, 函数 
+local filter = {
+    AAACreat = false,
+    AAADesc = false,
+    AAAContrib = false,
+}
+effect.EditorKVVisible = function(key, val)
+    return filter[key] or !isfunction(val)
+end
 ```
 
 ![client](materials/upgui/client.jpg)

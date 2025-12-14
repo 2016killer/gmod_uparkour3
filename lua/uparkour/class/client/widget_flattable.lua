@@ -6,11 +6,7 @@
 -- ==================== 扁平表编辑器 ===============
 local FlatTableEditor = {}
 
-function FlatTableEditor:Init2(obj, keyFilter, funcFilter, funcExpandedWidget)
-	-- keyFilter 表, 用于过滤不需要显示的键值对 例: {Example = true, ...}
-	-- funcFilter 函数, 用于过滤不需要显示的键值对 例: function(key, val) return key == 'Example' end
-	-- funcExpandedWidget 函数, 用于创建自定义的键值对控件 例: function(key, val, originWidget) return vgui.Create('DLabel') end
-
+function FlatTableEditor:Init2(obj, kVVisible, kvExpand)
 	self.obj = obj
 	
 	local keys = {}
@@ -19,8 +15,10 @@ function FlatTableEditor:Init2(obj, keyFilter, funcFilter, funcExpandedWidget)
 
 	for _, key in ipairs(keys) do
 		local val = self.obj[key]
-		if (istable(keyFilter) and keyFilter[key]) or (isfunction(funcFilter) and funcFilter(key, val)) then
-			continue
+
+		local keyColor = istable(kVVisible) and kVVisible[key] or nil
+		if keyColor == false then 
+			continue 
 		end
 
 		local origin = self:CreateKeyValueWidget(key, val)

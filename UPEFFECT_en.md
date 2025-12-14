@@ -30,7 +30,7 @@
 
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.PreviewKVVisible: ***table***  
+**UPEffect**.PreviewKVVisible: ***table*** or ***function***  
 ```lua
 -- Display AAACreat in red on the preview interface
 -- Hide AAADesc
@@ -40,6 +40,18 @@ effect.PreviewKVVisible = {
     AAADesc = false,
     AAAContrib = nil
 }
+```
+```lua
+-- Display AAACreat, AAADesc, and AAAContrib in red on the preview interface
+-- Filter out values (val) that are functions
+local filter = {
+    AAACreat = Color(255, 0, 0),
+    AAADesc = Color(255, 0, 0),
+    AAAContrib = Color(255, 0, 0),
+}
+effect.PreviewKVVisible = function(key, val)
+    return filter[key] or not isfunction(val)
+end
 ```
 
 ![client](materials/upgui/client.jpg)
@@ -57,7 +69,7 @@ end
 
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.EditorKVVisible: ***table***  
+**UPEffect**.EditorKVVisible: ***table*** or ***function***  
 ```lua
 -- Hide AAACreat, AAADesc, AAAContrib in the editor
 effect.EditorKVVisible = {
@@ -65,6 +77,17 @@ effect.EditorKVVisible = {
     AAADesc = false,
     AAAContrib = false
 }
+```
+```lua
+-- Hide AAACreat, AAADesc, AAAContrib, and function-type values in the editor
+local filter = {
+    AAACreat = false,
+    AAADesc = false,
+    AAAContrib = false,
+}
+effect.EditorKVVisible = function(key, val)
+    return filter[key] or not isfunction(val)
+end
 ```
 
 ![client](materials/upgui/client.jpg)
