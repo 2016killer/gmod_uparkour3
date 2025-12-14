@@ -47,6 +47,9 @@ end
 UPar.SnakeTranslate = function(key, prefix, sep, joint)
 	-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
 	-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
+	if not GetConVar('developer'):GetBool() then 
+		return key
+	end
 
 	prefix = prefix or 'upgui'
 	sep = sep or '_'

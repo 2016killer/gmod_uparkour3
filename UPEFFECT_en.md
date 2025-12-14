@@ -140,3 +140,25 @@ Triggered by UPar.ActChangeRhythm
 ```note
 Automatically called after UPAction:Clear
 ```
+
+![shared](materials/upgui/shared.jpg)
+**UPEffect** UPar.RegisterEffectEasy(**string** actName, **string** tarName, **string** name, **table** initData)
+```note
+This will find the corresponding effect from the registered ones, automatically clone it and overwrite the target.
+Set the console variable `developer` to 1 to prevent translation behavior, so that you can view the actual key names.
+```
+```lua
+-- Example:
+UPar.RegisterEffectEasy(
+	'DParkour-Vault', 
+	'default',
+    'PunchCompat',
+	{
+		punch = true,
+		upunch = false,
+        AAACreat = 'Zack',
+		AAAContrib = 'Yu Zhibo',
+		AAADesc = 'Disable upunch, which resolves camera conflict issues.',
+	}
+)
+```

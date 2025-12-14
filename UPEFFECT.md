@@ -141,3 +141,25 @@ end
 ```note
 会在UPAction:Clear后自动调用
 ```
+
+![shared](materials/upgui/shared.jpg)
+**UPEffect** UPar.RegisterEffectEasy(**string** actName, **string** tarName, **string** name, **table** initData)
+```note
+这会从已注册的当中找到对应的特效, 自动克隆并覆盖。
+将控制台变量 developer 设为 1 可以阻止翻译行为以便查看真实键名
+```
+```lua
+-- 例:
+UPar.RegisterEffectEasy(
+	'DParkour-Vault', 
+	'default',
+    'PunchCompat',
+	{
+		punch = true,
+		upunch = false,
+        AAACreat = 'Zack',
+		AAAContrib = '余智博',
+		AAADesc = '禁用upunch, 这可以解决相机冲突问题。',
+	}
+)
+```
