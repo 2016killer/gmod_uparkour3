@@ -5,13 +5,13 @@
 
 ## 目录
 
-<a href="./UPACTION.md">UPAction</a>  
-<a href="./UPEFFECT.md">UPEffect</a>  
-<a href="./SERHOOK.md">SeqHook</a>  
-<a href="./HOOK.md">Hook</a>  
-<a href="./LIFECYCLE.md">Lifecycle</a>  
-<a href="./LRU.md">LRU</a>  
-<a href="./CUSTOMEFFECT.md">Custom Effect</a>  
+<a href="./devdoc/UPACTION.md">UPAction</a>  
+<a href="./devdoc/UPEFFECT.md">UPEffect</a>  
+<a href="./devdoc/SERHOOK.md">SeqHook</a>  
+<a href="./devdoc/HOOK.md">Hook</a>  
+<a href="./devdoc/LIFECYCLE.md">Lifecycle</a>  
+<a href="./devdoc/LRU.md">LRU</a>  
+<a href="./devdoc/CUSTOMEFFECT.md">Custom Effect</a>  
 
 # UPEffect类
 

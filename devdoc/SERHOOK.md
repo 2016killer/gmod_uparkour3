@@ -3,44 +3,44 @@
   <a href="./README.md">简体中文</a>
 </p>
 
-## Table of Contents
+## 目录
 
-<a href="./UPACTION_en.md">UPAction</a>  
-<a href="./UPEFFECT_en.md">UPEffect</a>  
-<a href="./SERHOOK_en.md">SeqHook</a>  
-<a href="./HOOK_en.md">Hook</a>  
-<a href="./LIFECYCLE_en.md">Lifecycle</a>  
-<a href="./LRU_en.md">LRU</a>  
-<a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
+<a href="./devdoc/UPACTION.md">UPAction</a>  
+<a href="./devdoc/UPEFFECT.md">UPEffect</a>  
+<a href="./devdoc/SERHOOK.md">SeqHook</a>  
+<a href="./devdoc/HOOK.md">Hook</a>  
+<a href="./devdoc/LIFECYCLE.md">Lifecycle</a>  
+<a href="./devdoc/LRU.md">LRU</a>  
+<a href="./devdoc/CUSTOMEFFECT.md">Custom Effect</a>  
 
-## Sequence Hooks
+## 序列钩子
 
-## Operations
+## 操作方法
 
 ![shared](materials/upgui/shared.jpg)
 **int** UPar.SeqHookAdd(**string** eventName, **string** identifier, **function** func, **int** priority)
 ```note
-Use this method to add sequence hooks for events. If the identifier is duplicated and the priority is nil, the previous priority will be inherited.
-Return the current priority.
+使用此添加事件的序列钩子, 如果标识符重复且priority为nil的情况则继承之前的优先级。
+返回当前优先级。
 ```
 
 ![shared](materials/upgui/shared.jpg)
 UPar.SeqHookRemove(**string** eventName, **string** identifier)
 ```note
-Remove the hook with the specified identifier.
+移除指定标识符的钩子
 ```
 
-## Existing Hooks
+## 已存在的钩子
 
 ![shared](materials/upgui/shared.jpg)
 **bool** UParInterrupt(**Player** ply, **UPAction** playing, **table** playingData, **bool** or **UPAction** interruptSource)
 ```note
-Return true to allow interruption.
+返回 true 允许中断
 ```
 ```lua
--- Example:
--- Allow "test_lifecycle" to be interrupted by any action
--- Priority 0 is the highest
+-- 例:
+-- 允许 test_lifecycle 被任何动作中断
+-- 优先级 0 最高
 UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource, interruptData)
 	local playingName = playing.Name
 	if playingName ~= 'test_lifecycle' then
@@ -52,23 +52,23 @@ end, 0)
 ![shared](materials/upgui/shared.jpg)
 **bool** UParPreStart(**Player** ply, **UPAction** action, **table** checkResult)
 ```note
-Called after UPAction:Check passes. Return true to prevent the action from starting.
+在UPAction:Check通过后调用, 返回 true 阻止动作启动
 ```
 
 ![shared](materials/upgui/shared.jpg)
 **bool** UParStart(**Player** ply, **UPAction** action, **table** checkResult)
 ```note
-Called before UPAction:Start. Return true to override the default behavior.
+在UPAction:Start前调用, 返回 true 覆盖默认
 ```
 
 ![shared](materials/upgui/shared.jpg)
 **bool** UParOnChangeRhythm(**Player** ply, **UPAction** action, **UPEffect** effect, **any** customData)
 ```note
-Triggered when UPar.ActChangeRhythm is called. Return true to override the default behavior.
+使用 UPar.ActChangeRhythm 时触发, 返回 true 覆盖默认
 ```
 
 ![shared](materials/upgui/shared.jpg)
 **bool** UParClear(**Player** ply, **UPAction** playing, **table** playingData, **CMoveData** mv, **CUserCmd** cmd, **UPAction** interruptSource, **table** interruptData)
 ```note
-Called before UPAction:Clear. Return true to override the default behavior.
+在 UPAction:Clear 前调用, 返回 true 覆盖默认
 ```

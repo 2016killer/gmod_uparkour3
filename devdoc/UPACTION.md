@@ -5,13 +5,13 @@
 
 ## 目录
 
-<a href="./UPACTION.md">UPAction</a>  
-<a href="./UPEFFECT.md">UPEffect</a>  
-<a href="./SERHOOK.md">SeqHook</a>  
-<a href="./HOOK.md">Hook</a>  
-<a href="./LIFECYCLE.md">Lifecycle</a>  
-<a href="./LRU.md">LRU</a>  
-<a href="./CUSTOMEFFECT.md">Custom Effect</a>  
+<a href="./devdoc/UPACTION.md">UPAction</a>  
+<a href="./devdoc/UPEFFECT.md">UPEffect</a>  
+<a href="./devdoc/SERHOOK.md">SeqHook</a>  
+<a href="./devdoc/HOOK.md">Hook</a>  
+<a href="./devdoc/LIFECYCLE.md">Lifecycle</a>  
+<a href="./devdoc/LRU.md">LRU</a>  
+<a href="./devdoc/CUSTOMEFFECT.md">Custom Effect</a>  
 
 ## 关于UPAction接口实现
 这里不再采用2.1.0版本的参数对齐写法, 虽然序列表在网络传输中表现良好, 但是高频地unpack也很难受，代码也不好维护, 所以退回1.0.0版本的方法。

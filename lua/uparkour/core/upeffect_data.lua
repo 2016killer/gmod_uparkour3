@@ -106,8 +106,19 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 	end
 end
  
-UPar.IsPlyUsingEffect = function(actName, effect)
+UPar.IsPlyUsingEffect = function(ply, actName, effect)
+	local usingName = ply.upeff_cfg[actName]
+	if not usingName then
+		return false
+	end
 	
+    local isCustom = UPar.IsCustomEffect(effect)
+    if isCustom then
+        local cacheEffect = ply.upeff_cache[actName]
+        return usingName == 'CACHE' and istable(cacheEffect) and cacheEffect.Name == effect.Name
+    else
+        return usingName ~= 'CACHE' and usingName == effect.Name
+    end
 end
 
 if SERVER then

@@ -59,7 +59,7 @@ end
 function effect:OnRhythmChange(ply, customData)
 	if SERVER then return end
 	print('customData:', customData)
-	surface.PlaySound(customData)
+	surface.PlaySound(customData or 'hl1/fvox/blip.wav')
 end
 
 function effect:Clear(ply, checkResult)
@@ -69,11 +69,11 @@ end
 
 -- ==================== 轨道1 ===============
 local action_t1 = UPar.Clone(action)
-table.Merge(action_t1, {Name = 'test_lifecycle_t1', TrackId = 1})
+table.Merge(action_t1, {Name = 'test_lifecycle_t1', Invisible = true, TrackId = 1})
 action_t1:Register()
 
 -- ==================== 中断 ===============
-local action_interrupt = UPAction:new('test_interrupt', {})
+local action_interrupt = UPAction:new('test_interrupt', {Invisible = true})
 action_interrupt:Register()
 
 UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource, interruptData)

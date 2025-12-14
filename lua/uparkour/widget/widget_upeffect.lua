@@ -157,7 +157,7 @@ function EffectManager:Init2(action)
 			self:OnClickPlayButton(effName)
 		end
 
-		if LocalPlayer().upar_effect_config[action.Name] == effName then
+		if UPar.IsPlyUsingEffect(LocalPlayer(), actName, effect) then
 			self.curSelNode = node
 			node:SetIcon('icon16/accept.png')
 		end
