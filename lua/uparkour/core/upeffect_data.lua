@@ -31,7 +31,7 @@ end
 
 UPar.InitCustomEffect = function(custom)
 	if not UPar.IsCustomEffect(custom) then 
-		ErrorNoHaltWithStack(string.format('init custom effect failed, "%s" is not custom effect', custom))
+		print(string.format('init custom effect failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 		return false
 	end
 
@@ -40,13 +40,13 @@ UPar.InitCustomEffect = function(custom)
 
 	local action = UPar.GetAction(actName)
 	if not action then
-		ErrorNoHaltWithStack(string.format('init custom effect failed, can not find action named "%s"', actName))
+		print(string.format('init custom effect failed, can not find action named "%s"', actName))
 		return false
 	end
 
 	local targetEffect = action:GetEffect(tarName)
 	if not targetEffect then
-		ErrorNoHaltWithStack(string.format('init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
+		print(string.format('init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
 		return false
 	end
 
@@ -57,9 +57,9 @@ UPar.InitCustomEffect = function(custom)
 	return true
 end
 
-UPar.PushEffectCache = function(ply, custom)
+UPar.PushPlyEffCache = function(ply, custom)
 	if not UPar.IsCustomEffect(custom) then 
-		ErrorNoHaltWithStack(string.format('push cache failed, "%s" is not custom effect', custom))
+		print(string.format('push eff cache failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 		return false
 	end
 
@@ -68,15 +68,15 @@ UPar.PushEffectCache = function(ply, custom)
 	return true
 end
 
-UPar.PushEffectConfig = function(ply, actName, effName)
+UPar.PushPlyEffCfg = function(ply, actName, effName)
     if not isstring(actName) then
-        ErrorNoHaltWithStack(string.format('push effect config failed, invalid actName "%s" (not string)', actName))
+        print(string.format('push eff config failed, invalid actName "%s" (not string)', actName))
         return false
     end
 
     if not isstring(effName) then
-        ErrorNoHaltWithStack(string.format('push effect config failed, invalid effName "%s" (not string)', effName))
-        return false
+        print(string.format('push eff config failed, invalid effName "%s" (not string)', effName))
+		return false
     end
 
     ply.upeff_cfg[actName] = effName
@@ -92,14 +92,16 @@ end
 UPar.PushPlyEffSetting = function(ply, cfg, cache)
 	if istable(cfg) then
 		for actName, effName in pairs(cfg) do
-			UPar.PushEffectConfig(ply, actName, effName)
+			if actName == 'AAAMetadata' then continue end
+			UPar.PushPlyEffCfg(ply, actName, effName)
 		end
 	end
 
 	if istable(cache) then
-		for _, cache in pairs(cache) do
+		for actName, cache in pairs(cache) do
+			if actName == 'AAAMetadata' then continue end
 			UPar.InitCustomEffect(cache)
-			UPar.PushEffectCache(ply, cache)
+			UPar.PushPlyEffCache(ply, cache)
 		end
 	end
 end
@@ -128,9 +130,12 @@ elseif CLIENT then
 
 	UPar.SaveCustomEffectToDisk = function(custom, override)
 		if not UPar.IsCustomEffect(custom) then 
-			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', custom))
+			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 			return false
 		end
+
+		local dir = string.format('uparkour_effect/custom/%s', custom.linkAct)
+		if not file.Exists(dir, 'DATA') then file.CreateDir(dir) end
 
 		local path = string.format('uparkour_effect/custom/%s/%s.json', custom.linkAct, custom.Name)
 		local exists = file.Exists(path, 'DATA')
