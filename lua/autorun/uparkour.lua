@@ -85,7 +85,15 @@ UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)
 	end
 end
 
-UPar.LoadLuaFiles = function(path)
+UPar.LoadLuaFiles = function(path, location)
+	if location == 'CLIENT' and SERVER then
+		return
+	end
+
+	if location == 'SERVER' and CLIENT then
+		return
+	end
+
 	local sharedDir = string.format('uparkour/%s/', path)
 	local sharedFiles = file.Find(sharedDir .. '*.lua', 'LUA')
 
@@ -162,7 +170,8 @@ UPar.LoadLuaFiles('actions')
 UPar.LoadLuaFiles('effects')
 UPar.LoadLuaFiles('effectseasy')
 UPar.LoadLuaFiles('expansion')
-UPar.LoadLuaFiles('gui')
+UPar.LoadLuaFiles('widget', 'CLIENT')
+UPar.LoadLuaFiles('gui', 'CLIENT')
 UPar.LoadLuaFiles('version_compat')
 
 

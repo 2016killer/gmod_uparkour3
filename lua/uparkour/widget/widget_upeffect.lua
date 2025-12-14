@@ -133,7 +133,7 @@ function EffectManager:Init2(action)
 	table.sort(customFiles)
 	
 	for _, effName in pairs(keys) do
-		local effect = Effects[effName]
+		local effect = action.Effects[effName]
 
 		local label = isstring(effect.label) and effect.label or effName
 		local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
@@ -175,8 +175,6 @@ function EffectManager:Init2(action)
 	div:SetDividerWidth(10)
 	div:SetLeft(effectTree)
 
-	self.action = action
-	self.actName = actName
 	self.effectTree = effectTree
 	self.div = div
 end

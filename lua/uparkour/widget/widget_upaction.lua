@@ -10,6 +10,11 @@ local white = Color(255, 255, 255)
 local ActionEditor = {}
 
 function ActionEditor:Init2(action)
+	if not UPar.isupaction(action) then
+		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
+		return
+	end
+
 	local actName = action.Name
 
 	self:SetSize(600, 400)
@@ -33,17 +38,17 @@ function ActionEditor:Init2(action)
 
 	-- 旧版本代码
 	if isfunction(action.CreateOptionMenu) then
-		local scrollPanel = vgui.Create('DScrollPanel', Tabs)
-		local optionPanel = vgui.Create('DForm', scrollPanel)
-		optionPanel:SetLabel('#upgui.options')
-		optionPanel:Dock(FILL)
-		optionPanel.Paint = function(self, w, h)
-			draw.RoundedBox(0, 0, 0, w, h, white)
-		end
+		// local scrollPanel = vgui.Create('DScrollPanel', Tabs)
+		// local optionPanel = vgui.Create('DForm', scrollPanel)
+		// optionPanel:SetLabel('#upgui.options')
+		// optionPanel:Dock(FILL)
+		// optionPanel.Paint = function(self, w, h)
+		// 	draw.RoundedBox(0, 0, 0, w, h, white)
+		// end
 
-		action.CreateOptionMenu(optionPanel)
+		// action.CreateOptionMenu(optionPanel)
 
-		Tabs:AddSheet('#upgui.options', scrollPanel, 'icon16/wrench.png', false, false, '')
+		// Tabs:AddSheet('#upgui.options', scrollPanel, 'icon16/wrench.png', false, false, '')
 	end
 
 	if istable(action.upgui_CreateMenus) then

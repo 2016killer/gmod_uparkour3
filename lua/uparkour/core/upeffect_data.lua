@@ -106,6 +106,10 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 	end
 end
  
+UPar.IsPlyUsingEffect = function(actName, effect)
+	
+end
+
 if SERVER then
 	util.AddNetworkString('SyncPlyEffSetting')
 
