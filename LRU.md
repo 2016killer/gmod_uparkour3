@@ -11,7 +11,7 @@
 <a href="./HOOK.md">Hook</a>  
 <a href="./LIFECYCLE.md">Lifecycle</a>  
 <a href="./LRU.md">LRU</a>  
-
+<a href="./CUSTOMEFFECT.md">Custom Effect</a>  
 
 # LRU
 ```note

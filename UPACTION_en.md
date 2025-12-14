@@ -10,8 +10,8 @@
 <a href="./SERHOOK_en.md">SeqHook</a>  
 <a href="./HOOK_en.md">Hook</a>  
 <a href="./LIFECYCLE_en.md">Lifecycle</a>  
-<a href="./LRU_en.md">LRU</a>   
-
+<a href="./LRU_en.md">LRU</a>  
+<a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 
 ## About UPAction Interface Implementation
 The parameter alignment syntax used in version 2.1.0 is no longer adopted here. Although sequence tables perform well in network transmission, frequent `unpack` operations are cumbersome and the code is difficult to maintain. Therefore, we revert to the approach used in version 1.0.0.

@@ -11,7 +11,7 @@
 <a href="./HOOK_en.md">Hook</a>  
 <a href="./LIFECYCLE_en.md">Lifecycle</a>  
 <a href="./LRU_en.md">LRU</a>  
-
+<a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 
 # UPEffect Class
 
