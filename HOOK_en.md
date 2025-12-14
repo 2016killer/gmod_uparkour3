@@ -13,7 +13,16 @@
 <a href="./LRU_en.md">LRU</a>  
 <a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 
-- Author: 白狼 2322012547@qq.com
-- Translator: Miss DouBao  
-- Date: December 10, 2025  
-- Version: 3.0.0  
+# Hook
+
+![shared](./materials/upgui/shared.jpg)
+UParRegisterAction(**string** actName, **UPAction** action)
+```note
+Triggered when registering an action.
+```
+
+![shared](./materials/upgui/shared.jpg)
+UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
+```note
+Triggered when registering an effect.
+```

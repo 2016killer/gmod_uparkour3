@@ -13,7 +13,16 @@
 <a href="./LRU.md">LRU</a>  
 <a href="./CUSTOMEFFECT.md">Custom Effect</a>  
 
-- 作者：白狼 2322012547@qq.com
-- 翻译: 豆小姐
-- 日期：2025 12 10
-- 版本: 3.0.0
+# Hook
+
+![shared](./materials/upgui/shared.jpg)
+UParRegisterAction(**string** actName, **UPAction** action)
+```note
+注册动作时触发
+```
+
+![shared](./materials/upgui/shared.jpg)
+UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
+```note
+注册特效时触发
+```

@@ -5,13 +5,13 @@
 
 ## Table of Contents
 
-<a href="./devdoc/UPACTION_en.md">UPAction</a>  
-<a href="./devdoc/UPEFFECT_en.md">UPEffect</a>  
-<a href="./devdoc/SERHOOK_en.md">SeqHook</a>  
-<a href="./devdoc/HOOK_en.md">Hook</a>  
-<a href="./devdoc/LIFECYCLE_en.md">Lifecycle</a>  
-<a href="./devdoc/LRU_en.md">LRU</a>  
-<a href="./devdoc/CUSTOMEFFECT_en.md">Custom Effect</a>  
+<a href="./UPACTION_en.md">UPAction</a>  
+<a href="./UPEFFECT_en.md">UPEffect</a>  
+<a href="./SERHOOK_en.md">SeqHook</a>  
+<a href="./HOOK_en.md">Hook</a>  
+<a href="./LIFECYCLE_en.md">Lifecycle</a>  
+<a href="./LRU_en.md">LRU</a>  
+<a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 
 # LRU
 ```note
@@ -20,14 +20,14 @@ For example: LRUSet, LRU2Set, LRU3Set.
 The default size of all three LRU caches is 30. The first LRU cache on the client side is already occupied by panel data, so its use should be avoided as much as possible.
 ```
 
-![shared](../materials/upgui/shared.jpg)
+![shared](./materials/upgui/shared.jpg)
 **any** UPar.LRUGet(**string** key)
 
-![shared](../materials/upgui/shared.jpg)
+![shared](./materials/upgui/shared.jpg)
 **any** UPar.LRUSet(**string** key, **any** val)
 
-![shared](../materials/upgui/shared.jpg)
+![shared](./materials/upgui/shared.jpg)
 **any** UPar.LRUGetOrSet(**string** key, **any** default)
 
-![shared](../materials/upgui/shared.jpg)
+![shared](./materials/upgui/shared.jpg)
 UPar.LRUDelete(**string** key)
