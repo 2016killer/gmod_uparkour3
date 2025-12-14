@@ -17,19 +17,19 @@
 ## Optional Parameters  
 
 ![client](materials/upgui/client.jpg)
-UPEffect.icon: ***string*** Icon  
+**UPEffect**.icon: ***string*** Icon  
 ![client](materials/upgui/client.jpg)
-UPEffect.label: ***string*** Name  
+**UPEffect**.label: ***string*** Name  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAACreat: ***string*** Creator  
+**UPEffect**.AAACreat: ***string*** Creator  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAADesc: ***string*** Description  
+**UPEffect**.AAADesc: ***string*** Description  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAAContrib: ***string*** Contributor  
+**UPEffect**.AAAContrib: ***string*** Contributor  
 
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewKVVisible: ***table***  
+**UPEffect**.PreviewKVVisible: ***table***  
 ```lua
 -- Display AAACreat in red on the preview interface
 -- Hide AAADesc
@@ -42,7 +42,7 @@ effect.PreviewKVVisible = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewKVExpand: ***function***  
+**UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- Override default key-value pair preview
 effect.PreviewKVExpand = function(key, val, originWidget)
@@ -56,7 +56,7 @@ end
 
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorKVVisible: ***table***  
+**UPEffect**.EditorKVVisible: ***table***  
 ```lua
 -- Hide AAACreat, AAADesc, AAAContrib in the editor
 effect.EditorKVVisible = {
@@ -67,7 +67,7 @@ effect.EditorKVVisible = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorKVExpand: ***function***  
+**UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- Override default key-value pair editing
 effect.EditorKVExpand = function(key, val, originWidget, obj)
@@ -86,13 +86,13 @@ end
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewPanelOverride(**panel** panel)
+**UPEffect**.PreviewPanelOverride(**panel** panel)
 ```note
 Preview panel override
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorPanelOverride(**panel** panel)
+**UPEffect**.EditorPanelOverride(**panel** panel)
 ```note
 Editor panel override
 ```
@@ -100,19 +100,19 @@ Editor panel override
 ## Methods to Implement
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:Start(**Player** ply, **table** checkResult)
+**UPEffect**:Start(**Player** ply, **table** checkResult)
 ```note
 Automatically called after UPAction:Start
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:OnRhythmChange(**Player** ply, **any** customData)
+**UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
 ```note
 Triggered by UPar.ActChangeRhythm
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
+**UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 Automatically called after UPAction:Clear
 ```

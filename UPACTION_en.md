@@ -20,23 +20,23 @@ This approach also offers several advantages. For instance, certain persistent d
 
 ## Optional Parameters
 ![client](materials/upgui/client.jpg)
-UPAction.icon: ***string*** Icon  
+**UPAction**.icon: ***string*** Icon  
 ![client](materials/upgui/client.jpg)
-UPAction.label: ***string*** Name  
+**UPAction**.label: ***string*** Name  
 ![client](materials/upgui/client.jpg)
-UPAction.AAACreat: ***string*** Creator  
+**UPAction**.AAACreat: ***string*** Creator  
 ![client](materials/upgui/client.jpg)
-UPAction.AAADesc: ***string*** Description  
+**UPAction**.AAADesc: ***string*** Description  
 ![client](materials/upgui/client.jpg)
-UPAction.AAAContrib: ***string*** Contributor  
+**UPAction**.AAAContrib: ***string*** Contributor  
 ![shared](materials/upgui/shared.jpg)
-UPAction.TrackId: ***int*** Track ID  
+**UPAction**.TrackId: ***int*** Track ID  
 ```note
 Default value is 0. When actions with the same TrackId are triggered simultaneously, interruption judgment will be initiated.
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction.SundryPanels ***table***
+**UPAction**.SundryPanels ***table***
 ```lua 
 -- Example:
 action.SundryPanels = {
@@ -50,7 +50,7 @@ action.SundryPanels = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction.ConVarsPanelOverride(**panel** panel)
+**UPAction**.ConVarsPanelOverride(**panel** panel)
 ```note
 Custom parameter interfaces can be created here (e.g., building parameter editors with complex structures).
 ```
@@ -58,25 +58,25 @@ Custom parameter interfaces can be created here (e.g., building parameter editor
 
 ## Methods to Implement
 ![shared](materials/upgui/shared.jpg) 
-***table*** UPAction:Check(**Player** ply, **any** data)  
+***table*** **UPAction**:Check(**Player** ply, **any** data)  
 ```note
 After returning a table, the process proceeds to the Start phase.
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:Start(**Player** ply, **table** checkResult)
+**UPAction**:Start(**Player** ply, **table** checkResult)
 ```note
 Executed once when the action starts, then the process enters the Think phase.
 ```
 
 ![server](materials/upgui/server.jpg)
-***any*** UPAction:Think(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
+***any*** **UPAction**:Think(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
 ```note
 Returning a truthy value proceeds to the Clear phase; otherwise, the current state is maintained.
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
+**UPAction**:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 Called in scenarios such as: Think returning a truthy value, forced termination, or interruption.
 - When forcefully ended: interruptSource is `true`.
@@ -86,7 +86,7 @@ Called in scenarios such as: Think returning a truthy value, forced termination,
 
 ## Available Methods
 ![shared](materials/upgui/shared.jpg)
-UPAction:InitCVarPredictionMode(**string** default)
+**UPAction**:InitCVarPredictionMode(**string** default)
 ```note
 Will appear in the Q menu after initialization.
 - false: Use server-side prediction
@@ -96,7 +96,7 @@ The parameter itself has no inherent function and needs to be handled manually.
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction:InitCVarKeybind(**string** default)
+**UPAction**:InitCVarKeybind(**string** default)
 ```note
 Will appear in the Q menu after initialization.
 Separate key combinations with spaces.
@@ -115,7 +115,7 @@ Typically used for actions with variable rhythms (e.g., Double Vault).
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:InitConVars(**table** config)
+**UPAction**:InitConVars(**table** config)
 ```lua
 -- Example:
 -- Will appear in the Action Editor after initialization.

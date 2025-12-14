@@ -18,23 +18,23 @@
 
 ## 可选参数
 ![client](materials/upgui/client.jpg)
-UPAction.icon: ***string*** 图标  
+**UPAction**.icon: ***string*** 图标  
 ![client](materials/upgui/client.jpg)
-UPAction.label: ***string*** 名称  
+**UPAction**.label: ***string*** 名称  
 ![client](materials/upgui/client.jpg)
-UPAction.AAACreat: ***string*** 创建者  
+**UPAction**.AAACreat: ***string*** 创建者  
 ![client](materials/upgui/client.jpg)
-UPAction.AAADesc: ***string*** 描述  
+**UPAction**.AAADesc: ***string*** 描述  
 ![client](materials/upgui/client.jpg)
-UPAction.AAAContrib: ***string*** 贡献者  
+**UPAction**.AAAContrib: ***string*** 贡献者  
 ![shared](materials/upgui/shared.jpg)
-UPAction.TrackId: ***int*** 轨道ID  
+**UPAction**.TrackId: ***int*** 轨道ID  
 ```note
 默认为0, 相同TrackId的动作同时触发时会触发中断判断。
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction.SundryPanels ***table***
+**UPAction**.SundryPanels ***table***
 ```lua 
 -- 例:
 action.SundryPanels = {
@@ -48,7 +48,7 @@ action.SundryPanels = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction.ConVarsPanelOverride(**panel** panel)
+**UPAction**.ConVarsPanelOverride(**panel** panel)
 ```note
 可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
 ```
@@ -56,25 +56,25 @@ UPAction.ConVarsPanelOverride(**panel** panel)
 
 ## 需要实现的方法
 ![shared](materials/upgui/shared.jpg) 
-***table*** UPAction:Check(**Player** ply, **any** data)  
+***table*** **UPAction**:Check(**Player** ply, **any** data)  
 ```note
 返回表后进入Start
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:Start(**Player** ply, **table** checkResult)
+**UPAction**:Start(**Player** ply, **table** checkResult)
 ```note
 在启动时执行一次, 然后进入Think
 ```
 
 ![server](materials/upgui/server.jpg)
-***any*** UPAction:Think(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
+***any*** **UPAction**:Think(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
 ```note
 返回真值进入Clear, 否则维持当前状态
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
+**UPAction**:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 在Think返回真值、强制结束、 中断 等情况下调用
 强制结束时, interruptSource为true
@@ -84,7 +84,7 @@ UPAction:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserC
 
 ## 可用方法
 ![shared](materials/upgui/shared.jpg)
-UPAction:InitCVarPredictionMode(**string** default)
+**UPAction**:InitCVarPredictionMode(**string** default)
 ```note
 在初始化后会出现在Q菜单中
 
@@ -95,7 +95,7 @@ true: 使用客户端预测
 ```
 
 ![client](materials/upgui/client.jpg)
-UPAction:InitCVarKeybind(**string** default)
+**UPAction**:InitCVarKeybind(**string** default)
 ```note
 在初始化后会出现在Q菜单中
 组合键用空格隔开
@@ -114,7 +114,7 @@ UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPAction:InitConVars(**table** config)
+**UPAction**:InitConVars(**table** config)
 ```lua
 -- 例:
 -- 初始化后会出现在动作编辑器中

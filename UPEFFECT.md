@@ -17,19 +17,19 @@
 ## 可选参数  
 
 ![client](materials/upgui/client.jpg)
-UPEffect.icon: ***string*** 图标  
+**UPEffect**.icon: ***string*** 图标  
 ![client](materials/upgui/client.jpg)
-UPEffect.label: ***string*** 名称  
+**UPEffect**.label: ***string*** 名称  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAACreat: ***string*** 创建者  
+**UPEffect**.AAACreat: ***string*** 创建者  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAADesc: ***string*** 描述  
+**UPEffect**.AAADesc: ***string*** 描述  
 ![client](materials/upgui/client.jpg)
-UPEffect.AAAContrib: ***string*** 贡献者  
+**UPEffect**.AAAContrib: ***string*** 贡献者  
 
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewKVVisible: ***table***  
+**UPEffect**.PreviewKVVisible: ***table***  
 ```lua
 -- 预览界面显示AAACreat为红色
 -- 隐藏AAADesc
@@ -42,7 +42,7 @@ effect.PreviewKVVisible = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewKVExpand: ***function***  
+**UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对预览
 effect.PreviewKVExpand = function(key, val, originWidget)
@@ -56,7 +56,7 @@ end
 
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorKVVisible: ***table***  
+**UPEffect**.EditorKVVisible: ***table***  
 ```lua
 -- 编辑器隐藏AAACreat, AAADesc, AAAContrib
 effect.EditorKVVisible = {
@@ -67,7 +67,7 @@ effect.EditorKVVisible = {
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorKVExpand: ***function***  
+**UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对编辑
 effect.EditorKVExpand = function(key, val, originWidget, obj)
@@ -86,13 +86,13 @@ end
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.PreviewPanelOverride(**panel** panel)
+**UPEffect**.PreviewPanelOverride(**panel** panel)
 ```note
 预览面板覆盖
 ```
 
 ![client](materials/upgui/client.jpg)
-UPEffect.EditorPanelOverride(**panel** panel)
+**UPEffect**.EditorPanelOverride(**panel** panel)
 ```note
 编辑器面板覆盖
 ```
@@ -100,19 +100,19 @@ UPEffect.EditorPanelOverride(**panel** panel)
 ## 需要实现的方法
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:Start(**Player** ply, **table** checkResult)
+**UPEffect**:Start(**Player** ply, **table** checkResult)
 ```note
 会在UPAction:Start后自动调用
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:OnRhythmChange(**Player** ply, **any** customData)
+**UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
 ```note
 由 UPar.ActChangeRhythm 触发
 ```
 
 ![shared](materials/upgui/shared.jpg)
-UPEffect:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
+**UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 会在UPAction:Clear后自动调用
 ```
