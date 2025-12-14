@@ -10,6 +10,7 @@
 <a href="./SERHOOK_en.md">SeqHook</a>  
 <a href="./HOOK_en.md">Hook</a>  
 <a href="./LIFECYCLE_en.md">Lifecycle</a>  
+<a href="./LRU_en.md">LRU</a>   
 
 
 # About Lifecycle

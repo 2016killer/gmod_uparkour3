@@ -10,7 +10,7 @@
 <a href="./SERHOOK.md">SeqHook</a>  
 <a href="./HOOK.md">Hook</a>  
 <a href="./LIFECYCLE.md">Lifecycle</a>  
-
+<a href="./LRU.md">LRU</a>  
 
 ## 序列钩子
 

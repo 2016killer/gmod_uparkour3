@@ -10,6 +10,7 @@
 <a href="./SERHOOK.md">SeqHook</a>  
 <a href="./HOOK.md">Hook</a>  
 <a href="./LIFECYCLE.md">Lifecycle</a>  
+<a href="./LRU.md">LRU</a>  
 
 - 作者：白狼
 - 翻译: 豆小姐
