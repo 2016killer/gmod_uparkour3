@@ -34,7 +34,7 @@ UPAction.TrackId: ***int*** 轨道ID
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPAction.SundryPanels** ***table***
+UPAction.SundryPanels ***table***
 ```lua 
 -- 例:
 action.SundryPanels = {
@@ -48,7 +48,7 @@ action.SundryPanels = {
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPAction.ConVarsPanelOverride**(**panel** panel)
+UPAction.ConVarsPanelOverride(**panel** panel)
 ```note
 可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
 ```
@@ -56,25 +56,25 @@ action.SundryPanels = {
 
 ## 需要实现的方法
 ![shared](materials/upgui/shared.jpg) 
-***table*** **UPAction:Check**(**Player** ply, **any** data)  
+***table*** UPAction:Check(**Player** ply, **any** data)  
 ```note
 返回表后进入Start
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPAction:Start**(**Player** ply, **table** checkResult)
+UPAction:Start(**Player** ply, **table** checkResult)
 ```note
 在启动时执行一次, 然后进入Think
 ```
 
 ![server](materials/upgui/server.jpg)
-***any*** **UPAction:Think**(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
+***any*** UPAction:Think(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd)
 ```note
 返回真值进入Clear, 否则维持当前状态
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPAction:Clear**(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
+UPAction:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 在Think返回真值、强制结束、 中断 等情况下调用
 强制结束时, interruptSource为true
@@ -84,7 +84,7 @@ action.SundryPanels = {
 
 ## 可用方法
 ![shared](materials/upgui/shared.jpg)
-**UPAction:InitCVarPredictionMode**(**string** default)
+UPAction:InitCVarPredictionMode(**string** default)
 ```note
 在初始化后会出现在Q菜单中
 
@@ -95,7 +95,7 @@ true: 使用客户端预测
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPAction:InitCVarKeybind**(**string** default)
+UPAction:InitCVarKeybind(**string** default)
 ```note
 在初始化后会出现在Q菜单中
 组合键用空格隔开
@@ -105,7 +105,7 @@ true: 使用客户端预测
 ```
 
 ![server](materials/upgui/server.jpg)
-**UPar.ActChangeRhythm**(**Player** ply, **UPAction** action, **any** customData)
+UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
 ```note
 应当在action:Think中手动调用, 这会触发effect:OnRhythmChange,
 自动同步客户端, 不建议每帧调用
@@ -114,7 +114,7 @@ true: 使用客户端预测
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPAction:InitConVars**(**table** config)
+UPAction:InitConVars(**table** config)
 ```lua
 -- 例:
 -- 初始化后会出现在动作编辑器中

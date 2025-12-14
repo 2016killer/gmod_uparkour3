@@ -15,13 +15,13 @@
 # Hook
 
 ![shared](materials/upgui/shared.jpg)
-**UParRegisterAction**(**string** actName, **UPAction** action)
+UParRegisterAction(**string** actName, **UPAction** action)
 ```note
 Triggered when registering an action.
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UParRegisterEffect**(**string** actName, **string** effName, **UPEffect** effect)
+UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
 ```note
 Triggered when registering an effect.
 ```

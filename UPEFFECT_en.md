@@ -86,13 +86,13 @@ end
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect.PreviewPanelOverride**(**panel** panel)
+UPEffect.PreviewPanelOverride(**panel** panel)
 ```note
 Preview panel override
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect.EditorPanelOverride**(**panel** panel)
+UPEffect.EditorPanelOverride(**panel** panel)
 ```note
 Editor panel override
 ```
@@ -100,19 +100,19 @@ Editor panel override
 ## Methods to Implement
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:Start**(**Player** ply, **table** checkResult)
+UPEffect:Start(**Player** ply, **table** checkResult)
 ```note
 Automatically called after UPAction:Start
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:OnRhythmChange**(**Player** ply, **any** customData)
+UPEffect:OnRhythmChange(**Player** ply, **any** customData)
 ```note
 Triggered by UPar.ActChangeRhythm
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:Clear**(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
+UPEffect:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 Automatically called after UPAction:Clear
 ```

@@ -86,13 +86,13 @@ end
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect.PreviewPanelOverride**(**panel** panel)
+UPEffect.PreviewPanelOverride(**panel** panel)
 ```note
 预览面板覆盖
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect.EditorPanelOverride**(**panel** panel)
+UPEffect.EditorPanelOverride(**panel** panel)
 ```note
 编辑器面板覆盖
 ```
@@ -100,19 +100,19 @@ end
 ## 需要实现的方法
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:Start**(**Player** ply, **table** checkResult)
+UPEffect:Start(**Player** ply, **table** checkResult)
 ```note
 会在UPAction:Start后自动调用
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:OnRhythmChange**(**Player** ply, **any** customData)
+UPEffect:OnRhythmChange(**Player** ply, **any** customData)
 ```note
 由 UPar.ActChangeRhythm 触发
 ```
 
 ![shared](materials/upgui/shared.jpg)
-**UPEffect:Clear**(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
+UPEffect:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 会在UPAction:Clear后自动调用
 ```
