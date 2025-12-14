@@ -21,5 +21,5 @@ This is the core parameter.
 - If actions are on different TrackIds (e.g., an inspection action), they can run in parallel with climbing or vaulting.
 ```
 
-![uplife](materials/upgui/uplife_en.jpg)
-![uplife2](materials/upgui/uplife2_en.jpg)
+![uplife](../materials/upgui/uplife_en.jpg)
+![uplife2](../materials/upgui/uplife2_en.jpg)

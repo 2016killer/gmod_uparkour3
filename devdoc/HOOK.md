@@ -15,13 +15,13 @@
 
 # Hook
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 UParRegisterAction(**string** actName, **UPAction** action)
 ```note
 注册动作时触发
 ```
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
 ```note
 注册特效时触发

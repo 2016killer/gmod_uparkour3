@@ -17,19 +17,19 @@
 
 ## Optional Parameters  
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.icon: ***string*** Icon  
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.label: ***string*** Name  
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.AAACreat: ***string*** Creator  
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.AAADesc: ***string*** Description  
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.AAAContrib: ***string*** Contributor  
 
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.PreviewKVVisible: ***table*** or ***function***  
 ```lua
 -- Display AAACreat in red on the preview interface
@@ -54,7 +54,7 @@ effect.PreviewKVVisible = function(key, val)
 end
 ```
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- Override default key-value pair preview
@@ -68,7 +68,7 @@ end
 ```
 
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.EditorKVVisible: ***table*** or ***function***  
 ```lua
 -- Hide AAACreat, AAADesc, AAAContrib in the editor
@@ -90,7 +90,7 @@ effect.EditorKVVisible = function(key, val)
 end
 ```
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- Override default key-value pair editing
@@ -109,13 +109,13 @@ effect.EditorKVExpand = function(key, val, originWidget, obj)
 end
 ```
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.PreviewPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 Preview panel override
 ```
 
-![client](materials/upgui/client.jpg)
+![client](../materials/upgui/client.jpg)
 **UPEffect**.EditorPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 Editor panel override
@@ -123,25 +123,25 @@ Editor panel override
 
 ## Methods to Implement
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **UPEffect**:Start(**Player** ply, **table** checkResult)
 ```note
 Automatically called after UPAction:Start
 ```
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
 ```note
 Triggered by UPar.ActChangeRhythm
 ```
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 Automatically called after UPAction:Clear
 ```
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **UPEffect** UPar.RegisterEffectEasy(**string** actName, **string** tarName, **string** name, **table** initData)
 ```note
 This will find the corresponding effect from the registered ones, automatically clone it and overwrite the target.

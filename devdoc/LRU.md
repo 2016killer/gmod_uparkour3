@@ -20,14 +20,14 @@
 三个LRU默认大小为30, 客户端的第一个LRU已经被面板数据占用, 尽量避免使用。
 ```
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **any** UPar.LRUGet(**string** key)
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **any** UPar.LRUSet(**string** key, **any** val)
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 **any** UPar.LRUGetOrSet(**string** key, **any** default)
 
-![shared](materials/upgui/shared.jpg)
+![shared](../materials/upgui/shared.jpg)
 UPar.LRUDelete(**string** key)
