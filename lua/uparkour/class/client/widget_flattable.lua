@@ -9,6 +9,11 @@ local FlatTableEditor = {}
 function FlatTableEditor:Init2(obj, kVVisible, kvExpand)
 	self.obj = obj
 	
+	if not istable(self.obj) then 
+		print(string.format('Invalid obj "%s" (not table)', obj))
+		return 
+	end
+
 	local keys = {}
 	for k, _ in pairs(self.obj) do table.insert(keys, k) end
 	table.sort(keys)
@@ -16,26 +21,34 @@ function FlatTableEditor:Init2(obj, kVVisible, kvExpand)
 	for _, key in ipairs(keys) do
 		local val = self.obj[key]
 
-		local keyColor = istable(kVVisible) and kVVisible[key] or nil
+		local keyColor = nil
+		if isfunction(kVVisible) then
+			keyColor = kVVisible(key, val)
+		elseif istable(kVVisible) then
+			keyColor = kVVisible[key]
+		end
+
 		if keyColor == false then 
 			continue 
 		end
 
-		local origin = self:CreateKeyValueWidget(key, val)
-		local expandedWidget = isfunction(funcExpandedWidget) and funcExpandedWidget(key, val, origin) or nil
+		local origin = self:CreateKeyValueWidget(key, val, keyColor)
+		local expanded = isfunction(kvExpand) and kvExpand(key, val, origin, self.obj, keyColor) or nil
 		
 		if IsValid(origin) and ispanel(origin) then
 			self:AddItem(origin)
 		end
 
-		if IsValid(expandedWidget) and ispanel(expandedWidget) then
-			self:AddItem(expandedWidget)
+		if IsValid(expanded) and ispanel(expanded) then
+			self:AddItem(expanded)
 		end
 	end
 end
 
-function FlatTableEditor:CreateKeyValueWidget(key, val)
-	self:Help(UPar.SnakeTranslate(key))
+function FlatTableEditor:CreateKeyValueWidget(key, val, color)
+	local label = self:Help(UPar.SnakeTranslate(key))
+	if IsColor(color) then label:SetColor(color) end
+
 	if key == 'VManipAnim' or key == 'VMLegsAnim' then
 		-- 针对特殊的键名进行特殊处理
 		local target = key == 'VManipAnim' and VManip.Anims or VMLegs.Anims
@@ -104,41 +117,46 @@ end
 
 FlatTableEditor.OnUpdate = UPar.emptyFunc
 
-vgui.Register('UPFlatTableEditor', FlatTableEditor, 'DForm')
+vgui.Register('UParFlatTableEditor', FlatTableEditor, 'DForm')
 FlatTableEditor = nil
 -- ==================== 扁平表预览 ===============
 local FlatTablePreview = {}
-function FlatTablePreview:Init2(obj, keyFilter, funcFilter, keyImportant)
-	-- keyFilter 表, 用于过滤不需要显示的键值对 例: {Example = true, ...}
-	-- funcFilter 函数, 用于过滤不需要显示的键值对 例: function(key, val) return key == 'Example' end
-	-- important 表, 用于指定哪些键值对需要高亮显示 例: {Example = Color(0, 255, 0), ...}
-
+function FlatTablePreview:Init2(obj, kVVisible, kvExpand)
 	self.obj = obj
+
+	if not istable(self.obj) then 
+		print(string.format('Invalid obj "%s" (not table)', obj))
+		return 
+	end
 
 	local keys = {}
 	for k, v in pairs(self.obj) do table.insert(keys, k) end
 	table.sort(keys)
 
-	for _, k in ipairs(keys) do
-		local v = self.obj[k]
+	for _, key in ipairs(keys) do
+		local val = self.obj[key]
 
-		if (istable(keyFilter) and keyFilter[k]) or (isfunction(funcFilter) and funcFilter(k, v)) then
-			continue
+		local keyColor = nil
+		if isfunction(kVVisible) then
+			keyColor = kVVisible(key, val)
+		elseif istable(kVVisible) then
+			keyColor = kVVisible[key]
 		end
 
-		local val = v
-		local key = UPar.SnakeTranslate(k)
-		
-		local label = self:Help(string.format('%s = %s', key, val))
-		local importantCfg = istable(keyImportant) and keyImportant[k] or nil
-
-		if not importantCfg or not IsValid(label) then
-			continue
+		if keyColor == false then 
+			continue 
 		end
 
-		label:SetTextColor(IsColor(importantCfg) and importantCfg or Color(0, 255, 0))
+
+		local label = self:Help(string.format('%s = %s', UPar.SnakeTranslate(key), val))
+		if IsColor(keyColor) then label:SetColor(keyColor) end
+
+		local expanded = isfunction(kvExpand) and kvExpand(key, val, label, nil, keyColor) or nil
+		if IsValid(expanded) and ispanel(expanded) then
+			self:AddItem(expanded)
+		end
 	end
 end
 
-vgui.Register('UPFlatTablePreview', FlatTablePreview, 'DForm')
+vgui.Register('UParFlatTablePreview', FlatTablePreview, 'DForm')
 FlatTablePreview = nil

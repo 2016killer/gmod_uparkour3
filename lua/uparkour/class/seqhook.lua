@@ -96,6 +96,8 @@ UPar.SeqHookAdd = function(eventName, identifier, func, priority)
     -- 存储元信息+插入执行表
     SeqHookMeta[eventName][identifier] = {func = func, prio = finalPrio}
     insertSortedFunc(SeqHookTable[eventName], func, finalPrio)
+    
+    return finalPrio
 end
 
 UPar.SeqHookRunAll = function(eventName, ...)

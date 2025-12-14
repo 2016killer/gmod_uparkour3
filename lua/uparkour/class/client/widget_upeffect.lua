@@ -17,19 +17,12 @@ EffectManager.EditorKeyFilter = {
 	icon = true
 }
 
-EffectManager.EditorFilter = function(_, val) 
-	return isfunction(val) or ismatrix(val) or isentity(val) or ispanel(val) or istable(val)
-end
+EffectManager.EditorKVVisible = function(key, val) 
+	if self.EditorKeyFilter[key] then
+		return false
+	end
 
-EffectManager.PreviewKeyFilter = {
-	Name = true,
-	linkName = true,
-	label = true,
-	icon = true
-}
-
-EffectManager.PreviewFilter = function(_, val) 
-	return false
+	return !(isfunction(val) or ismatrix(val) or isentity(val) or ispanel(val) or istable(val))
 end
 
 EffectManager.PreviewKeyImportant = {
@@ -38,8 +31,13 @@ EffectManager.PreviewKeyImportant = {
 	AAADesc = lightblue,
 }
 
+EffectManager.PreviewKVVisible = function(key, val) 
+	return self.PreviewKeyImportant[key]
+end
+
 function EffectManager:CreatePreview(effect)
 	if not UPar.isupeffect(effect) then
+		print(string.format('Invalid effect "%s" (not upeffect)', effect))
 		return
 	end
 
@@ -62,13 +60,12 @@ function EffectManager:CreatePreview(effect)
 		return mainPanel
 	end
 
-	local keyFilter = effect.PreviewKeyFilter or self.PreviewKeyFilter
-	local funcFilter = effect.PreviewFilter or self.PreviewFilter
-	local keyImportant = effect.PreviewKeyImportant or self.PreviewKeyImportant
+	local kVVisible = effect.PreviewKVVisible or self.PreviewKVVisible
+	local kVExpand = effect.PreviewKVExpand or self.PreviewKVExpand
 
-	local preview = vgui.Create('UParTablePreview', scrollPanel)
+	local preview = vgui.Create('UParFlatTablePreview', scrollPanel)
 	preview:Dock(FILL)
-	preview:Init2(effect, keyFilter, funcFilter, keyImportant)
+	preview:Init2(effect, kVVisible, kVExpand)
 	preview:SetLabel(string.format('%s %s %s', 
 		effect.Name, 
 		language.GetPhrase('#upgui.property'),
@@ -78,8 +75,9 @@ function EffectManager:CreatePreview(effect)
 	return mainPanel
 end
 
-function EffectManager:CreateEffectEditor(effect)
-	if not istable(effect) then
+function EffectManager:CreateEditor(effect)
+	if not UPar.isupeffect(effect) then
+		print(string.format('Invalid effect "%s" (not upeffect)', effect))
 		return
 	end
 
@@ -91,30 +89,7 @@ function EffectManager:CreateEffectEditor(effect)
 	saveButton:SetText('#upgui.save')
 	saveButton:SetIcon('icon16/application_put.png')
 	saveButton.DoClick = function()
-		local actName = self.actName
-
-		local effectConfig = LocalPlayer().upar_effect_config
-		local customEffects = LocalPlayer().upar_effects_custom
-
-		effectConfig[actName] = 'Custom'
-		customEffects[actName] = effect
-
-		UPar.InitCustomEffect(actName, effect)
-
-		UPar.SaveUserDataToDisk(effectConfig, 'upar/effect_config.json')
-		UPar.SaveUserDataToDisk(customEffects, 'upar/effects_custom.json')
-	
-		UPar.SendEffectConfigToServer(effectConfig)
-		UPar.SendCustomEffectsToServer(customEffects)
-		PrintTable(effectConfig)
-		PrintTable(customEffects)
-
-		self:PlayEffect(selNode.effName)
-		self:ChangeEffectConfig(selNode.effName)
-		self:ChangeHitNode(selNode)
-
-
-		self:OnClickSaveButton(effect.Name)
+		self:OnSave()
 	end
 
 	local playButton = vgui.Create('DButton', mainPanel)
@@ -123,26 +98,23 @@ function EffectManager:CreateEffectEditor(effect)
 	playButton:SetText('#upgui.play')
 	playButton:SetIcon('icon16/cd_go.png')
 	playButton.DoClick = function()
-		self:PlayEffect(effect.Name)
-		saveButton:DoClick()
-		self:OnClickPlayButton(effect.Name)
+		self:OnPlay()
 	end
 
 	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
 	scrollPanel:Dock(FILL)
 
-	if effect.upgui_prop_EditorOverride then
-		effect:upgui_prop_EditorOverride(scrollPanel, self)
+	if isfunction(effect.EditorPanelOverride) then
+		effect:EditorPanelOverride(scrollPanel, self)
 		return mainPanel
 	end
 
-	local keyFilter = effect.upgui_prop_editorKeyFilter or self.EditorKeyFilter
-	local funcFilter = effect.upgui_prop_EditorFilter or self.EditorFilter
-	local funcExpandedWidget = effect.upgui_prop_EditorExpandedWidget or nil
+	local kVVisible = effect.EditorKVVisible or self.EditorKVVisible
+	local kVExpand = effect.EditorKVExpand or self.EditorKVExpand
 
 	local editor = vgui.Create('UParTableEditor', scrollPanel)
 	editor:Dock(FILL)
-	editor:Init2(effect, keyFilter, funcFilter, funcExpandedWidget)
+	editor:Init2(effect, kVVisible, kVExpand)
 
 	editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. effect.linkName)
 
@@ -156,7 +128,7 @@ function EffectManager:Init2(action)
 	// self.effectTree = nil
 	// self.div = nil
 
-	local effectTree = vgui.Create('DTree')
+	local effectTree = vgui.Create('UParEasyTree')
 	
 	local Effects = {}
 	for k, v in pairs(action.Effects) do Effects[k] = v end
@@ -298,34 +270,9 @@ function EffectManager:PlayEffect(effName)
 	UPar.EffectTest(LocalPlayer(), actName, effName)
 end
 
-// EffectManager.OnClickPlayButton = UPar.emptyfunc
-// EffectManager.OnClickSaveButton = UPar.emptyfunc
-// EffectManager.OnSelectedChange = UPar.emptyfunc
-// EffectManager.OnDoubleSelect = UPar.emptyfunc
-// EffectManager.OnClickCustomButton = UPar.emptyfunc
-
-EffectManager.OnClickPlayButton = function(self, ...) print('OnClickPlayButton', ...) end
-EffectManager.OnClickSaveButton = function(self, ...) print('OnClickSaveButton', ...) end
-EffectManager.OnSelectedChange = function(self, ...) print('OnSelectedChange', ...) end
-EffectManager.OnDoubleSelect = function(self, ...) print('OnDoubleSelect', ...) end
-EffectManager.OnClickCustomButton = function(self, ...) print('OnClickCustomButton', ...) end
+EffectManager.OnPlay = function(self, ...) print('OnPlay', ...) end
+EffectManager.OnSave = function(self, ...) print('OnSave', ...) end
+EffectManager.OnCreateCustom = function(self, ...) print('OnCreateCustom', ...) end
 
 vgui.Register('UParEffectManager', EffectManager, 'DPanel')
 EffectManager = nil
-
-		// curSelNode = selNode
-
-		// effectConfig[action.Name] = selNode.effName
-		
-		// UPar.SendEffectConfigToServer(effectConfig)
-		// UPar.SaveUserDataToDisk(effectConfig, 'upar/effect_config.json')
-		// UPar.EffectTest(LocalPlayer(), action.Name, selNode.effName)
-
-	// saveButton.DoClick = function()
-
-	// end
-	// playButton.DoClick = function()
-	// 	UPar.EffectTest(LocalPlayer(), actName, 'Custom')
-	// 	saveButton:DoClick()
-	// end
-

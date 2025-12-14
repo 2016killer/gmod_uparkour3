@@ -32,7 +32,7 @@ UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
 UPar.Clone = function(obj)
     if not istable(obj) then
-		print('[UPar]: clone faild, obj is not a table')
+		print(string.format('[UPar]: clone faild, obj "%s" is not a table', obj))
         return obj
     end
     

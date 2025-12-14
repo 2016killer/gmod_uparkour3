@@ -64,7 +64,7 @@ end
 function UPEffect:Register(actName)
 	local action = UPar.GetAction(actName)
     if not action then
-        error(string.format('Invalid action "%s"', actName))
+        error(string.format('can not find action named "%s"', actName))
     end
 
     hook.Run('UParRegisterEffect', actName, self.Name, self) 

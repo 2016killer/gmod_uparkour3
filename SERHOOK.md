@@ -17,9 +17,10 @@
 ## 操作方法
 
 ![shared](materials/upgui/shared.jpg)
-UPar.SeqHookAdd(**string** eventName, **string** identifier, **function** func, **int** priority)
+**int** UPar.SeqHookAdd(**string** eventName, **string** identifier, **function** func, **int** priority)
 ```note
-使用此添加事件的序列钩子, 如果标识符重复且priority为nil的情况则继承之前的优先级
+使用此添加事件的序列钩子, 如果标识符重复且priority为nil的情况则继承之前的优先级。
+返回当前优先级。
 ```
 
 ![shared](materials/upgui/shared.jpg)

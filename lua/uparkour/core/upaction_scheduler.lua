@@ -182,7 +182,7 @@ if SERVER then
 			local succ, err = pcall(action.Think, action, ply, mv, cmd, checkResult)
 			if not succ then
 				ForceEnd(ply, trackId)
-				error(string.format('Action "%s" Think error: %s\n', action.Name, err))
+				error(string.format('action named "%s" Think error: %s\n', action.Name, err))
 			end
 
 			local toclear = err

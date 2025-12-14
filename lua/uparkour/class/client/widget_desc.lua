@@ -20,7 +20,7 @@ function Description:Init2(action)
 	self:Help('====================')
 	for effName, effect in pairs(action.Effects) do
 		if not UPar.isupeffect(effect) then
-			print(string.format('Invalid effect "%s" (not upeffect)', effName))
+			print(string.format('Invalid effect "%s" (not upeffect)', effect))
 			continue
 		end
 		self:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))

@@ -110,13 +110,13 @@ end
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.PreviewPanelOverride(**panel** panel)
+**UPEffect**.PreviewPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 预览面板覆盖
 ```
 
 ![client](materials/upgui/client.jpg)
-**UPEffect**.EditorPanelOverride(**panel** panel)
+**UPEffect**.EditorPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 编辑器面板覆盖
 ```

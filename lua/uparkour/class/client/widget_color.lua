@@ -11,17 +11,17 @@ function ColorEditor:Init()
 	local inputB = vgui.Create('DNumberWang', self)
 
 	inputR.OnValueChanged = function(_, newVal)
-		if isvector(self.bindVec) then self.bindVec[1] = newVal end
+		if IsColor(self.bindColor) then self.bindColor.r = newVal end
 		self:OnChange(self:GetValue())
 	end
 
 	inputG.OnValueChanged = function(_, newVal)
-		if isvector(self.bindVec) then self.bindVec[2] = newVal end
+		if IsColor(self.bindColor) then self.bindColor.g = newVal end
 		self:OnChange(self:GetValue())
 	end
 
 	inputB.OnValueChanged = function(_, newVal)
-		if isvector(self.bindVec) then self.bindVec[3] = newVal end
+		if IsColor(self.bindColor) then self.bindColor.b = newVal end
 		self:OnChange(self:GetValue())
 	end
 
@@ -48,20 +48,20 @@ function ColorEditor:OnSizeChanged(newWidth, newHeight)
 	self.inputB:SetWidth(div)
 end
 
-function ColorEditor:SetValue(vec)
-	if not isvector(vec) then 
-		error(string.format('vec "%s" is not a vector\n', vec))
+function ColorEditor:SetValue(color)
+	if not IsColor(color) then 
+		error(string.format('color "%s" is not a Color\n', color))
 		return 
 	end
 
-	self.inputR:SetValue(vec[1])
-	self.inputG:SetValue(vec[2])
-	self.inputB:SetValue(vec[3])
-	self.bindVec = vec
+	self.inputR:SetValue(color.r)
+	self.inputG:SetValue(color.g)
+	self.inputB:SetValue(color.b)
+	self.bindColor = color
 end
 
 function ColorEditor:GetValue()
-	return isvector(self.bindVec) and self.bindVec or Vector(
+	return IsColor(self.bindColor) and self.bindColor or Color(
 		self.inputR:GetValue(), 
 		self.inputG:GetValue(), 
 		self.inputB:GetValue()

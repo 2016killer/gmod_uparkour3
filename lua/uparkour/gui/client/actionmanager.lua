@@ -69,7 +69,7 @@ local function CreateMenu(panel)
 		for i, k in ipairs(keys) do
 			local v = ActionSet[k]
 			if not UPar.isupaction(v) then
-				print(string.format('Invalid action "%s" (not upaction)', action))
+				print(string.format('Invalid action "%s" named "%s" (not upaction)', action, k))
 				return
 			end
 

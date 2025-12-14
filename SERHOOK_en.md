@@ -17,9 +17,10 @@
 ## Operations
 
 ![shared](materials/upgui/shared.jpg)
-UPar.SeqHookAdd(**string** eventName, **string** identifier, **function** func, **int** priority)
+**int** UPar.SeqHookAdd(**string** eventName, **string** identifier, **function** func, **int** priority)
 ```note
 Use this method to add sequence hooks for events. If the identifier is duplicated and the priority is nil, the previous priority will be inherited.
+Return the current priority.
 ```
 
 ![shared](materials/upgui/shared.jpg)

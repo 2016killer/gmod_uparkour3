@@ -47,37 +47,37 @@ function ActionEditor:Init2(action)
 	end
 
 	if istable(action.upgui_CreateMenus) then
-		for k, v in pairs(action.upgui_CreateMenus) do
-			if not istable(v) then
-				print(string.format('[UPar]: action.upgui_CreateMenus - Error: v "%s" is not a table, action "%s"\n', v, actName))
-				continue
-			end
+		// for k, v in pairs(action.upgui_CreateMenus) do
+		// 	if not istable(v) then
 
-			if not isfunction(v.func) then
-				print(string.format('[UPar]: action.upgui_CreateMenus - Error: func "%s" is not a function, action "%s"\n', v.func, actName))
-				continue
-			end
+		// 		continue
+		// 	end
 
-			local func = v.func
-			local label = isstring(v.label) and v.label or k
+		// 	if not isfunction(v.func) then
 
-			local DScrollPanel = vgui.Create('DScrollPanel', Tabs)
-			local OptionPanel = vgui.Create('DForm', DScrollPanel)
-			OptionPanel:SetLabel(label)
-			OptionPanel:Dock(FILL)
-			OptionPanel.Paint = function(self, w, h)
-				draw.RoundedBox(0, 0, 0, w, h, white)
-			end
+		// 		continue
+		// 	end
 
-			local success, err = pcall(func, OptionPanel)
+		// 	local func = v.func
+		// 	local label = isstring(v.label) and v.label or k
 
-			if not success then
-				print(string.format('[UPar]: action.upgui_CreateMenus - Error: func "%s" call failed, action "%s"\n', func, actName))
-				continue
-			end
+		// 	local DScrollPanel = vgui.Create('DScrollPanel', Tabs)
+		// 	local OptionPanel = vgui.Create('DForm', DScrollPanel)
+		// 	OptionPanel:SetLabel(label)
+		// 	OptionPanel:Dock(FILL)
+		// 	OptionPanel.Paint = function(self, w, h)
+		// 		draw.RoundedBox(0, 0, 0, w, h, white)
+		// 	end
 
-			Tabs:AddSheet(label, DScrollPanel, 'icon16/wrench.png', false, false, '')
-		end
+		// 	local success, err = pcall(func, OptionPanel)
+
+		// 	if not success then
+
+		// 		continue
+		// 	end
+
+		// 	Tabs:AddSheet(label, DScrollPanel, 'icon16/wrench.png', false, false, '')
+		// end
 	end
 
 	self.div = effectManager.div

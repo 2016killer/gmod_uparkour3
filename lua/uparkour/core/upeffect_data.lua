@@ -6,12 +6,12 @@
 UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 	local action = UPar.GetAction(actName)
 	if not action then
-		error(string.format('Invalid action "%s"', actName))
+		error(string.format('can not find action named "%s"', actName))
 	end
 
 	local targetEffect = action:GetEffect(tarName)
 	if not targetEffect then
-		error(string.format('Invalid effect "%s" for action "%s"', tarName, actName))
+		error(string.format('can not find effect named "%s" from act "%s"', tarName, actName))
 	end
 
 	local effect = table.Merge(UPar.Clone(targetEffect), initData)
@@ -32,7 +32,7 @@ end
 
 UPar.IsCustomEffect = function(custom) 
 	if not istable(custom) then 
-		error(string.format('custom "%s" is not table', custom))
+		return false 
 	end
 
 	return !!custom.linkName
@@ -40,19 +40,20 @@ end
 
 UPar.InitCustomEffect = function(actName, custom)
 	if not UPar.IsCustomEffect(custom) then 
-		return true
+		print(string.format('[UPar]: init custom effect failed, "%s" is not custom effect', custom))
+		return false
 	end
 
     local tarName = custom.linkName
 	local action = UPar.GetAction(actName)
 	if not action then
-		print(string.format('[UPar]: init custom effect failed, invalid action "%s"', actName))
+		print(string.format('[UPar]: init custom effect failed, can not find action named "%s"', actName))
 		return false
 	end
 
 	local targetEffect = action:GetEffect(tarName)
 	if not targetEffect then
-		print(string.format('[UPar]: init custom effect failed, invalid effect "%s" for action "%s"', tarName, actName))
+		print(string.format('[UPar]: init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
 		return false
 	end
 
@@ -65,7 +66,7 @@ end
 
 UPar.PushEffectCache = function(ply, actName, custom)
 	if not UPar.IsCustomEffect(custom) then 
-		print(string.format('[UPar]: push cache failed, effect "%s" is not custom effect', custom.Name))
+		print(string.format('[UPar]: push cache failed, effect "%s" is not custom effect', custom))
 		return false
 	end
 
@@ -76,12 +77,12 @@ end
 
 UPar.PushEffectConfig = function(ply, actName, effName)
     if not actName then
-        print(string.format('[UPar]: push config failed, invalid actName "%s"', actName))
+        print(string.format('[UPar]: push effect config failed, can not find action named "%s"', actName))
         return false
     end
 
     if not effName then
-        print(string.format('[UPar]: push config failed, invalid effName "%s"', effName))
+        print(string.format('[UPar]: push effect config failed, can not find effect named "%s" from act "%s"', effName, actName))
         return false
     end
 
@@ -131,8 +132,8 @@ if SERVER then
 	end)
 
 elseif CLIENT then
-	file.CreateDir('uparkour3_effect')
-	file.CreateDir('uparkour3_effect/custom')
+	file.CreateDir('uparkour_effect')
+	file.CreateDir('uparkour_effect/custom')
 
 	UPar.SendEffectCacheToServer = function(data)
 		-- 为了过滤掉一些不能序列化的数据
@@ -162,27 +163,31 @@ elseif CLIENT then
 	end
 
 	UPar.LoadEffectConfigFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour3_effect/config.json')
+		return UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
 	end
 
 	UPar.LoadEffectCacheFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour3_effect/cache.json')
+		return UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
 	end
 
 	UPar.SaveEffectConfigToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour3_effect/config.json')
+		UPar.SaveUserDataToDisk(data, 'uparkour_effect/config.json')
 	end
 
 	UPar.SaveEffectCacheToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour3_effect/cache.json')
+		UPar.SaveUserDataToDisk(data, 'uparkour_effect/cache.json')
 	end
 
-	UPar.GetCustomEffectFile = function()
-		return file.Find('uparkour3_effect/custom/*.json', 'DATA')
+	UPar.GetCustomEffectFile = function(actName)
+		return file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
 	end
 
 	UPar.LoadCustomEffectFromDisk = function(filename)
-		return UPar.LoadUserDataFromDisk('uparkour3_effect/custom/' .. filename)
+		return UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
+	end
+
+	UPar.SaveCustomEffectToDisk = function(actName, custom)
+		UPar.SaveUserDataToDisk(custom, string.format('uparkour_effect/custom/%s/%s.json', actName, custom.Name))
 	end
 
 	hook.Add('KeyPress', 'upar.init.effect', function(ply, key)
