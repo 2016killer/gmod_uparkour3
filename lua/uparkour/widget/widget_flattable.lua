@@ -115,6 +115,10 @@ function FlatTableEditor:Update(key, newVal)
 	self:OnUpdate(key, newVal)
 end
 
+function FlatTableEditor:OnRemove()
+	self.obj = nil
+end
+
 FlatTableEditor.OnUpdate = UPar.emptyFunc
 
 vgui.Register('UParFlatTableEditor', FlatTableEditor, 'DForm')
@@ -156,6 +160,10 @@ function FlatTablePreview:Init2(obj, kVVisible, kvExpand)
 			self:AddItem(expanded)
 		end
 	end
+end
+
+function FlatTablePreview:OnRemove()
+	self.obj = nil
 end
 
 vgui.Register('UParFlatTablePreview', FlatTablePreview, 'DForm')

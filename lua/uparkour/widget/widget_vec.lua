@@ -104,6 +104,13 @@ function VecEditor:SetFraction(frac)
 	self.inputZ:SetFraction(frac)
 end
 
+function VecEditor:OnRemove()
+	self.inputX = nil
+	self.inputY = nil
+	self.inputZ = nil
+	self.bindVec = nil
+end
+
 VecEditor.OnChange = UPar.emptyfunc
 
 vgui.Register('UParVecEditor', VecEditor, 'DPanel')

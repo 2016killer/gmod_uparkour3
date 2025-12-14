@@ -104,6 +104,13 @@ function ColorEditor:SetFraction(frac)
 	self.inputB:SetFraction(frac)
 end
 
+function ColorEditor:OnRemove()
+	self.inputR = nil
+	self.inputG = nil
+	self.inputB = nil
+	self.bindColor = nil
+end
+
 ColorEditor.OnChange = UPar.emptyfunc
 
 vgui.Register('UParColorEditor', ColorEditor, 'DPanel')

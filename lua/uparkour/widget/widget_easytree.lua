@@ -22,6 +22,12 @@ function EasyTree:OnNodeSelected(selNode)
 	self.selNodeLast = selNode
 	self.clickTimeLast = clicktime
 end
+
+function EasyTree:OnRemove()
+	self.selNodeLast = nil
+	self.clickTimeLast = nil
+end
+
 EasyTree.OnSelected = UPar.emptyfunc
 EasyTree.OnDoubleClick = UPar.emptyfunc
 EasyTree.OnSelectedChange = UPar.emptyfunc

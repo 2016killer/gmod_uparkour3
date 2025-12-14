@@ -189,13 +189,13 @@ function UPAction:InitConVars(config)
 
     self.ConVars = {}
     for i, v in ipairs(config) do
-        if SERVER and v.client == false then
+        if v.client == nil then
             self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+        elseif SERVER and v.client == false then
+            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
         elseif CLIENT and v.client == true then
-            self.ConVars[v.name] = CreateClientConVar(v.name, v.default, true, false)
-        elseif v.client == nil then
-            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-        else
+            self.ConVars[v.name] = CreateClientConVar(v.name, v.default, true, false) 
+        elseif not isbool(v.client) then
             error(string.format('Invalid field "client" (not a boolean or nil), name = "%s"', v.name))
         end
     end

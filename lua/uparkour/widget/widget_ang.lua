@@ -103,6 +103,13 @@ function AngEditor:SetFraction(frac)
 	self.inputRoll:SetFraction(frac)
 end
 
+function AngEditor:OnRemove()
+	self.inputPitch = nil
+	self.inputYaw = nil
+	self.inputRoll = nil
+	self.bindAng = nil
+end
+
 AngEditor.OnChange = UPar.emptyfunc
 
 vgui.Register('UParAngEditor', AngEditor, 'DPanel')

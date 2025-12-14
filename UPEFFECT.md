@@ -111,15 +111,37 @@ end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.PreviewPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:PreviewPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 预览面板覆盖
 ```
+```lua
+if CLIENT then
+    function UPEffect:PreviewPanelOverride(panel, effectManager)
+        local content = vgui.Create('DForm', panel)
+        content:Help(self.Name)
+        content:Help(effectManager.action.Name)
+        content:Help(tostring(effectManager.tree))
+        content:Help(tostring(effectManager.div))
+    end
+end
+```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.EditorPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:EditorPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 编辑器面板覆盖
+```
+```lua
+if CLIENT then
+    function UPEffect:EditorPanelOverride(panel, effectManager)
+        local content = vgui.Create('DForm', panel)
+        content:Help(self.Name)
+        content:Help(effectManager.action.Name)
+        content:Help(tostring(effectManager.tree))
+        content:Help(tostring(effectManager.div))
+    end
+end
 ```
 
 ## 需要实现的方法

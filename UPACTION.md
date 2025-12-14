@@ -35,25 +35,37 @@
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPAction**.SundryPanels ***table***
+**UPAction**:SundryPanels ***table***
 ```lua 
 -- 例:
-action.SundryPanels = {
-    {
-        label = 'Example', 
-        func = function(panel)
-            ...
-        end
+if CLIENT then
+    action.SundryPanels = {
+        {
+            label = 'Example', 
+            func = function(panel)
+                ...
+            end
+        }
     }
-}
+end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPAction**.ConVarsPanelOverride(**panel** panel)
+**UPAction**:ConVarsPanelOverride(**panel** panel)
 ```note
 可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
 ```
-
+```lua 
+if CLIENT then
+    function action:ConVarsPanelOverride(panel)
+        local content = vgui.Create('DForm', panel)
+        content:Help(self.Name)
+        content:Help(self.AAAContrib)
+        content:Help(self.AAADesc)
+        content:Help(self.AAACreat)
+    end
+end
+```
 
 ## 需要实现的方法
 ![shared](./materials/upgui/shared.jpg) 

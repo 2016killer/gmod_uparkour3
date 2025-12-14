@@ -110,15 +110,37 @@ end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.PreviewPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:PreviewPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 Preview panel override
 ```
+```lua
+if CLIENT then
+    function UPEffect:PreviewPanelOverride(panel, effectManager)
+        local content = vgui.Create('DForm', panel)
+        content:Help(self.Name)
+        content:Help(effectManager.action.Name)
+        content:Help(tostring(effectManager.tree))
+        content:Help(tostring(effectManager.div))
+    end
+end
+```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.EditorPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:EditorPanelOverride(**panel** panel, **panel** effectManager)
 ```note
 Editor panel override
+```
+```lua
+if CLIENT then
+    function UPEffect:EditorPanelOverride(panel, effectManager)
+        local content = vgui.Create('DForm', panel)
+        content:Help(self.Name)
+        content:Help(effectManager.action.Name)
+        content:Help(tostring(effectManager.tree))
+        content:Help(tostring(effectManager.div))
+    end
+end
 ```
 
 ## Methods to Implement

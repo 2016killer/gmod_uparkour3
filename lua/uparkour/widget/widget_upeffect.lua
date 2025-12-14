@@ -123,7 +123,7 @@ function EffectManager:Init2(action)
 
 	local actName = action.Name
 
-	local effectTree = vgui.Create('UParEasyTree')
+	local tree = vgui.Create('UParEasyTree')
 	
 	local keys = {}
 	for k, _ in pairs(action.Effects) do table.insert(keys, k) end
@@ -138,7 +138,7 @@ function EffectManager:Init2(action)
 		local label = isstring(effect.label) and effect.label or effName
 		local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
 
-		local node = effectTree:AddNode(label, icon)
+		local node = tree:AddNode(label, icon)
 		node.effName = effName
 		node.icon = icon
 
@@ -167,21 +167,27 @@ function EffectManager:Init2(action)
 		local label = filename
 		local icon = 'icon64/tool.png'
 
-		local node = effectTree:AddNode(label, icon)
+		local node = tree:AddNode(label, icon)
 	end
 
 	local div = vgui.Create('DHorizontalDivider', self)
 	div:Dock(FILL)
 	div:SetDividerWidth(10)
-	div:SetLeft(effectTree)
+	div:SetLeft(tree)
 
-	self.effectTree = effectTree
+	self.tree = tree
 	self.div = div
 end
 
 function EffectManager:SetLeftWidth(w)
 	if not IsValid(self.div) then return end
 	self.div:SetLeftWidth(w)
+end
+
+function EffectManager:OnRemove()
+	self.tree = nil
+	self.div = nil
+	self.curSelNode = nil
 end
 
 EffectManager.OnPlay = function(self, ...) print('OnPlay', ...) end

@@ -16,6 +16,7 @@ function ActionEditor:Init2(action)
 	end
 
 	local actName = action.Name
+	self.action = action
 
 	self:SetSize(600, 400)
 	self:SetPos(0, 0)
@@ -34,6 +35,7 @@ function ActionEditor:Init2(action)
 	local effectManager = vgui.Create('UParEffectManager')
 	effectManager:Init2(action)
 	effectManager:SetLeftWidth(0.5 * self:GetWide())
+	self.div = effectManager.div
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 
 	-- 旧版本代码
@@ -85,7 +87,6 @@ function ActionEditor:Init2(action)
 		// end
 	end
 
-	self.div = effectManager.div
 end
 
 local function GetConVarPhrase(name)
@@ -99,7 +100,11 @@ local function GetConVarPhrase(name)
 	end
 end
 
-function ActionEditor:CreateConVarPanel(panel, action)
+ActionEditor.CreateConVarsPanel = function(action, panel)
+	local ctrl = vgui.Create('ControlPresets', panel)
+	ctrl:SetPreset(action.Name)
+
+	panel:AddItem(ctrl)
 	for _, v in ipairs(convars) do
 		local name = v.name
 		local widget = v.widget or 'NumSlider'
@@ -136,17 +141,19 @@ function ActionEditor:CreateConVarPanel(panel, action)
 		end
 	end
 	
-	local defaultButton = panel:Button('#default')
-	defaultButton.DoClick = function()
-		for _, v in ipairs(convars) do
-			RunConsoleCommand(v.name, v.default or '0')
-		end
+	ctrl:AddOption('#preset.default', default)
+	ctrl:AddOption('关闭', Deactiave )
+	for k, v in pairs(default) do 
+		ctrl:AddConVar(k) 
 	end
 
 	panel:Help('')
 end
 
-
+function ActionEditor:OnRemove()
+	self.action = nil
+	self.div = nil
+end
 
 vgui.Register('UParActionEditor', ActionEditor, 'DFrame')
 ActionEditor = nil
