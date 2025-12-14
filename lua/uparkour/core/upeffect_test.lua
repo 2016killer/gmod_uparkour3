@@ -20,13 +20,13 @@ end
 UPar.EffectTest = function(ply, actName, effName)
 	local action = UPar.GetAction(actName)
 	if not action then
-		print(string.format('[UPar]: effect test failed, can not find action named "%s"', actName))
+		ErrorNoHaltWithStack(string.format('effect test failed, can not find action named "%s"', actName))
 		return
 	end
 
 	local effect = action:GetPlayerEffect(ply, effName)
 	if not effect then
-		print(string.format('[UPar]: effect test failed, can not find effect named "%s" from act "%s"', effName, actName))
+		ErrorNoHaltWithStack(string.format('effect test failed, can not find effect named "%s" from act "%s"', effName, actName))
 		return
 	end
 

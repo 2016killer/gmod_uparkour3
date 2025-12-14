@@ -21,39 +21,32 @@ UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 	return effect
 end
 
-UPar.CreateCustomEffect = function(tarName, name)
-	return {
-		Name = name,
-        linkName = tarName,
-		icon = 'icon64/tool.png',
-		label = '',
-	}
-end
-
 UPar.IsCustomEffect = function(custom) 
 	if not istable(custom) then 
 		return false 
 	end
 
-	return !!custom.linkName
+	return isstring(custom.Name) and isstring(custom.linkName) and isstring(custom.linkAct)
 end
 
-UPar.InitCustomEffect = function(actName, custom)
+UPar.InitCustomEffect = function(custom)
 	if not UPar.IsCustomEffect(custom) then 
-		print(string.format('[UPar]: init custom effect failed, "%s" is not custom effect', custom))
+		ErrorNoHaltWithStack(string.format('init custom effect failed, "%s" is not custom effect', custom))
 		return false
 	end
 
+    local actName = custom.linkAct
     local tarName = custom.linkName
+
 	local action = UPar.GetAction(actName)
 	if not action then
-		print(string.format('[UPar]: init custom effect failed, can not find action named "%s"', actName))
+		ErrorNoHaltWithStack(string.format('init custom effect failed, can not find action named "%s"', actName))
 		return false
 	end
 
 	local targetEffect = action:GetEffect(tarName)
 	if not targetEffect then
-		print(string.format('[UPar]: init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
+		ErrorNoHaltWithStack(string.format('init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
 		return false
 	end
 
@@ -64,25 +57,25 @@ UPar.InitCustomEffect = function(actName, custom)
 	return true
 end
 
-UPar.PushEffectCache = function(ply, actName, custom)
+UPar.PushEffectCache = function(ply, custom)
 	if not UPar.IsCustomEffect(custom) then 
-		print(string.format('[UPar]: push cache failed, effect "%s" is not custom effect', custom))
+		ErrorNoHaltWithStack(string.format('push cache failed, "%s" is not custom effect', custom))
 		return false
 	end
 
-    ply.upeff_cache[actName] = custom
+    ply.upeff_cache[custom.linkAct] = custom
 
 	return true
 end
 
 UPar.PushEffectConfig = function(ply, actName, effName)
-    if not actName then
-        print(string.format('[UPar]: push effect config failed, can not find action named "%s"', actName))
+    if not isstring(actName) then
+        ErrorNoHaltWithStack(string.format('push effect config failed, invalid actName "%s" (not string)', actName))
         return false
     end
 
-    if not effName then
-        print(string.format('[UPar]: push effect config failed, can not find effect named "%s" from act "%s"', effName, actName))
+    if not isstring(effName) then
+        ErrorNoHaltWithStack(string.format('push effect config failed, invalid effName "%s" (not string)', effName))
         return false
     end
 
@@ -91,11 +84,30 @@ UPar.PushEffectConfig = function(ply, actName, effName)
 	return true
 end
 
+UPar.InitPlyEffSetting = function(ply)
+	ply.upeff_cfg = {}
+	ply.upeff_cache = {}
+end
+
+UPar.PushPlyEffSetting = function(ply, cfg, cache)
+	if istable(cfg) then
+		for actName, effName in pairs(cfg) do
+			UPar.PushEffectConfig(ply, actName, effName)
+		end
+	end
+
+	if istable(cache) then
+		for _, cache in pairs(cache) do
+			UPar.InitCustomEffect(cache)
+			UPar.PushEffectCache(ply, cache)
+		end
+	end
+end
+ 
 if SERVER then
-	util.AddNetworkString('UParEffectCache')
-	util.AddNetworkString('UParEffectConfig')
+	util.AddNetworkString('SyncPlyEffSetting')
 
-	net.Receive('UParEffectCache', function(len, ply)
+	net.Receive('SyncPlyEffSetting', function(len, ply)
 		local content = net.ReadString()
 		// content = util.Decompress(content)
 
@@ -105,105 +117,110 @@ if SERVER then
 			return
 		end
 
-		-- 初始化自定义特效
-		for actName, custom in pairs(data) do
-			UPar.InitCustomEffect(actName, custom)
-		end
-
-		table.Merge(ply.upeff_cache, data)
+		local cfg, cache = unpack(data)
+		UPar.PushPlyEffSetting(ply, cfg, cache)
 	end)
 
-	net.Receive('UParEffectConfig', function(len, ply)
-		local content = net.ReadString()
-		// content = util.Decompress(content)
-
-		local data = util.JSONToTable(content or '')
-		if not istable(data) then
-			print('[UPar]: receive data is not table')
-			return
-		end
-
-		table.Merge(ply.upeff_cfg, data)
-	end)
-
-	hook.Add('PlayerInitialSpawn', 'upar.init.effect', function(ply)
-		ply.upeff_cfg = ply.upeff_cfg or {}
-		ply.upeff_cache = ply.upeff_cache or {}
-	end)
-
+	hook.Add('PlayerInitialSpawn', 'upar.init.effect', UPar.InitPlyEffSetting)
 elseif CLIENT then
 	file.CreateDir('uparkour_effect')
 	file.CreateDir('uparkour_effect/custom')
 
-	UPar.SendEffectCacheToServer = function(data)
+	UPar.SaveCustomEffectToDisk = function(custom, override)
+		if not UPar.IsCustomEffect(custom) then 
+			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', custom))
+			return false
+		end
+
+		local path = string.format('uparkour_effect/custom/%s/%s.json', custom.linkAct, custom.Name)
+		local exists = file.Exists(path, 'DATA')
+
+		if exists and not override then
+			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" already exists', path))
+			return false
+		end
+
+		return UPar.SaveUserDataToDisk(custom, path)
+	end
+
+	UPar.CreateCustomEffect = function(actName, tarName, name)
+		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
+		local exists = file.Exists(path, 'DATA')
+
+		if exists then
+			ErrorNoHaltWithStack(string.format('create custom effect failed, "%s" already exists', path))
+			return false
+		end
+
+		local custom = {
+			Name = name,
+			linkAct = actName,
+			linkName = tarName,
+			icon = 'icon64/tool.png',
+			label = name,
+
+			AAACreat = LocalPlayer():Nick(),
+			AAAContrib = LocalPlayer():Nick(),
+			AAADesc = 'Desc',
+		}
+
+		UPar.SaveCustomEffectToDisk(custom, true)
+
+		return custom
+	end
+
+	UPar.SyncPlyEffSetting = function(ply, sendcfg, sendcache)
+		local data = {
+			sendcfg and ply.upeff_cfg or nil,
+			sendcache and ply.upeff_cache or nil
+		}
+
 		-- 为了过滤掉一些不能序列化的数据
 		local content = util.TableToJSON(data)
 		if not content then
-			print('[UPar]: send effect cache to server failed, content is not valid json')
+			print('[UPar]: sync player effect failed, content is not valid json')
 			return
 		end
 		// content = util.Compress(content)
 
-		net.Start('UParEffectCache')
+		net.Start('SyncPlyEffSetting')
 			net.WriteString(content)
 		net.SendToServer()
 	end
 
-	UPar.SendEffectConfigToServer = function(data)
-		local content = util.TableToJSON(data)
-		if not content then
-			print('[UPar]: send effect config to server failed, content is not valid json')
-			return
-		end
-		// content = util.Compress(content)
-
-		net.Start('UParEffectConfig')
-			net.WriteString(content)
-		net.SendToServer()
-	end
-
-	UPar.LoadEffectConfigFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
-	end
-
-	UPar.LoadEffectCacheFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
-	end
-
-	UPar.SaveEffectConfigToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour_effect/config.json')
-	end
-
-	UPar.SaveEffectCacheToDisk = function(data)
+	UPar.SaveUserEffCacheToDisk = function(data)
 		UPar.SaveUserDataToDisk(data, 'uparkour_effect/cache.json')
 	end
 
-	UPar.GetCustomEffectFile = function(actName)
-		return file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
+	UPar.SaveUserEffCfgToDisk = function(data)
+		UPar.SaveUserDataToDisk(data, 'uparkour_effect/config.json')
+	end
+
+	UPar.LoadUserEffCacheFromDisk = function()
+		return UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
+	end
+
+	UPar.LoadUserEffCfgFromDisk = function()
+		return UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
+	end
+
+	UPar.GetCustomEffectFiles = function(actName)
+		local files = file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
+		return files, actName
 	end
 
 	UPar.LoadCustomEffectFromDisk = function(filename)
 		return UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
 	end
 
-	UPar.SaveCustomEffectToDisk = function(actName, custom)
-		UPar.SaveUserDataToDisk(custom, string.format('uparkour_effect/custom/%s/%s.json', actName, custom.Name))
-	end
-
 	hook.Add('KeyPress', 'upar.init.effect', function(ply, key)
 		hook.Remove('KeyPress', 'upar.init.effect')
-
-		local effectCache = UPar.LoadEffectCacheFromDisk()
-		local effectConfig = UPar.LoadEffectConfigFromDisk()
+		UPar.InitPlyEffSetting(ply)
 		
-		UPar.SendEffectCacheToServer(effectCache)
-		UPar.SendEffectConfigToServer(effectConfig)
+		local cfg = UPar.LoadUserEffCfgFromDisk()
+		local cache = UPar.LoadUserEffCacheFromDisk()
 
-		for actName, custom in pairs(effectCache) do
-			UPar.InitCustomEffect(actName, custom)
-		end
-
-		ply.upeff_cfg = effectConfig or {}
-		ply.upeff_cache = effectCache or {}
+		UPar.PushPlyEffSetting(ply, cfg, cache)
+		UPar.SyncPlyEffSetting(ply, true, true)
 	end)
 end

@@ -32,7 +32,6 @@ UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
 UPar.Clone = function(obj)
     if not istable(obj) then
-		print(string.format('[UPar]: clone faild, obj "%s" is not a table', obj))
         return obj
     end
     
@@ -127,13 +126,12 @@ if CLIENT then
 		return istable(data) and data or nil
 	end
 
-
 	UPar.SaveUserDataToDisk = function(data, path, noMetadata)
 		-- 保存用户数据到磁盘, 返回 是否成功
 		-- 此操作会自动添加元数据 AAAMetadata
 
 		if not istable(data) then
-			error(string.format('SaveUserDataToDisk: data must be a table, but got %s\n', type(data)))
+			ErrorNoHaltWithStack('data must be a table, but got ', type(data))
 			return
 		end
 
@@ -148,8 +146,12 @@ if CLIENT then
 
 		local content = util.TableToJSON(data, true) or '{}'
 		local succ = file.Write(path, content)
-		print(string.format('[UPar]: save user data to disk %s, result: %s', path, succ))
-
+		if succ then
+			print(string.format('[UPar]: save user data to disk %s, success', path))	
+		else
+			ErrorNoHaltWithStack('save user data to disk ', path, ' failed')
+		end
+		
 		return succ
 	end
 end

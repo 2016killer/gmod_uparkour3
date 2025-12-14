@@ -8,13 +8,7 @@ local lightblue = Color(0, 170, 255)
 local EffectManager = {}
 
 EffectManager.EditorKeyFilter = {
-	AAACreat = true,
-	AAAContrib = true,
-	AAADesc = true,
-	Name = true,
-	linkName = true,
-	label = true,
-	icon = true
+	linkName = true
 }
 
 EffectManager.EditorKVVisible = function(key, val) 
@@ -36,8 +30,8 @@ EffectManager.PreviewKVVisible = function(key, val)
 end
 
 function EffectManager:CreatePreview(effect)
-	if not UPar.isupeffect(effect) then
-		print(string.format('Invalid effect "%s" (not upeffect)', effect))
+	if not UPar.isupeffect(effect) or not UPar.IsCustomEffect(effect) then
+		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect or not custom effect)', effect))
 		return
 	end
 
@@ -76,8 +70,8 @@ function EffectManager:CreatePreview(effect)
 end
 
 function EffectManager:CreateEditor(effect)
-	if not UPar.isupeffect(effect) then
-		print(string.format('Invalid effect "%s" (not upeffect)', effect))
+	if not UPar.isupeffect(effect) or not UPar.IsCustomEffect(effect) then
+		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect or not custom effect)', effect))
 		return
 	end
 
@@ -122,27 +116,22 @@ function EffectManager:CreateEditor(effect)
 end
 
 function EffectManager:Init2(action)
+	if not UPar.isupaction(action) then
+		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
+		return
+	end
+
 	local actName = action.Name
-	// self.action = nil
-	// self.actName = nil
-	// self.effectTree = nil
-	// self.div = nil
 
 	local effectTree = vgui.Create('UParEasyTree')
 	
-	local Effects = {}
-	for k, v in pairs(action.Effects) do Effects[k] = v end
-
 	local keys = {}
-	for k, v in pairs(action.Effects) do table.insert(keys, k) end
+	for k, _ in pairs(action.Effects) do table.insert(keys, k) end
 	table.sort(keys)
 
-	local customEffect = LocalPlayer().upar_effects_custom[actName]
-	if customEffect then 
-		table.insert(keys, 1, 'Custom')
-		Effects['Custom'] = customEffect
-	end
-
+	local customFiles = UPar.GetCustomEffectFiles(actName)
+	table.sort(customFiles)
+	
 	for _, effName in pairs(keys) do
 		local effect = Effects[effName]
 
@@ -174,8 +163,11 @@ function EffectManager:Init2(action)
 		end
 	end
 
-	effectTree.OnNodeSelected = function(_, selNode)
-		self:OnNodeSelected(selNode)
+	for _, filename in pairs(customFiles) do
+		local label = filename
+		local icon = 'icon64/tool.png'
+
+		local node = effectTree:AddNode(label, icon)
 	end
 
 	local div = vgui.Create('DHorizontalDivider', self)
@@ -192,82 +184,6 @@ end
 function EffectManager:SetLeftWidth(w)
 	if not IsValid(self.div) then return end
 	self.div:SetLeftWidth(w)
-end
-
-function EffectManager:OnNodeSelected(selNode)
-	local clicktime = CurTime()
-
-	if self.selNodeLast ~= selNode then
-		if IsValid(self.div:GetRight()) then 
-			self.div:GetRight():Remove() 
-		end
-		
-		local action, actName, effName = self.action, self.actName, selNode.effName
-		
-		local effect = UPar.GetPlayerEffect(LocalPlayer(), action, effName)
-		local iscustom = !!effect.linkName
-
-		local rightPanel = nil
-		
-		if iscustom then
-			rightPanel = self:CreateEffectEditor(effect)
-		else
-			rightPanel = self:CreatePreview(effect)
-		end
-		rightPanel:SetParent(effectPanel)
-		
-		self.div:SetRight(rightPanel)
-
-		self:OnSelectedChange(selNode.effName, selNode)
-	elseif clicktime - self.clickTimeLast < 0.2 then
-		self:PlayEffect(selNode.effName)
-		self:ChangeEffectConfig(selNode.effName)
-		self:ChangeHitNode(selNode)
-		self:OnDoubleSelect(selNode.effName, selNode)
-
-		return
-	end
-
-	self.selNodeLast = selNode
-	self.clickTimeLast = clicktime
-end
-
-function EffectManager:ChangeHitNode(node)
-	if self.hitNode == node then 
-		return 
-	end
-
-	node:SetIcon('icon16/accept.png')
-	if IsValid(self.hitNode) then 
-		self.hitNode:SetIcon(self.hitNode.icon) 
-	end
-
-	self.hitNode = node
-end
-
-function EffectManager:ChangeEffectConfig(effName)
-	if not self.actName then return end
-
-	LocalPlayer().upar_effect_config[self.actName] = effName
-	UPar.SaveUserDataToDisk(LocalPlayer().upar_effect_config, 'upar/effect_config.json')
-	UPar.SendEffectConfigToServer(LocalPlayer().upar_effect_config)
-end
-
-function EffectManager:SaveCustomEffect(customEffect)
-	if not self.actName then return end
-
-	LocalPlayer().upar_effects_custom[self.actName] = customEffect
-
-	UPar.InitCustomEffect(self.actName, customEffect)
-
-	UPar.SaveUserDataToDisk(LocalPlayer().upar_effects_custom, 'upar/effects_custom.json')
-	UPar.SendCustomEffectsToServer(LocalPlayer().upar_effects_custom)
-end
-
-function EffectManager:PlayEffect(effName)
-	local actName = self.actName
-	if not actName or not effName then return end
-	UPar.EffectTest(LocalPlayer(), actName, effName)
 end
 
 EffectManager.OnPlay = function(self, ...) print('OnPlay', ...) end

@@ -10,7 +10,7 @@ function FlatTableEditor:Init2(obj, kVVisible, kvExpand)
 	self.obj = obj
 	
 	if not istable(self.obj) then 
-		print(string.format('Invalid obj "%s" (not table)', obj))
+		ErrorNoHaltWithStack(string.format('Invalid obj "%s" (not table)', obj))
 		return 
 	end
 
@@ -125,7 +125,7 @@ function FlatTablePreview:Init2(obj, kVVisible, kvExpand)
 	self.obj = obj
 
 	if not istable(self.obj) then 
-		print(string.format('Invalid obj "%s" (not table)', obj))
+		ErrorNoHaltWithStack(string.format('Invalid obj "%s" (not table)', obj))
 		return 
 	end
 

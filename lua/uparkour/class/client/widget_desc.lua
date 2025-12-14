@@ -9,7 +9,7 @@ local Description = {}
 
 function Description:Init2(action)
 	if not UPar.isupaction(action) then
-		print(string.format('Invalid action "%s" (not upaction)', action))
+		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
 		return
 	end
 
@@ -20,7 +20,7 @@ function Description:Init2(action)
 	self:Help('====================')
 	for effName, effect in pairs(action.Effects) do
 		if not UPar.isupeffect(effect) then
-			print(string.format('Invalid effect "%s" (not upeffect)', effect))
+			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
 			continue
 		end
 		self:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))

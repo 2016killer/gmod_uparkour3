@@ -1,1 +1,1 @@
-print(1)
+UPar.SaveUserDataToDisk({}, 'asdasdasdas/dsdsdsds/a.json')
