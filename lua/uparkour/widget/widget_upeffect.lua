@@ -129,7 +129,7 @@ function EffectManager:Init2(action)
 	for k, _ in pairs(action.Effects) do table.insert(keys, k) end
 	table.sort(keys)
 
-	local customFiles = UPar.GetCustomEffectFiles(actName)
+	local customFiles = UPar.GetUserCustomEffectFiles(actName)
 	table.sort(customFiles)
 	
 	for _, effName in pairs(keys) do
