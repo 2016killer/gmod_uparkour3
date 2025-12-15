@@ -154,7 +154,7 @@ Automatically called after UPAction:Start
 ![shared](./materials/upgui/shared.jpg)
 **UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
 ```note
-Triggered by UPar.ActChangeRhythm
+Called by UPar.ActChangeRhythm
 ```
 
 ![shared](./materials/upgui/shared.jpg)
@@ -168,6 +168,8 @@ Automatically called after UPAction:Clear
 ```note
 This will find the corresponding effect from the registered ones, automatically clone it and overwrite the target.
 Set the console variable `developer` to 1 to prevent translation behavior, so that you can view the actual key names.
+
+This method internally uses UPar.DeepClone for cloning and then uses table.Merge for merging.
 ```
 ```lua
 -- Example:

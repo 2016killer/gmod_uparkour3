@@ -14,7 +14,7 @@ UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 		error(string.format('can not find effect named "%s" from act "%s"', tarName, actName))
 	end
 
-	local effect = table.Merge(UPar.Clone(targetEffect), initData)
+	local effect = table.Merge(UPar.DeepClone(targetEffect), initData)
 	effect.Name = name
 	effect:Register()
 	
@@ -50,9 +50,7 @@ UPar.InitCustomEffect = function(custom)
 		return false
 	end
 
-	for k, v in pairs(targetEffect) do
-		if custom[k] == nil then custom[k] = v end
-	end
+	UPar.DeepInject(custom, UPar.DeepClone(targetEffect))
 
 	return true
 end
@@ -143,7 +141,7 @@ elseif CLIENT then
 	file.CreateDir('uparkour_effect')
 	file.CreateDir('uparkour_effect/custom')
 
-	UPar.SaveCustomEffectToDisk = function(custom, override)
+	UPar.SaveUserCustomEffectToDisk = function(custom, fileOverride)
 		if not UPar.IsCustomEffect(custom) then 
 			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 			return false
@@ -155,15 +153,16 @@ elseif CLIENT then
 		local path = string.format('uparkour_effect/custom/%s/%s.json', custom.linkAct, custom.Name)
 		local exists = file.Exists(path, 'DATA')
 
-		if exists and not override then
+		if exists and not fileOverride then
 			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" already exists', path))
 			return false
 		end
 
-		return UPar.SaveUserDataToDisk(custom, path)
+		local dataOverride = hook.Run('UParSaveUserCustomEffectToDisk', custom)
+		return UPar.SaveUserDataToDisk(dataOverride or custom, path)
 	end
 
-	UPar.CreateCustomEffect = function(actName, tarName, name)
+	UPar.CreateUserCustomEffect = function(actName, tarName, name)
 		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
 		local exists = file.Exists(path, 'DATA')
 
@@ -184,9 +183,20 @@ elseif CLIENT then
 			AAADesc = 'Desc',
 		}
 
-		UPar.SaveCustomEffectToDisk(custom, true)
+		UPar.SaveUserCustomEffectToDisk(custom, true)
 
 		return custom
+	end
+
+	UPar.GetUserCustomEffectFiles = function(actName)
+		local files = file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
+		return files, actName
+	end
+
+	UPar.LoadUserCustomEffectFromDisk = function(filename)
+		local data = UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
+		local override = hook.Run('UParLoadUserCustomEffectFromDisk', data)
+		return override or data
 	end
 
 	UPar.SyncPlyEffSetting = function(ply, sendcfg, sendcache)
@@ -209,28 +219,25 @@ elseif CLIENT then
 	end
 
 	UPar.SaveUserEffCacheToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour_effect/cache.json')
+		local override = hook.Run('UParSaveUserEffCacheToDisk', data)
+		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/cache.json')
 	end
 
 	UPar.SaveUserEffCfgToDisk = function(data)
-		UPar.SaveUserDataToDisk(data, 'uparkour_effect/config.json')
+		local override = hook.Run('UParSaveUserEffCfgToDisk', data)
+		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/config.json')
 	end
 
 	UPar.LoadUserEffCacheFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
+		local data = UPar.LoadUserDataFromDisk('uparkour_effect/cache.json')
+		local override = hook.Run('UParLoadUserEffCacheFromDisk', data)
+		return override or data
 	end
 
 	UPar.LoadUserEffCfgFromDisk = function()
-		return UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
-	end
-
-	UPar.GetCustomEffectFiles = function(actName)
-		local files = file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
-		return files, actName
-	end
-
-	UPar.LoadCustomEffectFromDisk = function(filename)
-		return UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
+		local data = UPar.LoadUserDataFromDisk('uparkour_effect/config.json')
+		local override = hook.Run('UParLoadUserEffCfgFromDisk', data)
+		return override or data
 	end
 
 	hook.Add('KeyPress', 'upar.init.effect', function(ply, key)

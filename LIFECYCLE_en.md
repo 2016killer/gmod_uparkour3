@@ -17,7 +17,7 @@
 **UPAction.TrackId**
 ```note
 This is the core parameter.
-- If actions are on the same track, an interruption will be triggered. For example, if a vault check is triggered while climbing is in progress, the interruption process will be initiated.
+- If actions are on the same track, an interruption will be called. For example, if a vault check is called while climbing is in progress, the interruption process will be initiated.
 - If actions are on different TrackIds (e.g., an inspection action), they can run in parallel with climbing or vaulting.
 ```
 

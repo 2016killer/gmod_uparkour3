@@ -26,3 +26,39 @@ UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
 ```note
 注册特效时触发
 ```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParSaveUserEffCacheToDisk(**table** cache)
+```note
+保存用户特效缓存时触发, 返回真值将覆盖默认值
+```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParSaveUserEffCfgToDisk(**table** cfg)
+```note
+保存用户特效配置时触发, 返回真值将覆盖默认值
+```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParLoadUserEffCacheFromDisk(**table** cache)
+```note
+加载用户特效缓存时触发, 返回真值将覆盖默认值
+```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParLoadUserEffCfgFromDisk(**table** cfg)
+```note
+加载用户特效配置时触发, 返回真值将覆盖默认值
+```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParSaveUserCustomEffectToDisk(**table** custom)
+```note
+保存用户自定义特效配置时触发, 返回真值将覆盖默认值
+```
+
+![shared](./materials/upgui/shared.jpg)
+**table** UParLoadUserCustomEffectFromDisk(**table** custom)
+```note
+加载用户自定义特效配置时触发, 返回真值将覆盖默认值
+```

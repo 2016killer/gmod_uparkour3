@@ -168,7 +168,9 @@ end
 **UPEffect** UPar.RegisterEffectEasy(**string** actName, **string** tarName, **string** name, **table** initData)
 ```note
 这会从已注册的当中找到对应的特效, 自动克隆并覆盖。
-将控制台变量 developer 设为 1 可以阻止翻译行为以便查看真实键名
+将控制台变量 developer 设为 1 可以阻止翻译行为以便查看真实键名。
+
+此方法内部会使用 UPar.DeepClone 来克隆, 然后使用table.Merge来合并。
 ```
 ```lua
 -- 例:

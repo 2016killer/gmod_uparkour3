@@ -33,7 +33,7 @@ This approach also offers several advantages. For instance, certain persistent d
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**.TrackId: ***int*** or ***string*** Track ID  
 ```note
-Default value is 0. When actions with the same TrackId are triggered simultaneously, interruption judgment will be initiated.
+Default value is 0. When actions with the same TrackId are called simultaneously, interruption judgment will be initiated.
 ```
 
 ![client](./materials/upgui/client.jpg)

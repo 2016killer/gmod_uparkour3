@@ -152,34 +152,87 @@ if CLIENT then
 	end
 end
 
-local function Clone(obj, cache)
+local function DeepClone(obj, cache)
     cache = cache or {}
-
-    if not istable(obj) then
-        return obj
-    end
 
     if cache[obj] then
         return cache[obj]
     end
 
-    local cloned = {}
-    cache[obj] = cloned
-
-
-    for k, v in pairs(obj) do
-        cloned[Clone(k, cache)] = Clone(v, cache)
+    -- userdata
+    if isvector(obj) then
+        local cloned = Vector(obj)
+        cache[obj] = cloned
+        return cloned
+    elseif isangle(obj) then
+        local cloned = Angle(obj)
+        cache[obj] = cloned
+        return cloned
+    elseif ismatrix(obj) then
+        local cloned = Matrix(obj)
+        cache[obj] = cloned
+        return cloned
+    elseif IsColor(obj) then
+        local cloned = Color(obj.r, obj.g, obj.b, obj.a)
+        cache[obj] = cloned
+        return cloned
+	elseif not istable(obj) then
+        return obj
     end
 
-    local mt = getmetatable(obj)
-    if mt then
-        setmetatable(cloned, mt)
-    end
 
-    return cloned
+	local cloned = {}
+	cache[obj] = cloned
+
+
+	for k, v in pairs(obj) do
+		cloned[DeepClone(k, cache)] = DeepClone(v, cache)
+	end
+
+	local mt = getmetatable(obj)
+	if mt then
+		setmetatable(cloned, mt)
+	end
+
+	return cloned
 end
 
-UPar.Clone = Clone
+local function DeepInject(container, injector, cache)
+    if not istable(container) then
+        error(string.format('DeepInject: container must be a table, got %s', type(container)))
+    end
+
+    if not istable(injector) then
+        error(string.format('DeepInject: injector must be a table, got %s', type(injector)))
+    end
+
+    cache = cache or {}
+    local cacheKey = tostring(container) .. '|' .. tostring(injector)
+    if cache[cacheKey] then
+        return container
+    end
+    cache[cacheKey] = true
+
+    for k, v in pairs(injector) do
+        if container[k] == nil then
+            container[k] = v
+        elseif istable(container[k]) and istable(v) then
+            DeepInject(container[k], v, cache)
+        end
+    end
+
+    local mtContainer = getmetatable(container)
+    local mtInjector = getmetatable(injector)
+    if not mtContainer and mtInjector then
+        setmetatable(container, mtInjector)
+    end
+
+    return container
+end
+
+
+UPar.DeepClone = DeepClone
+UPar.DeepInject = DeepInject
 
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
