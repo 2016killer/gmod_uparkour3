@@ -10,7 +10,7 @@ UPAction.__index = UPAction
 local Instances = {}
 
 local function sanitizeConVarName(name)
-    return 'upact_' .. string.gsub(name, '[\\/:*?\\"<>|]', '_')
+    return 'upact_' .. string.gsub(name, '[\\/:*?"<>|]', '_')
 end
 
 local function isupaction(obj)
@@ -32,7 +32,7 @@ local function isupaction(obj)
 end
 
 function UPAction:new(name, initData)
-    if string.find(name, '[\\/:*?\\"<>|]') then
+    if string.find(name, '[\\/:*?"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
     end
 

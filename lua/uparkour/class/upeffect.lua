@@ -13,18 +13,19 @@ local function isupeffect(obj)
     local mt = getmetatable(obj)
     while mt do
         if mt == UPEffect then return true end
-        local nextMt = getmetatable(mt)
-        if nextMt and nextMt.__index then
-            mt = nextMt.__index
+  
+        local index = rawget(mt, "__index")
+        if istable(index) then
+            mt = index
         else
-            break
+            mt = getmetatable(mt)
         end
     end
     return false
 end
 
 function UPEffect:new(name, initData)
-    if string.find(name, '[\\/:*?\"<>|]') then
+    if string.find(name, '[\\/:*?"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
     end
 
@@ -39,9 +40,10 @@ function UPEffect:new(name, initData)
     end
 
 	self.Name = name
-	self.Start = self.Start or UPar.emptyfunc
-	self.Clear = self.Clear or UPar.emptyfunc
-	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
+
+	self.Start = UPar.emptyfunc
+	self.Clear = UPar.emptyfunc
+	self.OnRhythmChange = UPar.emptyfunc
 
     
     self.icon = SERVER and nil or initData.icon
@@ -50,12 +52,7 @@ function UPEffect:new(name, initData)
     self.AAADesc = SERVER and nil or initData.AAADesc
     self.AAAContrib = SERVER and nil or initData.AAAContrib
 
-    self.PreviewPanelOverride = SERVER and nil or initData.PreviewPanelOverride
-    self.EditorPanelOverride = SERVER and nil or initData.EditorPanelOverride
-
-    self.EditorKVExpand = SERVER and nil or initData.EditorKVExpand
     self.EditorKVVisible = SERVER and nil or initData.EditorKVVisible
-    self.PreviewKVExpand = SERVER and nil or initData.PreviewKVExpand
     self.PreviewKVVisible = SERVER and nil or initData.PreviewKVVisible
     
     return self
@@ -68,6 +65,11 @@ function UPEffect:Register(actName)
     end
 
     hook.Run('UParRegisterEffect', actName, self.Name, self) 
+
+    if action.Effects[self.Name] ~= self then
+        print(string.format('[UPEffect]: Warning: Effect "%s" already registered (overwritten)', self.Name))
+    end
+
 	action.Effects[self.Name] = self
 end
 
