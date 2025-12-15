@@ -40,14 +40,18 @@ Default value is 0. When actions with the same TrackId are called simultaneously
 **UPAction**.SundryPanels ***table***
 ```lua 
 -- Example:
-action.SundryPanels = {
-    {
-        label = 'Example', 
-        func = function(panel)
-            ...
-        end
-    }
-}
+if CLIENT then
+	local function ExamplePanel(self, panel)
+		panel:Help('This is example')
+	end
+
+	action.SundryPanels = {
+		{
+			label = '#upgui.example',
+			func = ExamplePanel,
+		}
+	}
+end
 ```
 
 ![client](./materials/upgui/client.jpg)
@@ -59,9 +63,6 @@ Custom parameter interfaces can be created here (e.g., building parameter editor
 if CLIENT then
     function action:ConVarsPanelOverride(panel)
         panel:Help(self.Name)
-        panel:Help(self.AAAContrib)
-        panel:Help(self.AAADesc)
-        panel:Help(self.AAACreat)
     end
 end
 ```

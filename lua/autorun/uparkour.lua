@@ -51,6 +51,20 @@ UPar.SnakeTranslate = function(key, prefix, sep, joint)
 	return table.concat(split, joint, 1, #split)
 end
 
+UPar.SnakeTranslate_2 = function(key, prefix, sep, joint)
+	prefix = prefix or 'upgui'
+	sep = sep or '_'
+	joint = joint or '.'
+
+	local split = string.Split(key, sep)
+	
+	for i, v in ipairs(split) do
+		split[i] = language.GetPhrase(string.format('#%s.%s', prefix, v))
+	end
+
+	return table.concat(split, joint, 1, #split)
+end
+
 UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)
 	lifetime = lifetime or 1
 	color = color or Color(255,255,255)

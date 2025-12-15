@@ -9,6 +9,7 @@ if not GetConVar('developer'):GetBool() then return end
 local action = UPAction:new('test_lifecycle', {AAACreat = '白狼'})
 action:Register()
 
+-- 注册控制台变量
 action:InitConVars(
     {
         {
@@ -56,6 +57,7 @@ action:InitConVars(
 ) 
 
 if CLIENT then
+	-- 注册预设
 	action:RegisterPreset(
 		{
 			AAACreat = 'Miss DouBao',
@@ -154,34 +156,44 @@ UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playin
 	end
 end)
 
-
 if CLIENT then
-	action.CreateOptionMenu = function(panel)
-		local startButton = panel:Button('Test', '')
-		startButton.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action, {'This is Shit'}, nil)
+	-- 创建其他菜单
+	local function TriggerPanel(self, panel)
+		local run = panel:Button(UPar.SnakeTranslate_2('run_track', nil, '_', ' ') .. ' 0', '')
+		run.DoClick = function()
+			UPar.Trigger(LocalPlayer(), action, 'oh shit')
 		end
 
-		local accidentBreakTestButton = panel:Button('Accident Break Test', '')
-		accidentBreakTestButton.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action, false, 'Shit', 'fuck')
-			timer.Simple(1, function()
-				RunConsoleCommand('kill')
-			end)
+		local changerhythm = panel:Button(UPar.SnakeTranslate_2('change_rhythm', nil, '_', ' '), '')
+		changerhythm.DoClick = function()
+			UPar.ActChangeRhythm(LocalPlayer(), action, 'hl1/fvox/blip.wav')
 		end
 
-		local interruptTestButton = panel:Button('Interrupt Test', '')
-		interruptTestButton.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action, false, 'Shit', 'fuck')
-			local interruptAction = UPar.GetAction('InterruptTest')
-			timer.Simple(1, function()
-				UPar.Trigger(LocalPlayer(), interruptAction)
-			end)
+		local run_t1 = panel:Button(UPar.SnakeTranslate_2('run_track', nil, '_', ' ') .. ' 1', '')
+		run_t1.DoClick = function()
+			UPar.Trigger(LocalPlayer(), action_t1, 'oh good')
 		end
 
+		local interrupt = panel:Button('#upgui.interrupt', '')
+		interrupt.DoClick = function()
+			UPar.Trigger(LocalPlayer(), action_interrupt)
+		end
+
+		local killself = panel:Button('#upgui.killself', '')
+		killself.DoClick = function()
+			RunConsoleCommand('kill')
+		end
+
+		panel:Help('')
 	end
-end
 
+	action.SundryPanels = {
+		{
+			label = '#upgui.trigger',
+			func = TriggerPanel,
+		}
+	}
+end
 -- ==================== 随机停止 ===============
 // UPar.SeqHookAdd('UParPreStart', 'test_random_stop', function(ply, action, checkResult)
 // 	local actName = action.Name
@@ -195,7 +207,8 @@ end
 // 	end
 
 // 	print(string.format('\n============ Random Stop Test, TrackId: %s ============', action.TrackId))
-
+// 	// print('checkResult:', checkResult)
+// 	// PrintTable(checkResult)
 // 	return true
 // end)
 

@@ -38,55 +38,72 @@ function ActionEditor:Init2(action)
 	self.div = effectManager.div
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 
-	-- 旧版本代码
-	if isfunction(action.CreateOptionMenu) then
-		// local scrollPanel = vgui.Create('DScrollPanel', Tabs)
-		// local optionPanel = vgui.Create('DForm', scrollPanel)
-		// optionPanel:SetLabel('#upgui.options')
-		// optionPanel:Dock(FILL)
-		// optionPanel.Paint = function(self, w, h)
-		// 	draw.RoundedBox(0, 0, 0, w, h, white)
-		// end
 
-		// action.CreateOptionMenu(optionPanel)
+	if istable(action.ConVarsWidget) then
+		local mainPanel = vgui.Create('DPanel', Tabs)
+		local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
+		scrollPanel:Dock(FILL)
+		local optionPanel = vgui.Create('DForm', scrollPanel)
+		optionPanel:SetLabel('#upgui.options')
+		optionPanel:Dock(FILL)
 
-		// Tabs:AddSheet('#upgui.options', scrollPanel, 'icon16/wrench.png', false, false, '')
+		local CreateConVarsPanel = isfunction(action.ConVarsPanelOverride) and action.ConVarsPanelOverride or UPar.CreateConVarsPanel
+
+		local succ, err = pcall(CreateConVarsPanel, action, optionPanel)
+		if succ then
+			Tabs:AddSheet('#upgui.options', mainPanel, 'icon16/wrench.png', false, false, '')
+		else
+			ErrorNoHaltWithStack(string.format('CreateConVarsPanel failed: %s', err))
+			mainPanel:Remove()
+			scrollPanel:Remove()
+			optionPanel:Remove()			
+		end
 	end
 
-	if istable(action.upgui_CreateMenus) then
-		// for k, v in pairs(action.upgui_CreateMenus) do
-		// 	if not istable(v) then
+	if istable(action.SundryPanels) then
+		for k, panelData in pairs(action.SundryPanels) do
+			if not istable(panelData) then
+				print(string.format('[UPar]: Warning: SundryPanels must be a table of tables, but got %s', type(panelData)))
+				continue
+			end
 
-		// 		continue
-		// 	end
+			if not isfunction(panelData.func) then
+				print(string.format('[UPar]: Warning: panelData.func must be a function, but got %s', type(panelData.func)))
+				continue
+			end
 
-		// 	if not isfunction(v.func) then
+			local label = isstring(panelData.label) and panelData.label or tostring(k)
+			local icon = isstring(panelData.icon) and panelData.icon or 'icon16/add.png'
 
-		// 		continue
-		// 	end
+			local mainPanel = vgui.Create('DPanel', Tabs)
+			local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
+			scrollPanel:Dock(FILL)
+			local optionPanel = vgui.Create('DForm', scrollPanel)
+			optionPanel:SetLabel(label)
+			optionPanel:Dock(FILL)
 
-		// 	local func = v.func
-		// 	local label = isstring(v.label) and v.label or k
+			local succ, err = pcall(panelData.func, action, optionPanel)
 
-		// 	local DScrollPanel = vgui.Create('DScrollPanel', Tabs)
-		// 	local OptionPanel = vgui.Create('DForm', DScrollPanel)
-		// 	OptionPanel:SetLabel(label)
-		// 	OptionPanel:Dock(FILL)
-		// 	OptionPanel.Paint = function(self, w, h)
-		// 		draw.RoundedBox(0, 0, 0, w, h, white)
-		// 	end
-
-		// 	local success, err = pcall(func, OptionPanel)
-
-		// 	if not success then
-
-		// 		continue
-		// 	end
-
-		// 	Tabs:AddSheet(label, DScrollPanel, 'icon16/wrench.png', false, false, '')
-		// end
+			if succ then
+				Tabs:AddSheet(label, mainPanel, icon, false, false, '')
+			else
+				ErrorNoHaltWithStack(string.format('SundryPanel idx "%s", label "%s" failed: %s', k, label, err))
+				mainPanel:Remove()
+				scrollPanel:Remove()
+				optionPanel:Remove()
+			end
+		end
 	end
 
+	local mainPanel = vgui.Create('DPanel', Tabs)
+	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
+	scrollPanel:Dock(FILL)
+	local descriptionPanel = vgui.Create('UParDescription', scrollPanel)
+	descriptionPanel:Dock(FILL)
+	descriptionPanel:SetLabel('#upgui.desc')
+	descriptionPanel:Init2(action)
+
+	Tabs:AddSheet('#upgui.desc', mainPanel, 'icon16/information.png', false, false, '')
 end
 
 local function GetConVarPhrase(name)
@@ -100,16 +117,50 @@ local function GetConVarPhrase(name)
 	end
 end
 
-ActionEditor.CreateConVarsPanel = function(action, panel)
+UPar.CreateConVarsPanel = function(action, panel)
+	if not istable(action.ConVarsPreset) or not istable(action.ConVarsPreset[1]) then
+		error('action.ConVarsPreset must be a table of tables')
+		return
+	end
+
+	if not istable(action.ConVarsWidget) then
+		error('action.ConVarsWidget must be a table')
+		return
+	end
+
 	local ctrl = vgui.Create('ControlPresets', panel)
 	ctrl:SetPreset(action.Name)
-
 	panel:AddItem(ctrl)
-	for _, v in ipairs(convars) do
+
+	for i, presetdata in pairs(action.ConVarsPreset) do
+		local label = isstring(presetdata.label) and presetdata.label or 'UNKNOWN'
+		local values = presetdata.values
+
+		-- 1被默认占用, 除非通过非法接口对ConVarsPreset进行修改
+		if i == 1 then
+			for cvName, _ in pairs(values) do ctrl:AddConVar(cvName) end
+		end
+
+		ctrl:AddOption(label, values)
+	end
+
+	local isAdmin = not LocalPlayer():IsAdmin()
+
+	for _, v in ipairs(action.ConVarsWidget) do
 		local name = v.name
 		local widget = v.widget or 'NumSlider'
 		local default = v.default or '0'
 		local label = v.label or GetConVarPhrase(name)
+		local invisible = v.invisible
+		local admin = v.admin
+
+		if invisible then 
+			continue 
+		end
+
+		if admin and not isAdmin then 
+			continue 
+		end
 
 		if widget == 'NumSlider' then
 			panel:NumSlider(
@@ -130,6 +181,32 @@ ActionEditor.CreateConVarsPanel = function(action, panel)
 			panel:TextEntry(label, name)
 		elseif widget == 'KeyBinder' then
 			panel:KeyBinder(label, name)
+		elseif widget == 'UParColorEditor' then
+			local colorEditor = vgui.Create('UParColorEditor', panel)
+			colorEditor:SetConVar(name)
+
+			panel:Help(label)
+			panel:AddItem(colorEditor)
+		elseif widget == 'UParAngEditor' then
+			local angEditor = vgui.Create('UParAngEditor', panel)
+			angEditor:SetMin(v.min or -10000)
+			angEditor:SetMax(v.max or 10000)
+			angEditor:SetDecimals(v.decimals or 2)
+			angEditor:SetInterval(v.interval or 0.5)
+			angEditor:SetConVar(name)
+
+			panel:Help(label)
+			panel:AddItem(angEditor)
+		elseif widget == 'UParVecEditor' then
+			local vecEditor = vgui.Create('UParVecEditor', panel)
+			vecEditor:SetMin(v.min or -10000)
+			vecEditor:SetMax(v.max or 10000)
+			vecEditor:SetDecimals(v.decimals or 2)
+			vecEditor:SetInterval(v.interval or 0.5)
+			vecEditor:SetConVar(name)
+
+			panel:Help(label)
+			panel:AddItem(vecEditor)
 		end
 
 		if v.help then
@@ -141,12 +218,6 @@ ActionEditor.CreateConVarsPanel = function(action, panel)
 		end
 	end
 	
-	ctrl:AddOption('#preset.default', default)
-	ctrl:AddOption('关闭', Deactiave )
-	for k, v in pairs(default) do 
-		ctrl:AddConVar(k) 
-	end
-
 	panel:Help('')
 end
 

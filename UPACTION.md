@@ -39,14 +39,16 @@
 ```lua 
 -- 例:
 if CLIENT then
-    action.SundryPanels = {
-        {
-            label = 'Example', 
-            func = function(panel)
-                ...
-            end
-        }
-    }
+	local function ExamplePanel(self, panel)
+		panel:Help('This is example')
+	end
+
+	action.SundryPanels = {
+		{
+			label = '#upgui.example',
+			func = ExamplePanel,
+		}
+	}
 end
 ```
 
@@ -59,9 +61,6 @@ end
 if CLIENT then
     function action:ConVarsPanelOverride(panel)
         panel:Help(self.Name)
-        panel:Help(self.AAAContrib)
-        panel:Help(self.AAADesc)
-        panel:Help(self.AAACreat)
     end
 end
 ```
