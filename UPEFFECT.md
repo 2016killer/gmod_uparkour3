@@ -111,35 +111,35 @@ end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**:PreviewPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:PreviewPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
 ```note
 预览面板覆盖
 ```
 ```lua
 if CLIENT then
-    function UPEffect:PreviewPanelOverride(panel, effectManager)
+    function UPEffect:PreviewPanelOverride(panel, managerPanel)
         local content = vgui.Create('DForm', panel)
         content:Help(self.Name)
-        content:Help(effectManager.action.Name)
-        content:Help(tostring(effectManager.tree))
-        content:Help(tostring(effectManager.div))
+        content:Help(managerPanel.action.Name)
+        content:Help(tostring(managerPanel.tree))
+        content:Help(tostring(managerPanel.div))
     end
 end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**:EditorPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:EditorPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
 ```note
 编辑器面板覆盖
 ```
 ```lua
 if CLIENT then
-    function UPEffect:EditorPanelOverride(panel, effectManager)
+    function UPEffect:EditorPanelOverride(panel, managerPanel)
         local content = vgui.Create('DForm', panel)
         content:Help(self.Name)
-        content:Help(effectManager.action.Name)
-        content:Help(tostring(effectManager.tree))
-        content:Help(tostring(effectManager.div))
+        content:Help(managerPanel.action.Name)
+        content:Help(tostring(managerPanel.tree))
+        content:Help(tostring(managerPanel.div))
     end
 end
 ```

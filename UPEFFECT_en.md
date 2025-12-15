@@ -58,7 +58,7 @@ end
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- Override default key-value pair preview
-effect.PreviewKVExpand = function(key, val, originWidget)
+effect.PreviewKVExpand = function(key, val, originWidget, _, _)
     if IsValid(originWidget) and ispanel(originWidget) then
         originWidget:Remove()
     end
@@ -94,7 +94,7 @@ end
 **UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- Override default key-value pair editing
-effect.EditorKVExpand = function(key, val, originWidget, obj)
+effect.EditorKVExpand = function(key, val, originWidget, obj, _)
     if IsValid(originWidget) and ispanel(originWidget) then
         originWidget:Remove()
     end
@@ -110,35 +110,35 @@ end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**:PreviewPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:PreviewPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
 ```note
 Preview panel override
 ```
 ```lua
 if CLIENT then
-    function UPEffect:PreviewPanelOverride(panel, effectManager)
+    function UPEffect:PreviewPanelOverride(panel, managerPanel)
         local content = vgui.Create('DForm', panel)
         content:Help(self.Name)
-        content:Help(effectManager.action.Name)
-        content:Help(tostring(effectManager.tree))
-        content:Help(tostring(effectManager.div))
+        content:Help(managerPanel.action.Name)
+        content:Help(tostring(managerPanel.tree))
+        content:Help(tostring(managerPanel.div))
     end
 end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**:EditorPanelOverride(**panel** panel, **panel** effectManager)
+**UPEffect**:EditorPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
 ```note
 Editor panel override
 ```
 ```lua
 if CLIENT then
-    function UPEffect:EditorPanelOverride(panel, effectManager)
+    function UPEffect:EditorPanelOverride(panel, managerPanel)
         local content = vgui.Create('DForm', panel)
         content:Help(self.Name)
-        content:Help(effectManager.action.Name)
-        content:Help(tostring(effectManager.tree))
-        content:Help(tostring(effectManager.div))
+        content:Help(managerPanel.action.Name)
+        content:Help(tostring(managerPanel.tree))
+        content:Help(tostring(managerPanel.div))
     end
 end
 ```
