@@ -69,7 +69,7 @@ end
 
 function UPAction:Register()
     hook.Run('UParRegisterAction', self.Name, self) 
-    if Instances[self.Name] ~= self then
+    if Instances[self.Name] and Instances[self.Name] ~= self then
         print(string.format('[UPAction]: Warning: Action "%s" already registered (overwritten)', self.Name))
     end
     Instances[self.Name] = self
@@ -152,8 +152,8 @@ function UPAction:InitConVars(config)
             error(string.format('Invalid field "default" (not a string), name = "%s"', v.name))
         end
 
-        if not istable(v.flags) and not isnumber(v.flags) then
-            error(string.format('Invalid field "flags" (not a table or number), name = "%s"', v.name))
+        if not istable(v.flags) and not isnumber(v.flags) and v.flags ~= nil then
+            error(string.format('Invalid field "flags" (not a table or number or nil), name = "%s"', v.name))
         end
 
         if v.client ~= nil and not isbool(v.client) then

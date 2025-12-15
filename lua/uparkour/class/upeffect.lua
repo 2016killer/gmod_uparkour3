@@ -66,7 +66,7 @@ function UPEffect:Register(actName)
 
     hook.Run('UParRegisterEffect', actName, self.Name, self) 
 
-    if action.Effects[self.Name] ~= self then
+    if action.Effects[self.Name] and action.Effects[self.Name] ~= self then
         print(string.format('[UPEffect]: Warning: Effect "%s" already registered (overwritten)', self.Name))
     end
 
