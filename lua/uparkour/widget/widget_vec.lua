@@ -104,6 +104,16 @@ function VecEditor:SetFraction(frac)
 	self.inputZ:SetFraction(frac)
 end
 
+function VecEditor:SetConVar(cvName)
+	local cvar = GetConVar(cvName)
+
+	local vec = Vector(cvar and cvar:GetString() or '0 0 0')
+	self:SetValue(vec)
+	self.OnChange = function(self, newVal)
+		RunConsoleCommand(cvName, tostring(newVal))
+	end
+end
+
 function VecEditor:OnRemove()
 	self.inputX = nil
 	self.inputY = nil

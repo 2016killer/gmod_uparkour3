@@ -174,15 +174,15 @@ function UPAction:InitConVars(config)
     end
 
     self.ConVarsWidget = config
-    self.ConVarsPresets = istable(self.ConVarsPresets) and self.ConVarsPresets or {}
+    self.ConVarsPreset = istable(self.ConVarsPreset) and self.ConVarsPreset or {}
     local defaultPreset = {
-        name = 'default',
-        label = '#default',
+        AAACreat = 'SYSTEM',
+        label = '#preset.default',
         values = {}
     }
 
     for _, v in ipairs(config) do defaultPreset.values[v.name] = v.default end
-    table.insert(self.ConVarsPresets, defaultPreset)
+    table.insert(self.ConVarsPreset, defaultPreset)
 end
 
 if CLIENT then
@@ -234,10 +234,6 @@ if CLIENT then
             error(string.format('Invalid preset "%s" (not a table)', preset))
         end
 
-        if not isstring(preset.name) then
-            error(string.format('Invalid name "%s" (not a string)', preset.name))
-        end
-
         if not istable(preset.values) then
             error(string.format('Invalid values "%s" (not a table)', preset.values))
         end
@@ -252,9 +248,9 @@ if CLIENT then
             end
         end
 
-        self.ConVarsPresets = istable(self.ConVarsPresets) and self.ConVarsPresets or {}
+        self.ConVarsPreset = istable(self.ConVarsPreset) and self.ConVarsPreset or {}
 
-        table.insert(self.ConVarsPresets, preset)
+        table.insert(self.ConVarsPreset, preset)
     end
 end
 

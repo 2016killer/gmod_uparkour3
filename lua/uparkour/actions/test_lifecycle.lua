@@ -9,6 +9,66 @@ if not GetConVar('developer'):GetBool() then return end
 local action = UPAction:new('test_lifecycle', {AAACreat = '白狼'})
 action:Register()
 
+action:InitConVars(
+    {
+        {
+            name = 'example_numslider',
+            default = '0',
+            widget = 'NumSlider',
+            min = 0, max = 1, decimals = 2,
+            help = true
+        },
+
+	    {
+            name = 'example_color',
+            default = '0',
+            widget = 'UParColorEditor'
+        },
+
+	    {
+            name = 'example_ang',
+            default = '0',
+            widget = 'UParAngEditor',
+			min = -1, max = 1, decimals = 1, interval = 0.1,
+        },
+
+	    {
+            name = 'example_vec',
+            default = '0',
+            widget = 'UParVecEditor',
+			min = -2, max = 2, decimals = 2, interval = 0.5,
+        },
+
+	    {
+            name = 'example_invisible',
+            default = '0',
+            widget = 'NumSlider',
+			invisible = true,
+        },
+
+	    {
+            name = 'example_admin',
+            default = '0',
+            widget = 'NumSlider',
+			admin = true,
+        }
+    }
+) 
+
+if CLIENT then
+	action:RegisterPreset(
+		{
+			AAACreat = 'Miss DouBao',
+			AAAContrib = 'Zack',
+
+			label = '#upgui.example',
+			values = {
+				['example_numslider'] = '0.5'
+			}
+		}
+	) 
+end
+
 function action:Check(ply, data)
 	print(string.format('====== Check, TrackId: %s ======', self.TrackId))
 	print('data:', data)
@@ -68,8 +128,11 @@ function effect:Clear(ply, checkResult)
 end
 
 -- ==================== 轨道1 ===============
-local action_t1 = UPar.Clone(action)
-table.Merge(action_t1, {Name = 'test_lifecycle_t1', Invisible = true, TrackId = 1})
+local action_t1 = UPar.DeepClone(action)
+action_t1.Name = 'test_lifecycle_t1'
+action_t1.Invisible = true
+action_t1.TrackId = 1
+action_t1:InitCVarDisabled()
 action_t1:Register()
 
 -- ==================== 中断 ===============

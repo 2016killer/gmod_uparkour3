@@ -130,20 +130,49 @@ UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
 ```lua
 -- 例:
 -- 初始化后会出现在动作编辑器中
--- 使用self.ConVars可访问
+-- 使用 self.ConVars 可访问
 action:InitConVars(
     {
         {
-            name = 'example_value_1',
-            default = '0.64',
+            name = 'example_numslider',
+            default = '0',
             widget = 'NumSlider',
-            min = 0,
-            max = 1,
-            decimals = 2,
-            help = true,
-            visible = false,
-            client = nil,
-            admin = false,
+            min = 0, max = 1, decimals = 2,
+            help = true
+        },
+
+	    {
+            name = 'example_color',
+            default = '0',
+            widget = 'UParColorEditor'
+        },
+
+	    {
+            name = 'example_ang',
+            default = '0',
+            widget = 'UParAngEditor',
+			min = -1, max = 1, decimals = 1, interval = 0.1,
+        },
+
+	    {
+            name = 'example_vec',
+            default = '0',
+            widget = 'UParVecEditor',
+			min = -2, max = 2, decimals = 2, interval = 0.5,
+        },
+
+	    {
+            name = 'example_invisible',
+            default = '0',
+            widget = 'NumSlider',
+			invisible = true,
+        },
+
+	    {
+            name = 'example_admin',
+            default = '0',
+            widget = 'NumSlider',
+			admin = true,
         }
     }
 ) 
@@ -152,18 +181,17 @@ action:InitConVars(
 ![client](./materials/upgui/client.jpg)
 **UPAction**:RegisterPreset(**table** preset)
 ```lua
-action:RegisterPreset(
-    {
-        AAACreat = 'Man',
-        AAAContrib = 'Man2',
-        AAADesc = 'Example',
+if CLIENT then
+	action:RegisterPreset(
+		{
+			AAACreat = 'Miss DouBao',
+			AAAContrib = 'Zack',
 
-        name = 'default',
-        label = '#default',
-        values = {
-            ['example_value_1'] = '1',
-            ['example_value_2'] = '2'
-        }
-    }
-) 
+			label = '#upgui.example',
+			values = {
+				['example_numslider'] = '0.5'
+			}
+		}
+	) 
+end
 ```

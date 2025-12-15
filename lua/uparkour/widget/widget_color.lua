@@ -9,6 +9,7 @@ function ColorEditor:Init()
 	local inputR = vgui.Create('DNumberWang', self)
 	local inputG = vgui.Create('DNumberWang', self)
 	local inputB = vgui.Create('DNumberWang', self)
+	local inputA = vgui.Create('DNumberWang', self)
 
 	inputR.OnValueChanged = function(_, newVal)
 		if IsColor(self.bindColor) then self.bindColor.r = newVal end
@@ -25,27 +26,47 @@ function ColorEditor:Init()
 		self:OnChange(self:GetValue())
 	end
 
+	inputA.OnValueChanged = function(_, newVal)
+		if IsColor(self.bindColor) then self.bindColor.a = newVal end
+		self:OnChange(self:GetValue())
+	end
+
 	self.inputR = inputR
 	self.inputG = inputG
 	self.inputB = inputB
+	self.inputA = inputA
 
 	self:OnSizeChanged(self:GetWide(), self:GetTall())
 
-	self:SetInterval(0.5)
-	self:SetDecimals(2)
-	self:SetMinMax(-10000, 10000)
+
+	inputR:SetMinMax(0, 255)
+	inputG:SetMinMax(0, 255)
+	inputB:SetMinMax(0, 255)
+	inputA:SetMinMax(0, 255)
+
+	inputR:SetDecimals(0)
+	inputG:SetDecimals(0)
+	inputB:SetDecimals(0)
+	inputA:SetDecimals(0)
+
+	inputR:SetInterval(1)
+	inputG:SetInterval(1)
+	inputB:SetInterval(1)
+	inputA:SetInterval(1)
 end
 
 function ColorEditor:OnSizeChanged(newWidth, newHeight)
-	local div = newWidth / 3
+	local div = newWidth / 4
 
 	self.inputR:SetPos(0, 0)
 	self.inputG:SetPos(div, 0)
 	self.inputB:SetPos(div * 2, 0)
+	self.inputA:SetPos(div * 3, 0)
 
 	self.inputR:SetWidth(div)
 	self.inputG:SetWidth(div)
 	self.inputB:SetWidth(div)
+	self.inputA:SetWidth(div)
 end
 
 function ColorEditor:SetValue(color)
@@ -57,57 +78,34 @@ function ColorEditor:SetValue(color)
 	self.inputR:SetValue(color.r)
 	self.inputG:SetValue(color.g)
 	self.inputB:SetValue(color.b)
+	self.inputA:SetValue(color.a)
 	self.bindColor = color
+end
+
+
+function ColorEditor:SetConVar(cvName)
+	local cvar = GetConVar(cvName)
+	local color = string.ToColor(cvar and cvar:GetString() or '0 0 0 255')
+	self:SetValue(color)
+	self.OnChange = function(self, newVal)
+		RunConsoleCommand(cvName, tostring(newVal))
+	end
 end
 
 function ColorEditor:GetValue()
 	return IsColor(self.bindColor) and self.bindColor or Color(
 		self.inputR:GetValue(), 
 		self.inputG:GetValue(), 
-		self.inputB:GetValue()
+		self.inputB:GetValue(),
+		self.inputA:GetValue()
 	)
-end
-
-function ColorEditor:SetMinMax(min, max)
-	self.inputR:SetMinMax(min, max)
-	self.inputG:SetMinMax(min, max)
-	self.inputB:SetMinMax(min, max)
-end
-
-function ColorEditor:SetDecimals(decimals)
-	self.inputR:SetDecimals(decimals)
-	self.inputG:SetDecimals(decimals)
-	self.inputB:SetDecimals(decimals)
-end
-
-function ColorEditor:SetInterval(interval)
-	self.inputR:SetInterval(interval)
-	self.inputG:SetInterval(interval)
-	self.inputB:SetInterval(interval)
-end
-
-function ColorEditor:SetMin(min)
-	self.inputR:SetMin(min)
-	self.inputG:SetMin(min)
-	self.inputB:SetMin(min)
-end
-
-function ColorEditor:SetMax(max)
-	self.inputR:SetMax(max)
-	self.inputG:SetMax(max)
-	self.inputB:SetMax(max)
-end
-
-function ColorEditor:SetFraction(frac)
-	self.inputR:SetFraction(frac)
-	self.inputG:SetFraction(frac)
-	self.inputB:SetFraction(frac)
 end
 
 function ColorEditor:OnRemove()
 	self.inputR = nil
 	self.inputG = nil
 	self.inputB = nil
+	self.inputA = nil
 	self.bindColor = nil
 end
 

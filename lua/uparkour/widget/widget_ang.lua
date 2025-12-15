@@ -103,6 +103,16 @@ function AngEditor:SetFraction(frac)
 	self.inputRoll:SetFraction(frac)
 end
 
+function AngEditor:SetConVar(cvName)
+	local cvar = GetConVar(cvName)
+
+	local ang = Angle(cvar and cvar:GetString() or '0 0 0')
+	self:SetValue(ang)
+	self.OnChange = function(self, newVal)
+		RunConsoleCommand(cvName, tostring(newVal))
+	end
+end
+
 function AngEditor:OnRemove()
 	self.inputPitch = nil
 	self.inputYaw = nil
