@@ -31,7 +31,7 @@ This approach also offers several advantages. For instance, certain persistent d
 ![client](./materials/upgui/client.jpg)
 **UPAction**.AAAContrib: ***string*** Contributor  
 ![shared](./materials/upgui/shared.jpg)
-**UPAction**.TrackId: ***int*** Track ID  
+**UPAction**.TrackId: ***int*** or ***string*** Track ID  
 ```note
 Default value is 0. When actions with the same TrackId are triggered simultaneously, interruption judgment will be initiated.
 ```
@@ -51,11 +51,20 @@ action.SundryPanels = {
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPAction**.ConVarsPanelOverride(**panel** panel)
+**UPAction**:ConVarsPanelOverride(**DForm** panel)
 ```note
 Custom parameter interfaces can be created here (e.g., building parameter editors with complex structures).
 ```
-
+```lua 
+if CLIENT then
+    function action:ConVarsPanelOverride(panel)
+        panel:Help(self.Name)
+        panel:Help(self.AAAContrib)
+        panel:Help(self.AAADesc)
+        panel:Help(self.AAACreat)
+    end
+end
+```
 
 ## Methods to Implement
 ![shared](./materials/upgui/shared.jpg) 
@@ -124,7 +133,7 @@ Typically used for actions with variable rhythms (e.g., Double Vault).
 action:InitConVars(
     {
         {
-            name = 'example',
+            name = 'example_value_1',
             default = '0.64',
             widget = 'NumSlider',
             min = 0,
@@ -134,6 +143,25 @@ action:InitConVars(
             visible = false,
             client = nil,
             admin = false,
+        }
+    }
+) 
+```
+
+![client](./materials/upgui/client.jpg)
+**UPAction**:RegisterPreset(**table** preset)
+```lua
+action:RegisterPreset(
+    {
+        AAACreat = 'Man',
+        AAAContrib = 'Man2',
+        AAADesc = 'Example',
+
+        name = 'default',
+        label = '#default',
+        values = {
+            ['example_value_1'] = '1',
+            ['example_value_2'] = '2'
         }
     }
 ) 

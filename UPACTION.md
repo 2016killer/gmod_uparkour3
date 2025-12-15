@@ -29,7 +29,7 @@
 ![client](./materials/upgui/client.jpg)
 **UPAction**.AAAContrib: ***string*** 贡献者  
 ![shared](./materials/upgui/shared.jpg)
-**UPAction**.TrackId: ***int*** 轨道ID  
+**UPAction**.TrackId: ***int*** or ***string*** 轨道ID  
 ```note
 默认为0, 相同TrackId的动作同时触发时会触发中断判断。
 ```
@@ -51,18 +51,17 @@ end
 ```
 
 ![client](./materials/upgui/client.jpg)
-**UPAction**:ConVarsPanelOverride(**panel** panel)
+**UPAction**:ConVarsPanelOverride(**DForm** panel)
 ```note
 可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
 ```
 ```lua 
 if CLIENT then
     function action:ConVarsPanelOverride(panel)
-        local content = vgui.Create('DForm', panel)
-        content:Help(self.Name)
-        content:Help(self.AAAContrib)
-        content:Help(self.AAADesc)
-        content:Help(self.AAACreat)
+        panel:Help(self.Name)
+        panel:Help(self.AAAContrib)
+        panel:Help(self.AAADesc)
+        panel:Help(self.AAACreat)
     end
 end
 ```
@@ -135,7 +134,7 @@ UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
 action:InitConVars(
     {
         {
-            name = 'example',
+            name = 'example_value_1',
             default = '0.64',
             widget = 'NumSlider',
             min = 0,
@@ -145,6 +144,25 @@ action:InitConVars(
             visible = false,
             client = nil,
             admin = false,
+        }
+    }
+) 
+```
+
+![client](./materials/upgui/client.jpg)
+**UPAction**:RegisterPreset(**table** preset)
+```lua
+action:RegisterPreset(
+    {
+        AAACreat = 'Man',
+        AAAContrib = 'Man2',
+        AAADesc = 'Example',
+
+        name = 'default',
+        label = '#default',
+        values = {
+            ['example_value_1'] = '1',
+            ['example_value_2'] = '2'
         }
     }
 ) 
