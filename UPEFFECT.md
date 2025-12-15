@@ -59,7 +59,7 @@ end
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对预览
-effect.PreviewKVExpand = function(key, val, originWidget)
+effect.PreviewKVExpand = function(key, val, originWidget, _, _)
     if IsValid(originWidget) and ispanel(originWidget) then
         originWidget:Remove()
     end
@@ -95,7 +95,7 @@ end
 **UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对编辑
-effect.EditorKVExpand = function(key, val, originWidget, obj)
+effect.EditorKVExpand = function(key, val, originWidget, obj, _)
     if IsValid(originWidget) and ispanel(originWidget) then
         originWidget:Remove()
     end
