@@ -30,18 +30,6 @@ UPar.tablefunc = function() return {} end
 UPar.emptyTable = {}
 UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
-UPar.Clone = function(obj)
-    if not istable(obj) then
-        return obj
-    end
-    
-    local cloned = table.Copy(obj)
-    
-    local mt = getmetatable(obj)
-    if mt then setmetatable(cloned, mt) end
-    
-    return cloned
-end
 
 UPar.SnakeTranslate = function(key, prefix, sep, joint)
 	-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
@@ -163,6 +151,35 @@ if CLIENT then
 		return succ
 	end
 end
+
+local function Clone(obj, cache)
+    cache = cache or {}
+
+    if not istable(obj) then
+        return obj
+    end
+
+    if cache[obj] then
+        return cache[obj]
+    end
+
+    local cloned = {}
+    cache[obj] = cloned
+
+
+    for k, v in pairs(obj) do
+        cloned[Clone(k, cache)] = Clone(v, cache)
+    end
+
+    local mt = getmetatable(obj)
+    if mt then
+        setmetatable(cloned, mt)
+    end
+
+    return cloned
+end
+
+UPar.Clone = Clone
 
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
