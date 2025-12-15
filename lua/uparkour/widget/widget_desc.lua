@@ -14,9 +14,22 @@ function Description:Init2(action)
 	end
 
 	self:Help(string.format('%s: %s', language.GetPhrase('upgui.desc'), language.GetPhrase(tostring(action.AAADesc))))
-	self:Help('====================')
+	self:Help('')
 	self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), action.AAACreat))
 	self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), action.AAAContrib))
+	self:Help('====================')
+
+	if istable(action.ConVarsPreset) then
+		for _, presetdata in pairs(action.ConVarsPreset) do
+			local label = isstring(presetdata.label) and presetdata.label or 'UNKNOWN'
+			self:Help(string.format('%s: %s', language.GetPhrase('#preset'), language.GetPhrase(label)))
+			self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), presetdata.AAACreat))
+			self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), presetdata.AAAContrib))
+			
+			self:Help('')
+		end
+	end
+
 	self:Help('====================')
 	for effName, effect in pairs(action.Effects) do
 		if not UPar.isupeffect(effect) then

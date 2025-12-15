@@ -51,7 +51,7 @@ end
 local function CreateMenu(panel)
 	panel:Clear()
 
-	local isSuperAdmin = LocalPlayer():IsSuperAdmin()
+	local isAdmin = LocalPlayer():IsAdmin()
 	local actionManager = vgui.Create('UParEasyTree')
 	actionManager:SetSize(200, 400)
 	actionManager.OnDoubleClick = function(self, selNode)
@@ -83,7 +83,7 @@ local function CreateMenu(panel)
 			local node = self:AddNode(label, icon)
 			node.actName = v.Name
 
-			if not isSuperAdmin then 
+			if not isAdmin then 
 				continue 
 			end
 
