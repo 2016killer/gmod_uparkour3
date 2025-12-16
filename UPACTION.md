@@ -45,7 +45,7 @@ if CLIENT then
 
 	action.SundryPanels = {
 		{
-			label = '#upgui.example',
+			label = '#upgui.dev.example',
 			func = ExamplePanel,
 		}
 	}
@@ -61,6 +61,25 @@ end
 if CLIENT then
     function action:ConVarsPanelOverride(panel)
         panel:Help(self.Name)
+    end
+end
+```
+
+![client](./materials/upgui/client.jpg)
+**UPAction**:ConVarWidgetExpand(**int** idx, **table** cvCfg, **panel** originWidget, **DForm** panel)
+```note
+You can extend the controls of the parameter interface here, or override the default ones.
+```
+```lua 
+if CLIENT then
+    function action:ConVarWidgetExpand(idx, cvCfg, originWidget, panel)
+		if IsValid(originWidget) and ispanel(originWidget) and idx == 1 then
+			local label = vgui.Create('DLabel')
+			label:SetText('#upgui.dev.cv_widget_expand')
+			label:SetTextColor(Color(0, 150, 0))
+
+			return label
+		end
     end
 end
 ```
@@ -186,11 +205,26 @@ if CLIENT then
 			AAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',
 
-			label = '#upgui.example',
+			label = '#upgui.dev.example',
 			values = {
 				['example_numslider'] = '0.5'
 			}
 		}
 	) 
 end
+```
+
+![shared](./materials/upgui/shared.jpg)
+**UPAction**:AddConVar(**table** cvCfg)
+```lua
+action:AddConVar({
+	name = 'example_other',
+	widget = 'NumSlider'
+})
+```
+
+![shared](./materials/upgui/shared.jpg)
+**UPAction**:RemoveConVar(**string** cvName)
+```lua
+action:RemoveConVar('example_other')
 ```

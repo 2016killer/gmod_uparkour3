@@ -53,8 +53,13 @@ local function CreateMenu(panel)
 
 	UPar.GUI_KeyBinder = panel
 
-	hook.Add('UParRegisterAction', 'upar.update.panel', function(actName, action)
-		timer.Create('upar.update.panel', 0.5, 1, function()
+	hook.Add('UParRegisterAction', 'upar.update.keybinder', function(actName, action)
+		timer.Create('upar.update.keybinder', 0.5, 1, function()
+			if not IsValid(panel) then
+				hook.Remove('UParRegisterAction', 'upar.update.keybinder')
+				timer.Remove('upar.update.keybinder')
+				return 
+			end
 			panel:RefreshNode()
 		end)
 	end)

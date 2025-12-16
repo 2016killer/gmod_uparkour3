@@ -124,13 +124,13 @@ vgui.Register('UParKeyBinder', KeyBinder, 'DButton')
 KeyBinder = nil
 
 
-if IsValid(frame) then frame:Remove() end
-if IsValid(keybinder) then keybinder:Remove() end
-frame = vgui.Create('DFrame')
-frame:SetSize(200, 200)
-frame:Center()
-frame:MakePopup()
-frame:SetSizable(true)
+// if IsValid(frame) then frame:Remove() end
+// if IsValid(keybinder) then keybinder:Remove() end
+// frame = vgui.Create('DFrame')
+// frame:SetSize(200, 200)
+// frame:Center()
+// frame:MakePopup()
+// frame:SetSizable(true)
 
-comkeybinder = vgui.Create('UParKeyBinder', frame)
-comkeybinder:Dock(FILL)
+// comkeybinder = vgui.Create('UParKeyBinder', frame)
+// comkeybinder:Dock(FILL)

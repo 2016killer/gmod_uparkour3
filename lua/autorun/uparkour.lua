@@ -30,39 +30,68 @@ UPar.tablefunc = function() return {} end
 UPar.emptyTable = {}
 UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
 
+UPar.IsInstance = function(obj, class)
+    if not istable(obj) or not istable(class) then
+        return false
+    end
 
-UPar.SnakeTranslate = function(key, prefix, sep, joint)
-	-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
-	-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
-	if not GetConVar('developer'):GetBool() then 
-		return key
-	end
+    local currentMeta = getmetatable(obj)
+    while istable(currentMeta) do
+        if currentMeta == class then
+            return true
+        end
 
-	prefix = prefix or 'upgui'
-	sep = sep or '_'
-	joint = joint or '.'
+        currentMeta = getmetatable(currentMeta)
+    end
 
-	local split = string.Split(key, sep)
-	
-	for i, v in ipairs(split) do
-		split[i] = language.GetPhrase(string.format('#%s.%s', prefix, v))
-	end
-
-	return table.concat(split, joint, 1, #split)
+    return false
 end
 
-UPar.SnakeTranslate_2 = function(key, prefix, sep, joint)
-	prefix = prefix or 'upgui'
-	sep = sep or '_'
-	joint = joint or '.'
+if CLIENT then
+	UPar.SnakeTranslate = function(key, prefix, sep, joint)
+		-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
+		-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
+		if not GetConVar('developer'):GetBool() then 
+			return key
+		end
 
-	local split = string.Split(key, sep)
-	
-	for i, v in ipairs(split) do
-		split[i] = language.GetPhrase(string.format('#%s.%s', prefix, v))
+		prefix = prefix or 'upgui'
+		sep = sep or '_'
+		joint = joint or '.'
+
+		local split = string.Split(key, sep)
+		
+		for i, v in ipairs(split) do
+			split[i] = language.GetPhrase(string.format('#%s.%s', prefix, v))
+		end
+
+		return table.concat(split, joint, 1, #split)
 	end
 
-	return table.concat(split, joint, 1, #split)
+	UPar.SnakeTranslate_2 = function(key, prefix, sep, joint)
+		prefix = prefix or 'upgui'
+		sep = sep or '_'
+		joint = joint or '.'
+
+		local split = string.Split(key, sep)
+		
+		for i, v in ipairs(split) do
+			split[i] = language.GetPhrase(string.format('#%s.%s', prefix, v))
+		end
+
+		return table.concat(split, joint, 1, #split)
+	end
+
+	UPar.GetConVarPhrase = function(name)
+		-- 替换第一个下划线为点号
+		local start, ending, phrase = string.find(name, "_", 1)
+
+		if start == nil then
+			return name
+		else
+			return '#' .. name:sub(1, start - 1) .. '.' .. name:sub(ending + 1)
+		end
+	end
 end
 
 UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)
@@ -258,7 +287,17 @@ UPar.LoadLuaFiles('widget', 'CLIENT')
 UPar.LoadLuaFiles('gui', 'CLIENT')
 UPar.LoadLuaFiles('version_compat')
 
-
+concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
+	UPar.LoadLuaFiles('class')
+	UPar.LoadLuaFiles('core')
+	UPar.LoadLuaFiles('actions')
+	UPar.LoadLuaFiles('effects')
+	UPar.LoadLuaFiles('effectseasy')
+	UPar.LoadLuaFiles('expansion')
+	UPar.LoadLuaFiles('widget', 'CLIENT')
+	UPar.LoadLuaFiles('gui', 'CLIENT')
+	UPar.LoadLuaFiles('version_compat')
+end)
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()
 	PrintTable(UPar)

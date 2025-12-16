@@ -3,11 +3,10 @@
 	2025 12 13
 ]]--
 
--- ==================== 生命期 ===============
+-- ==================== 生命周期 ===============
 if not GetConVar('developer'):GetBool() then return end
 
-local action = UPAction:new('test_lifecycle', {AAACreat = '白狼'})
-action:Register()
+local action = UPAction:Register('test_lifecycle', {AAACreat = '白狼', AAADesc = '#upgui.dev.test.desc'})
 
 -- 注册控制台变量
 action:InitConVars(
@@ -62,6 +61,11 @@ action:InitConVars(
     }
 ) 
 
+action:AddConVar({
+	name = 'example_other',
+	widget = 'NumSlider',
+})
+
 if CLIENT then
 	-- 注册预设
 	action:RegisterPreset(
@@ -69,7 +73,7 @@ if CLIENT then
 			AAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',
 
-			label = '#upgui.example',
+			label = '#upgui.dev.example',
 			values = {
 				['example_numslider'] = '0.5'
 			}
@@ -118,36 +122,63 @@ function action:Clear(ply, checkResult, mv, cmd, interruptSource, interruptData)
 	print('interruptData:', interruptData)
 end
 
-local effect = UPEffect:new('default', {AAACreat = '白狼'})
-effect:Register(action.Name)
+-- 创建其他菜单
+if CLIENT then
+	local function TriggerPanel(self, panel)
+		local run = panel:Button('#upgui.dev.run_track_0', '')
+		run.DoClick = function()
+			local act = UPar.GetAction('test_lifecycle')
+			UPar.Trigger(LocalPlayer(), act, 'oh shit')
+		end
+		
+		local changerhythm = panel:Button('#upgui.dev.change_rhythm_0', '')
+		changerhythm.DoClick = function()
+			local act = UPar.GetAction('test_lifecycle')
+			UPar.ActChangeRhythm(LocalPlayer(), act, 'hl1/fvox/blip.wav')
+		end
 
-function effect:Start(ply, checkResult)
-	if SERVER then return end
-	surface.PlaySound('hl1/fvox/activated.wav')
-end
+		local run_t1 = panel:Button('#upgui.dev.run_track_1', '')
+		run_t1.DoClick = function()
+			local act = UPar.GetAction('test_lifecycle_t1')
+			UPar.Trigger(LocalPlayer(), act, 'oh good')
+		end
 
-function effect:OnRhythmChange(ply, customData)
-	if SERVER then return end
-	print('customData:', customData)
-	surface.PlaySound(customData or 'hl1/fvox/blip.wav')
-end
+		local interrupt = panel:Button('#upgui.dev.run_interrupt_0', '')
+		interrupt.DoClick = function()
+			local act = UPar.GetAction('test_interrupt')
+			UPar.Trigger(LocalPlayer(), act)
+		end
 
-function effect:Clear(ply, checkResult)
-	if SERVER then return end
-	surface.PlaySound('hl1/fvox/deactivated.wav')
+		local killself = panel:Button('#upgui.dev.killself', '')
+		killself.DoClick = function()
+			RunConsoleCommand('kill')
+		end
+
+		panel:Help('')
+	end
+
+	action.SundryPanels = {
+		{
+			label = '#upgui.dev.trigger',
+			func = TriggerPanel,
+		}
+	}
 end
 
 -- ==================== 轨道1 ===============
-local action_t1 = UPar.DeepClone(action)
-action_t1.Name = 'test_lifecycle_t1'
-action_t1.Invisible = true
+local action_t1 = UPAction:Register('test_lifecycle_t1', action)
+action_t1.Invisible = false
 action_t1.TrackId = 1
-action_t1:InitCVarDisabled()
-action_t1:Register()
 
+-- 覆盖ConVarsPanel
+if CLIENT then
+    function action_t1:ConVarsPanelOverride(panel)
+        panel:Help('#upgui.dev.cv_panel_override')
+		panel:Help('')
+    end
+end
 -- ==================== 中断 ===============
-local action_interrupt = UPAction:new('test_interrupt', {Invisible = true})
-action_interrupt:Register()
+local action_interrupt = UPAction:Register('test_interrupt', {Invisible = true})
 
 UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource, interruptData)
 	local playingName = playing.Name
@@ -164,43 +195,17 @@ UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playin
 	end
 end)
 
+-- 拓展控件
 if CLIENT then
-	-- 创建其他菜单
-	local function TriggerPanel(self, panel)
-		local run = panel:Button(UPar.SnakeTranslate_2('run_track', nil, '_', ' ') .. ' 0', '')
-		run.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action, 'oh shit')
+    function action:ConVarWidgetExpand(idx, cvCfg, originWidget, panel)
+		if IsValid(originWidget) and ispanel(originWidget) and idx == 1 then
+			local label = vgui.Create('DLabel')
+			label:SetText('#upgui.dev.cv_widget_expand')
+			label:SetTextColor(Color(0, 150, 0))
+
+			return label
 		end
-
-		local changerhythm = panel:Button(UPar.SnakeTranslate_2('change_rhythm', nil, '_', ' '), '')
-		changerhythm.DoClick = function()
-			UPar.ActChangeRhythm(LocalPlayer(), action, 'hl1/fvox/blip.wav')
-		end
-
-		local run_t1 = panel:Button(UPar.SnakeTranslate_2('run_track', nil, '_', ' ') .. ' 1', '')
-		run_t1.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action_t1, 'oh good')
-		end
-
-		local interrupt = panel:Button('#upgui.interrupt', '')
-		interrupt.DoClick = function()
-			UPar.Trigger(LocalPlayer(), action_interrupt)
-		end
-
-		local killself = panel:Button('#upgui.killself', '')
-		killself.DoClick = function()
-			RunConsoleCommand('kill')
-		end
-
-		panel:Help('')
-	end
-
-	action.SundryPanels = {
-		{
-			label = '#upgui.trigger',
-			func = TriggerPanel,
-		}
-	}
+    end
 end
 -- ==================== 随机停止 ===============
 // UPar.SeqHookAdd('UParPreStart', 'test_random_stop', function(ply, action, checkResult)
@@ -241,18 +246,6 @@ end
 // 	end
 
 // 	print(string.format('\n============ Clear Override Test, TrackId: %s ============', playing.TrackId))
-
-// 	return true
-// end)
-
--- ==================== 变奏覆盖 ===============
-// UPar.SeqHookAdd('UParOnChangeRhythm', 'test_rhythm_override', function(ply, action, effect, customData)
-// 	local actName = action.Name
-// 	if actName ~= 'test_lifecycle' then
-// 		return
-// 	end
-
-// 	print(string.format('\n============ Rhythm Override Test, TrackId: %s ============', action.TrackId))
 
 // 	return true
 // end)

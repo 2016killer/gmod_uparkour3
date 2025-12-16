@@ -3,35 +3,24 @@
 	2025 12 10
 --]]
 
+UPar.ActInstances = UPar.ActInstances or {}
 
-UPAction = {}
+UPAction = UPAction or {}
 UPAction.__index = UPAction
 
-local Instances = {}
+local UPAction = UPAction
+local isinstance = UPar.IsInstance
+local Instances = UPar.ActInstances
 
 local function sanitizeConVarName(name)
     return 'upact_' .. string.gsub(name, '[\\/:*?"<>|]', '_')
 end
 
 local function isupaction(obj)
-    if not istable(obj) then 
-        return false 
-    end
-    local mt = getmetatable(obj)
-    while mt do
-        if mt == UPAction then return true end
-  
-        local index = rawget(mt, "__index")
-        if istable(index) then
-            mt = index
-        else
-            mt = getmetatable(mt)
-        end
-    end
-    return false
+    return isinstance(obj, UPAction)
 end
 
-function UPAction:new(name, initData)
+function UPAction:Register(name, initData, new)
     if string.find(name, '[\\/:*?"<>|]') then
         error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
     end
@@ -40,39 +29,70 @@ function UPAction:new(name, initData)
         error(string.format('Invalid initData "%s" (not a table)', initData))
     end
 
-    local self = setmetatable({}, UPAction)
+    local cached = Instances[name]
+    local exist = istable(cached)
+    if exist then print(string.format('[UPAction]: Warning: Action "%s" already registered (overwritten)', name)) end
+
+    new = new or not exist
+
+    local self = new and setmetatable({}, UPAction) or cached
+
+    if not isupaction(self) then
+        setmetatable(self, UPAction)
+    end 
+
+    Instances[name] = self
 
     for k, v in pairs(initData) do
         self[k] = v
     end
 
     self.Name = name
-    self.Effects = {}
+    self.Effects = self.Effects or {}
 
-    self.Check = UPar.tablefunc
-    self.Start = UPar.emptyfunc
-    self.Think = UPar.tablefunc
-    self.Clear = UPar.emptyfunc
+    self.Check = self.Check or UPar.tablefunc
+    self.Start = self.Start or UPar.emptyfunc
+    self.Think = self.Think or UPar.tablefunc
+    self.Clear = self.Clear or UPar.emptyfunc
 
-    self:InitCVarDisabled(initData.disabled)
+    self:InitCVarDisabled(self.defaultDisabled)
 
-    self.icon = SERVER and nil or initData.icon
-    self.label = SERVER and nil or initData.label
-    self.AAACreate = SERVER and nil or initData.AAACreate
-    self.AAADesc = SERVER and nil or initData.AAADesc
-    self.AAAContrib = SERVER and nil or initData.AAAContrib
+    self.icon = SERVER and nil or self.icon
+    self.label = SERVER and nil or self.label
+    self.AAACreate = SERVER and nil or self.AAACreate
+    self.AAADesc = SERVER and nil or self.AAADesc
+    self.AAAContrib = SERVER and nil or self.AAAContrib
 
-    self.TrackId = initData.TrackId or 0
+    self.ConVarWidgetExpand = SERVER and nil or self.ConVarWidgetExpand
+    self.ConVarsPanelOverride = SERVER and nil or self.ConVarsPanelOverride
+    self.SundryPanels = SERVER and nil or self.SundryPanels
+
+    self.TrackId = self.TrackId or 0
+    
+    if not isfunction(self.Check) then
+        error(string.format('Invalid field "Check" = "%s" (not a function)', self.Check))
+    end
+
+    if not isfunction(self.Start) then
+        error(string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
+    end
+
+    if not isfunction(self.Think) then
+        error(string.format('Invalid field "Think" = "%s" (not a function)', self.Think))
+    end
+    
+    if not isfunction(self.Clear) then
+        error(string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
+    end
+
+    -- 这里没有检测每个Effect
+    if not istable(self.Effects) then
+        error(string.format('Invalid field "Effects" = "%s" (not a table)', self.Effects))
+    end
+    
+    if new then hook.Run('UParRegisterAction', name, self) end
     
     return self
-end
-
-function UPAction:Register()
-    hook.Run('UParRegisterAction', self.Name, self) 
-    if Instances[self.Name] and Instances[self.Name] ~= self then
-        print(string.format('[UPAction]: Warning: Action "%s" already registered (overwritten)', self.Name))
-    end
-    Instances[self.Name] = self
 end
 
 function UPAction:GetEffect(effName)
@@ -138,54 +158,6 @@ function UPAction:SetPredictionMode(predictionMode)
     end
 end
 
-function UPAction:InitConVars(config)
-    if not istable(config) then
-        error(string.format('Invalid config "%s" (not a table)', config))
-    end
-
-    self.ConVars = {}
-    for i, v in ipairs(config) do
-        if not isstring(v.name) then
-            error(string.format('Invalid field "name" (not a string), index = %d', i))
-        end
-
-        if not isstring(v.default) then
-            error(string.format('Invalid field "default" (not a string), name = "%s"', v.name))
-        end
-
-        if not istable(v.flags) and not isnumber(v.flags) and v.flags ~= nil then
-            error(string.format('Invalid field "flags" (not a table or number or nil), name = "%s"', v.name))
-        end
-
-        if v.client ~= nil and not isbool(v.client) then
-            error(string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', v.name))
-        end
-
-        if v.client == nil then
-            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-        elseif SERVER and v.client == false then
-            self.ConVars[v.name] = CreateConVar(v.name, v.default, v.flags or { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-        elseif CLIENT and v.client == true then
-            self.ConVars[v.name] = CreateClientConVar(v.name, v.default, true, false) 
-        end
-    end
-
-    if SERVER then
-        return
-    end
-
-    self.ConVarsWidget = config
-    self.ConVarsPreset = istable(self.ConVarsPreset) and self.ConVarsPreset or {}
-    local defaultPreset = {
-        AAACreat = 'SYSTEM',
-        label = '#preset.default',
-        values = {}
-    }
-
-    for _, v in ipairs(config) do defaultPreset.values[v.name] = v.default end
-    table.insert(self.ConVarsPreset, defaultPreset)
-end
-
 if CLIENT then
     function UPAction:InitCVarKeybind(default)
         local cvName = sanitizeConVarName(self.Name) .. '_keybind'
@@ -213,7 +185,77 @@ if CLIENT then
 
         self.CV_Keybind:SetString(val)
     end
+end
 
+function UPAction:AddConVar(cvCfg)
+    if not istable(cvCfg) then
+        error(string.format('Invalid cvCfg "%s" (not a table)', cvCfg))
+    end
+
+    self.ConVars = istable(self.ConVars) and self.ConVars or {}
+    
+    local cvName = cvCfg.name
+    local cvDefault = cvCfg.default or '0'
+    local isclient = cvCfg.client
+
+    if not isstring(cvName) then
+        error(string.format('Invalid field "name" (not a string), name = "%s"', cvName))
+    end
+
+    if not isstring(cvDefault) then
+        error(string.format('Invalid field "default" (not a string), name = "%s"', cvName))
+    end
+
+    if isclient ~= nil and not isbool(isclient) then
+        error(string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', cvName))
+    end
+
+    if isclient == nil then
+        self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+    elseif SERVER and isclient == false then
+        self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+    elseif CLIENT and isclient == true then
+        self.ConVars[cvName] = CreateClientConVar(cvName, cvDefault, true, false) 
+    end
+
+    if SERVER then
+        self.ConVarsWidget = nil
+    elseif CLIENT then
+        self.ConVarsWidget = istable(self.ConVarsWidget) and self.ConVarsWidget or {}
+        table.insert(self.ConVarsWidget, cvCfg) 
+    end
+end
+
+function UPAction:RemoveConVar(cvName)
+    if not isstring(cvName) then
+        error(string.format('Invalid cvName "%s" (not a string)', cvName))
+    end
+
+    self.ConVarsWidget = SERVER and nil or (istable(self.ConVarsWidget) and self.ConVarsWidget or {})
+    self.ConVars = istable(self.ConVars) and self.ConVars or {}
+    
+    self.ConVars[cvName] = nil
+    if CLIENT then
+        for i = #self.ConVarsWidget, 1, -1 do
+            if self.ConVarsWidget[i].name == cvName then
+                table.remove(self.ConVarsWidget, i)
+            end
+        end
+    end
+end
+
+function UPAction:InitConVars(config)
+    if not istable(config) then
+        error(string.format('Invalid config "%s" (not a table)', config))
+    end
+
+    self.ConVars = {}
+    self.ConVarsWidget = SERVER and nil or {}
+
+    for i, v in ipairs(config) do self:AddConVar(v) end
+end
+
+if CLIENT then
     function UPAction:RegisterPreset(preset)
         if not istable(preset) then
             error(string.format('Invalid preset "%s" (not a table)', preset))

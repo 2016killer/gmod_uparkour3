@@ -136,6 +136,12 @@ local function CreateMenu(panel)
 
 	hook.Add('UParRegisterAction', 'upar.update.actionmanager', function(actName, action)
 		timer.Create('upar.update.actionmanager', 0.5, 1, function()
+			if not IsValid(panel) then
+				hook.Remove('UParRegisterAction', 'upar.update.actionmanager')
+				timer.Remove('upar.update.actionmanager')
+				return 
+			end
+
 			actionManager:RefreshNode()
 		end)
 	end)
