@@ -105,6 +105,7 @@ function UPAction:InitCVarDisabled(default)
 end
 
 function UPAction:GetDisabled()
+    if not self.CV_Disabled then return nil end
     return self.CV_Disabled:GetBool()
 end
 
@@ -194,39 +195,23 @@ if CLIENT then
     end
 
     function UPAction:GetKeybind()
-        if not self.CV_Keybind then 
-            return nil 
-        end
-
-        local keys = string.Split(self.CV_Keybind:GetString(), ' ') 
-        local result = {}
-        for i, k in ipairs(keys) do
-            if string.Trim(k) == '' then
-                continue
-            else
-                result[i] = tonumber(k) or 0
-            end
-        end
-
-        return result
+        if not self.CV_Keybind then return nil end
+        local keybind = self.CV_Keybind:GetString()
+        local keys = util.JSONToTable(keybind)
+        return istable(keys) and keys or {}
     end
 
-    function UPAction:SetKeybind(keynums) 
-        -- Example: {0, 0, 0}
-        if not istable(keynums) then
-            error(string.format('Invalid keynums "%s" (not a table)', keynums))
+    function UPAction:SetKeybind(keys) 
+        local val = nil
+        if isstring(keys) then
+            val = keys
+        elseif istable(keys) and table.IsSequential(keys) then
+            val = util.TableToJSON(keys) or '[0]'
+        else
+            error(string.format('Invalid keys "%s" (not a string or sequential table)', keys))
         end
 
-        local keys = {}
-        for i, kn in ipairs(keynums) do
-            if not isnumber(kn) then
-                table.insert(keys, 0)
-            else
-                table.insert(keys, kn)
-            end
-        end
-
-        self.CV_Keybind:SetString(table.concat(keys, ' '))
+        self.CV_Keybind:SetString(val)
     end
 
     function UPAction:RegisterPreset(preset)

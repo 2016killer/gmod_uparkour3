@@ -207,6 +207,12 @@ UPar.CreateConVarsPanel = function(action, panel)
 
 			panel:Help(label)
 			panel:AddItem(vecEditor)
+		elseif widget == 'UParKeyBinder' then
+			local keyBinder = vgui.Create('UParKeyBinder', panel)
+			keyBinder:SetConVar(name)
+
+			panel:Help(label)
+			panel:AddItem(keyBinder)
 		end
 
 		if v.help then

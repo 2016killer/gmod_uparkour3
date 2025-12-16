@@ -40,6 +40,12 @@ action:InitConVars(
 			min = -2, max = 2, decimals = 2, interval = 0.5,
         },
 
+		{
+            name = 'example_keybinder',
+            default = '[9, 1]',
+            widget = 'UParKeyBinder',
+        },
+
 	    {
             name = 'example_invisible',
             default = '0',
@@ -69,6 +75,8 @@ if CLIENT then
 			}
 		}
 	) 
+
+	action:InitCVarKeybind('0 0 0')
 end
 
 function action:Check(ply, data)
