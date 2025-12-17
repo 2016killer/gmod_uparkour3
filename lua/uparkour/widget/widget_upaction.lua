@@ -18,8 +18,20 @@ function ActionEditor:Init2(action)
 	local actName = action.Name
 	self.action = action
 
-	self:SetSize(600, 400)
-	self:SetPos(0, 0)
+	local panelCacheKey = string.format('ActionEditor_%s', actName)
+	local old = UPar.LRUGet(panelCacheKey)
+	if IsValid(old) and ispanel(old) then old:Remove() end
+	UPar.LRUSet(panelCacheKey, self)
+
+	local sizeCacheKey = 'ActionEditor_Size'
+	local size = UPar.LRUGet(sizeCacheKey)
+	if isvector(size) then
+		self:SetSize(math.max(100, size[1]), math.max(100, size[2]))
+	else
+		self:SetSize(600, 400)
+	end
+
+	self:Center()
 	self:MakePopup()
 	self:SetSizable(true)
 	self:SetDeleteOnClose(true)
@@ -28,6 +40,7 @@ function ActionEditor:Init2(action)
 		language.GetPhrase('#upgui.menu.actionmanager'), 
 		language.GetPhrase(isstring(action.label) and action.label or actName)
 	))
+	self:SetIcon(isstring(action.icon) and action.icon or 'icon32/tool.png')
 
 	local Tabs = vgui.Create('DPropertySheet', self)
 	Tabs:Dock(FILL)
@@ -36,7 +49,7 @@ function ActionEditor:Init2(action)
 	local effectManager = vgui.Create('UParEffectManager')
 	effectManager:Init2(action)
 	effectManager:SetLeftWidth(0.5 * self:GetWide())
-	self.div = effectManager.div
+
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 
 
@@ -78,6 +91,17 @@ function ActionEditor:Init2(action)
 		descriptionPanel
 	)
 end
+
+function ActionEditor:OnClose()
+	local panelCacheKey = string.format('ActionEditor_%s', self.action.Name)
+	UPar.LRUDelete(panelCacheKey)
+
+	local sizeCacheKey = 'ActionEditor_Size'
+	local w, h = self:GetSize()
+
+	UPar.LRUSet(sizeCacheKey, Vector(w, h, 0))
+end
+
 
 function ActionEditor:AddSheet(label, icon, panel)
 	if not ispanel(panel) and not isfunction(panel) then
@@ -253,7 +277,6 @@ end
 
 function ActionEditor:OnRemove()
 	self.action = nil
-	self.div = nil
 	self.Tabs = nil
 end
 

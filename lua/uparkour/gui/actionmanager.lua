@@ -3,50 +3,7 @@
 	2025 12 13
 --]]
 
-local function CreateActionEditor(actName)
-	local action = UPar.GetAction(actName)
-	local actionLabel = isstring(action.label) and action.label or actName
 
-	if not istable(action) then 
-		return 
-	end
-
-	local guiCacheKey = 'actionEditor_' .. actName
-	local locationCacheKey = 'actionEditor_Location'
-
-	local OldActionEditor = UPar.LRUGet(guiCacheKey)
-	local location = UPar.LRUGet(locationCacheKey) or {}
-	
-	if IsValid(OldActionEditor) then 
-		OldActionEditor:Remove() 
-	end
-
-	local w, h, divWidth = unpack(location)
-
-	w = isnumber(w) and w or 600
-	h = isnumber(h) and h or 400
-	divWidth = isnumber(divWidth) and divWidth or 200
-
-	local actionEditor = vgui.Create('UParActionEditor')
-	actionEditor:Init2(action)
-	actionEditor:SetSize(w, h)
-	actionEditor:SetPos((ScrW() - w) / 2, (ScrH() - h) / 2)
-	actionEditor:SetIcon(isstring(action.icon) and action.icon or 'icon32/tool.png')
-	if IsValid(actionEditor.div) then
-		actionEditor.div:SetLeftWidth(divWidth)
-	end
-		
-	actionEditor.OnClose = function(self)
-		local w, h = actionEditor:GetSize()
-		local divWidth = IsValid(actionEditor.div) and actionEditor.div:GetLeftWidth() or 200
-		
-		UPar.LRUSet(locationCacheKey, {w, h, divWidth})
-	end
-
-	UPar.LRUSet(guiCacheKey, actionEditor)
-
-	return actionEditor
-end
 
 local function CreateMenu(panel)
 	panel:Clear()
@@ -55,7 +12,9 @@ local function CreateMenu(panel)
 	local actionManager = vgui.Create('UParEasyTree')
 	actionManager:SetSize(200, 400)
 	actionManager.OnDoubleClick = function(self, selNode)
-		CreateActionEditor(selNode.actName)
+		local action = UPar.GetAction(selNode.actName)
+		local actionEditor = vgui.Create('UParActionEditor')
+		actionEditor:Init2(action)
 	end
 
 	actionManager.RefreshNode = function(self)
