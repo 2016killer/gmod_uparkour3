@@ -33,7 +33,7 @@ end
 UPar.EffectTest = function(ply, actName, effName)
 	local effect = UPar.GetPlayerEffect(ply, actName, effName)
 	if not effect then
-		ErrorNoHaltWithStack(string.format('effect test failed, can not find effect named "%s" from act "%s"', effName, actName))
+		print(string.format('[UPar]: effect test failed, can not find effect named "%s" from act "%s"', effName, actName))
 		return
 	end
 

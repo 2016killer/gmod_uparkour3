@@ -27,7 +27,6 @@ function EffTree:Refresh()
 	
 	local actName = self.actName
 	local usingName = UPar.GetPlyUsingEffName(LocalPlayer(), actName)
-	local cache = UPar.GetPlyEffCache(LocalPlayer(), actName)
 
 	for _, effName in pairs(keys) do
 		local effect = Effects[effName]
@@ -50,12 +49,12 @@ function EffTree:Refresh()
 		playButton:SetText('#upgui.play')
 		playButton:SetIcon('icon16/cd_go.png')
 		playButton.DoClick = function() 
-			// self:Take(node)
-			// self:Play(node) 
-			// self:HitNode(node)
+			self:Take(node)
+			self:Play(node) 
+			self:HitNode(node)
 		end
 
-		if istable(cache) and usingName == 'CACHE' and cache.Name == effName then
+		if usingName ~= 'CACHE' and usingName == effName then
 			self.curSelNode = node
 			node:SetIcon('icon16/accept.png')
 		end

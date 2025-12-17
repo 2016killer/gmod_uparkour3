@@ -166,11 +166,11 @@ function EffectManager:Init2(actName)
 	local div = vgui.Create('DHorizontalDivider', self)
 	local div2 = vgui.Create('DVerticalDivider', div)
 	local effTree = vgui.Create('UParEffTree', div2)
-	local custEffTree = vgui.Create('UParCustEffTree', div2)
+	local custTree = vgui.Create('UParCustEffTree', div2)
 	
 
 	effTree:Init2(actName)
-	custEffTree:Init2(actName)
+	custTree:Init2(actName)
 
 	div:Dock(FILL)
 	div:SetLeft(div2)
@@ -179,25 +179,41 @@ function EffectManager:Init2(actName)
 
 	div2:SetDividerHeight(5)
 	div2:SetTop(effTree)
-	div2:SetBottom(custEffTree)
+	div2:SetBottom(custTree)
 
 	self.div = div
 	self.div2 = div2
 	self.effTree = effTree
-	self.custEffTree = custEffTree
+	self.custTree = custTree
 
-	// local widthCacheKey = 'EffectEditor_LeftWidth'
-	// local w = UPar.LRUGet(widthCacheKey)
-	// if isnumber(w) then
-	// 	div:SetLeftWidth(math.max(20, w))
-	// else
-	// 	div:SetLeftWidth(250)
-	// end
+	local oldOnSelectedChange = effTree.OnSelectedChange
+	effTree.OnSelectedChange = function(self2, node)
+		oldOnSelectedChange(self2, node)
+
+		local effName = node.effName
+		local effect = UPar.GetEffect(actName, effName)
+		self:CreatePreview(effect)
+	end
+
+	local oldOnSelectedChange_ = custTree.OnSelectedChange
+	custTree.OnSelectedChange = function(self2, node)
+		local effect = oldOnSelectedChange_(self2, node)
+		self:CreateEditor(effect)
+	end
+
+	local layout = UPar.LRUGet('UI_EffectEditor_Layout')
+	if isvector(layout) then
+		div:SetLeftWidth(math.max(20, layout[1]))
+		div2:SetTopHeight(math.max(20, layout[2]))
+	else
+		div:SetLeftWidth(250)
+		div2:SetTopHeight(200)
+	end
 end
 
 function EffectManager:Refresh()
 	self.effTree:Refresh()
-	self.custEffTree:Refresh()
+	self.custTree:Refresh()
 
 	if IsValid(self.div:GetRight()) then 
 		self.div:GetRight():Remove() 
@@ -205,14 +221,18 @@ function EffectManager:Refresh()
 end
 
 function EffectManager:OnRemove()
-	local widthCacheKey = 'EffectEditor_LeftWidth'
-	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
-	UPar.LRUSet(widthCacheKey, w)
+	local layout = Vector()
+	layout[1] = IsValid(self.div) and self.div:GetLeftWidth() or 250
+	layout[2] = IsValid(self.div2) and self.div2:GetTopHeight() or 200
+	UPar.LRUSet('UI_EffectEditor_Layout', layout)
 
-	// self.Effects = nil
-	// self.tree = nil
-	// self.div = nil
-	// self.curSelNode = nil
+
+	self.actName = nil
+	self.div = nil
+	self.div2 = nil
+	self.effTree = nil
+	self.custTree = nil
+	self.curSelNode = nil
 end
 
 vgui.Register('UParEffectManager', EffectManager, 'DPanel')

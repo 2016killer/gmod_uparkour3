@@ -19,13 +19,11 @@ function ActEditor:Init2(actName)
 	local actName = action.Name
 	self.action = action
 
-	local panelCacheKey = string.format('ActEditor_%s', actName)
-	local old = UPar.LRUGet(panelCacheKey)
+	local old = UPar.LRUGet(string.format('UI_ActEditor_%s', actName))
 	if IsValid(old) and ispanel(old) then old:Remove() end
-	UPar.LRUSet(panelCacheKey, self)
+	UPar.LRUSet(string.format('UI_ActEditor_%s', actName), self)
 
-	local sizeCacheKey = 'ActEditor_Size'
-	local size = UPar.LRUGet(sizeCacheKey)
+	local size = UPar.LRUGet('UI_ActEditor_Size')
 	if isvector(size) then
 		self:SetSize(math.max(100, size[1]), math.max(100, size[2]))
 	else
@@ -103,13 +101,10 @@ function ActEditor:Init2(actName)
 end
 
 function ActEditor:OnClose()
-	local panelCacheKey = string.format('ActEditor_%s', self.action.Name)
-	UPar.LRUDelete(panelCacheKey)
+	UPar.LRUDelete(string.format('UI_ActEditor_%s', self.action.Name))
 
-	local sizeCacheKey = 'ActEditor_Size'
 	local w, h = self:GetSize()
-
-	UPar.LRUSet(sizeCacheKey, Vector(w, h, 0))
+	UPar.LRUSet('UI_ActEditor_Size', Vector(w, h, 0))
 end
 
 function ActEditor:PaintDevMode(w, h)

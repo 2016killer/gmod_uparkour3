@@ -167,8 +167,15 @@ if CLIENT then
 		-- 从磁盘加载用户数据, 返回 表 或 nil
 		local content = file.Read(path, 'DATA')
 		local data = util.JSONToTable(content or '')
-	
-		return istable(data) and data or nil
+		data = istable(data) and data or nil
+
+		if data == nil then
+			print(string.format('[UPar]: try load user data from disk %s, failed', path))
+		else
+			print(string.format('[UPar]: try load user data from disk %s, success', path))
+		end
+		
+		return data
 	end
 
 	UPar.SaveUserDataToDisk = function(data, path, noMetadata)

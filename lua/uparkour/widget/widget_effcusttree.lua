@@ -26,16 +26,64 @@ function CustEffTree:Refresh()
 	
 	local actName = self.actName
 	local usingName = UPar.GetPlyUsingEffName(LocalPlayer(), actName)
-	for _, effName in pairs(keys) do
-		local node = self:AddNode(effName, 'icon64/tool.png')
-		node.effName = effName
-		node.icon = 'icon64/tool.png'
+	local cache = UPar.GetPlyEffCache(LocalPlayer(), actName)
 
-		if usingName ~= 'CACHE' and effName == usingName then
+	for _, effName in pairs(keys) do
+		local node = self:AddNode2(effName, 'icon64/tool.png')
+
+		if istable(cache) and usingName == 'CACHE' and cache.Name == effName then
 			self.curSelNode = node
 			node:SetIcon('icon16/accept.png')
 		end
 	end
+end
+
+function CustEffTree:AddNode2(effName)
+	local effect = UPar.LRUGet(string.format('UI_CE_%s', effName))
+
+	local label = nil
+	local icon = nil
+	if istable(effect) then
+		label = isstring(effect.label) and effect.label or effName
+		icon = isstring(effect.icon) and effect.icon or 'icon64/tool.png'
+	else
+		label = effName
+		icon = 'icon64/tool.png'
+	end
+
+	local node = self:AddNode(label, icon)
+	node.effName = effName
+	node.icon = icon
+
+	return node
+end
+
+function CustEffTree:InitNode(node)
+	local actName = self.actName
+	local effName = node.effName
+
+	local effect = UPar.LRUGet(string.format('UI_CE_%s', effName))
+
+	if not istable(effect) then
+		effect = UPar.LoadUserCustEffFromDisk(actName, effName)
+
+		if not istable(effect) then
+			print(string.format('[UPar]: custom effect init failed, can not find custom effect named "%s" from disk', effName))
+			return
+		end
+
+		UPar.InitCustomEffect(effect)
+
+		local label = isstring(effect.label) and effect.label or effName
+		local icon = isstring(effect.icon) and effect.icon or 'icon64/tool.png'
+		
+		node:SetText(label)
+		node:SetIcon(icon)
+
+		UPar.LRUSet(string.format('UI_CE_%s', effName), effect)
+	end
+
+	return effect
 end
 
 function CustEffTree:Play(node)
@@ -52,12 +100,20 @@ function CustEffTree:Take(node)
 	local actName = self.actName
 	local effName = node.effName
 
-	local cfg = {[actName] = effName}
-	UPar.SaveUserEffCfgToDisk()
-	UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
-	UPar.CallServerPushPlyEffSetting(cfg, nil)
+	local effect = self:InitNode(node)
+
+	local cfg = {[actName] = 'CACHE'}
+	local cache = {[actName] = effect}
+
+	UPar.SaveUserEffCacheToDisk()
+	UPar.PushPlyEffSetting(LocalPlayer(), cfg, cache)
+	UPar.CallServerPushPlyEffSetting(cfg, cache)
 		
-	self:OnTake(node)
+	self:OnTake(effect, node)
+end
+
+function CustEffTree:OnSelectedChange(node)
+	return self:InitNode(node)
 end
 
 function CustEffTree:HitNode(node)
