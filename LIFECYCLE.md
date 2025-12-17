@@ -21,5 +21,5 @@
 如果不同TrackId, 比如检视动作是可以和攀爬、翻越并行的。
 ```
 
-![uplife](./materials/upgui/uplife_zh.jpg)
-![uplife2](./materials/upgui/uplife2_zh.jpg)
+![uplife](./uplife_zh.jpg)
+![uplife2](./uplife2_zh.jpg)
