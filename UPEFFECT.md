@@ -59,12 +59,17 @@ end
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对预览
-effect.PreviewKVExpand = function(key, val, originWidget, _, _)
-    if IsValid(originWidget) and ispanel(originWidget) then
-        originWidget:Remove()
-    end
+if CLIENT then
+    effect.PreviewKVExpand = function(key, val, originWidget, _, _)
+        if IsValid(originWidget) and ispanel(originWidget) then
+            originWidget:Remove()
+        end
 
-    return vgui.Create('DLabel', tostring(key))
+        local label = vgui.Create('DLabel')
+        label:SetText(tostring(val))
+
+        return label
+    end
 end
 ```
 
@@ -95,18 +100,20 @@ end
 **UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对编辑
-effect.EditorKVExpand = function(key, val, originWidget, obj, _)
-    if IsValid(originWidget) and ispanel(originWidget) then
-        originWidget:Remove()
-    end
+if CLIENT then
+    effect.EditorKVExpand = function(key, val, originWidget, obj, _)
+        if IsValid(originWidget) and ispanel(originWidget) then
+            originWidget:Remove()
+        end
 
-    local entry = vgui.Create('TextEntry')
-    entry:SetText(tostring(val))
-    entry.OnEnter = function()
-        obj[key] = entry:GetText()
-    end
+        local entry = vgui.Create('TextEntry')
+        entry:SetText(tostring(val))
+        entry.OnEnter = function()
+            obj[key] = entry:GetText()
+        end
 
-    return entry
+        return entry
+    end
 end
 ```
 

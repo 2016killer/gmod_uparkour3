@@ -3,13 +3,12 @@
 	2025 11 1
 --]]
 
-UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
-	local action = UPar.GetAction(actName)
-	if not action then
-		error(string.format('can not find action named "%s"', actName))
-	end
+UPar.GetEffect = function(actName, effName)
+    return EffInstances[actName][effName]
+end
 
-	local targetEffect = action:GetEffect(tarName)
+UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
+	local targetEffect = UPar.GetEffect(actName, tarName)
 	if not targetEffect then
 		error(string.format('can not find effect named "%s" from act "%s"', tarName, actName))
 	end
@@ -38,13 +37,7 @@ UPar.InitCustomEffect = function(custom)
     local actName = custom.linkAct
     local tarName = custom.linkName
 
-	local action = UPar.GetAction(actName)
-	if not action then
-		print(string.format('init custom effect failed, can not find action named "%s"', actName))
-		return false
-	end
-
-	local targetEffect = action:GetEffect(tarName)
+	local targetEffect = UPar.GetEffect(actName, tarName)
 	if not targetEffect then
 		print(string.format('init custom effect failed, can not find effect named "%s" from act "%s"', tarName, actName))
 		return false

@@ -4,6 +4,7 @@
 --]]
 
 UPar.ActInstances = UPar.ActInstances or {}
+UPar.EffInstances = UPar.EffInstances or {}
 
 UPAction = UPAction or {}
 UPAction.__index = UPAction
@@ -11,6 +12,7 @@ UPAction.__index = UPAction
 local UPAction = UPAction
 local isinstance = UPar.IsInstance
 local Instances = UPar.ActInstances
+local EffInstances = UPar.EffInstances
 
 local function sanitizeConVarName(name)
     return 'upact_' .. string.gsub(name, '[\\/:*?"<>|]', '_')
@@ -42,14 +44,14 @@ function UPAction:Register(name, initData, new)
     end 
 
     Instances[name] = self
+    EffInstances[name] = istable(EffInstances[name]) and EffInstances[name] or {}
 
     for k, v in pairs(initData) do
         self[k] = v
     end
 
     self.Name = name
-    self.Effects = self.Effects or {}
-
+ 
     self.Check = self.Check or UPar.tablefunc
     self.Start = self.Start or UPar.emptyfunc
     self.Think = self.Think or UPar.tablefunc
@@ -85,36 +87,11 @@ function UPAction:Register(name, initData, new)
         error(string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
     end
 
-    -- 这里没有检测每个Effect
-    if not istable(self.Effects) then
-        error(string.format('Invalid field "Effects" = "%s" (not a table)', self.Effects))
-    end
-    
     if new then hook.Run('UParRegisterAction', name, self) end
     
     return self
 end
 
-function UPAction:GetEffect(effName)
-    return self.Effects[effName]
-end
-
-function UPAction:GetPlayerEffect(ply, effName)
-    if effName == 'CACHE' then
-        return ply.upeff_cache[self.Name] or self.Effects.default
-    else
-        return self.Effects[effName] or self.Effects.default
-    end
-end
-
-function UPAction:GetPlayerUsingEffect(ply)
-    local effName = ply.upeff_cfg[self.Name] or 'default'
-    if effName == 'CACHE' then
-        return ply.upeff_cache[self.Name] or self.Effects.default
-    else
-        return self.Effects[effName] or self.Effects.default
-    end
-end
 
 function UPAction:InitCVarDisabled(default)
     local cvName = sanitizeConVarName(self.Name) .. '_disabled'

@@ -58,12 +58,14 @@ end
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- Override default key-value pair preview
-effect.PreviewKVExpand = function(key, val, originWidget, _, _)
-    if IsValid(originWidget) and ispanel(originWidget) then
-        originWidget:Remove()
-    end
+if CLIENT then
+    effect.PreviewKVExpand = function(key, val, originWidget, _, _)
+        if IsValid(originWidget) and ispanel(originWidget) then
+            originWidget:Remove()
+        end
 
-    return vgui.Create('DLabel', tostring(key))
+        return vgui.Create('DLabel', tostring(key))
+    end
 end
 ```
 
@@ -94,18 +96,20 @@ end
 **UPEffect**.EditorKVExpand: ***function***  
 ```lua
 -- Override default key-value pair editing
-effect.EditorKVExpand = function(key, val, originWidget, obj, _)
-    if IsValid(originWidget) and ispanel(originWidget) then
-        originWidget:Remove()
-    end
+if CLIENT then
+    effect.EditorKVExpand = function(key, val, originWidget, obj, _)
+        if IsValid(originWidget) and ispanel(originWidget) then
+            originWidget:Remove()
+        end
 
-    local entry = vgui.Create('TextEntry')
-    entry:SetText(tostring(val))
-    entry.OnEnter = function()
-        obj[key] = entry:GetText()
-    end
+        local entry = vgui.Create('TextEntry')
+        entry:SetText(tostring(val))
+        entry.OnEnter = function()
+            obj[key] = entry:GetText()
+        end
 
-    return entry
+        return entry
+    end
 end
 ```
 

@@ -3,6 +3,14 @@
 	2025 12 13
 --]]
 
+UPar.GetPlayerEffect = function(ply, actName, effName)
+    if effName == 'CACHE' then
+        return ply.upeff_cache[actName]
+    else
+        return EffInstances[actName][effName]
+    end
+end
+
 UPar.GeneralEffectClear = function(self, ply, interruptSource, _)
 	if SERVER then
 		ply:SetNWString('UP_WOS', '')
@@ -18,13 +26,7 @@ end
 
 
 UPar.EffectTest = function(ply, actName, effName)
-	local action = UPar.GetAction(actName)
-	if not action then
-		ErrorNoHaltWithStack(string.format('effect test failed, can not find action named "%s"', actName))
-		return
-	end
-
-	local effect = action:GetPlayerEffect(ply, effName)
+	local effect = UPar.GetPlayerEffect(ply, actName, effName)
 	if not effect then
 		ErrorNoHaltWithStack(string.format('effect test failed, can not find effect named "%s" from act "%s"', effName, actName))
 		return

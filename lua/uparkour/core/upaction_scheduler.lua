@@ -4,12 +4,24 @@
 --]]
 local SeqHookRun = UPar.SeqHookRun
 local emptyTable = UPar.emptyTable
+local EffInstances = UPar.EffInstances
+
+
+local function GetPlayerUsingEffect(ply, actName)
+    local effName = ply.upeff_cfg[actName] or 'default'
+    if effName == 'CACHE' then
+        return ply.upeff_cache[actName]
+    else
+        return EffInstances[actName][effName]
+    end
+end
+
 
 local function ActStart(ply, action, checkResult)
 	local prevent = SeqHookRun('UParStart', ply, action, checkResult)
 	if not prevent then
 		action:Start(ply, checkResult)
-		local effect = action:GetPlayerUsingEffect(ply)
+		local effect = GetPlayerUsingEffect(ply, action.Name)
 		if effect then effect:Start(ply, checkResult) end
 	end
 end
@@ -18,13 +30,13 @@ local function ActClear(ply, playing, playingData, mv, cmd, interruptSource, int
 	local prevent = SeqHookRun('UParClear', ply, playing, playingData, mv, cmd, interruptSource, interruptData)
 	if not prevent then
 		playing:Clear(ply, playingData, mv, cmd, interruptSource, interruptData)
-		local effect = playing:GetPlayerUsingEffect(ply)
+		local effect = GetPlayerUsingEffect(ply, playing.Name)
 		if effect then effect:Clear(ply, playingData, interruptSource, interruptData) end
 	end
 end
 
 local function ActChangeRhythm(ply, action, customData)
-	local effect = action:GetPlayerUsingEffect(ply)
+	local effect = GetPlayerUsingEffect(ply, action.Name)
 	local prevent = SeqHookRun('UParOnChangeRhythm', ply, action, effect, customData)
 	if not prevent and effect then
 		effect:OnRhythmChange(ply, customData)
@@ -45,6 +57,7 @@ local function ActChangeRhythm(ply, action, customData)
 	end
 end
 
+UPar.GetPlayerUsingEffect = GetPlayerUsingEffect
 UPar.ActChangeRhythm = ActChangeRhythm
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
