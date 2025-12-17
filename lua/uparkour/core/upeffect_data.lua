@@ -12,7 +12,11 @@ UPar.GetEffect = function(actName, effName)
     return actEffects[effName]
 end
 
-UPar.ActGetEffects = function(actName)
+UPar.GetEffects = function(actName)
+	if not isstring(actName) then
+		error(string.format('Invalid actName "%s" (not string)', actName))
+	end
+
 	local actEffects = UPar.EffInstances[actName]
 
 	if not istable(actEffects) then
@@ -103,6 +107,7 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			if actName == 'AAAMetadata' then continue end
 			UPar.PushPlyEffCfg(ply, actName, effName)
 		end
+		PrintTable(ply.upeff_cfg)
 	end
 
 	if istable(cache) then
@@ -111,11 +116,16 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			UPar.InitCustomEffect(cache)
 			UPar.PushPlyEffCache(ply, cache)
 		end
+		PrintTable(ply.upeff_cache)
 	end
 end
  
 UPar.IsPlyUsingEffect = function(ply, actName, effect)
-	local usingName = ply.upeff_cfg[actName]
+	if not isstring(actName) then
+		error(string.format('Invalid actName "%s" (not string)', actName))
+	end
+
+	local usingName = ply.upeff_cfg[actName] or 'default'
 	if not usingName then
 		return false
 	end
@@ -130,9 +140,9 @@ UPar.IsPlyUsingEffect = function(ply, actName, effect)
 end
 
 if SERVER then
-	util.AddNetworkString('SyncPlyEffSetting')
+	util.AddNetworkString('PushPlyEffSetting')
 
-	net.Receive('SyncPlyEffSetting', function(len, ply)
+	net.Receive('PushPlyEffSetting', function(len, ply)
 		local content = net.ReadString()
 		// content = util.Decompress(content)
 
@@ -151,7 +161,7 @@ elseif CLIENT then
 	file.CreateDir('uparkour_effect')
 	file.CreateDir('uparkour_effect/custom')
 
-	UPar.SaveUserCustomEffectToDisk = function(custom, fileOverride)
+	UPar.SaveUserCustEffToDisk = function(custom, fileOverride, noMeta)
 		if not UPar.IsCustomEffect(custom) then 
 			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 			return false
@@ -169,10 +179,10 @@ elseif CLIENT then
 		end
 
 		local dataOverride = hook.Run('UParSaveUserCustomEffectToDisk', custom)
-		return UPar.SaveUserDataToDisk(dataOverride or custom, path)
+		return UPar.SaveUserDataToDisk(dataOverride or custom, path, noMeta)
 	end
 
-	UPar.CreateUserCustomEffect = function(actName, tarName, name)
+	UPar.CreateUserCustEff = function(actName, tarName, name, noMeta)
 		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
 		local exists = file.Exists(path, 'DATA')
 
@@ -193,49 +203,51 @@ elseif CLIENT then
 			AAADesc = 'Desc',
 		}
 
-		UPar.SaveUserCustomEffectToDisk(custom, true)
+		UPar.SaveUserCustEffToDisk(custom, true, noMeta)
 
 		return custom
 	end
 
-	UPar.GetUserCustomEffectFiles = function(actName)
+	UPar.GetUserCustEffFiles = function(actName)
 		local files = file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
 		return files, actName
 	end
 
-	UPar.LoadUserCustomEffectFromDisk = function(filename)
-		local data = UPar.LoadUserDataFromDisk('uparkour_effect/custom/' .. filename)
+	UPar.LoadUserCustEffFromDisk = function(actName, filename)
+		local data = UPar.LoadUserDataFromDisk(string.format('uparkour_effect/custom/%s/%s', actName, filename))
 		local override = hook.Run('UParLoadUserCustomEffectFromDisk', data)
 		return override or data
 	end
 
-	UPar.SyncPlyEffSetting = function(ply, sendcfg, sendcache)
-		local data = {
-			sendcfg and ply.upeff_cfg or nil,
-			sendcache and ply.upeff_cache or nil
-		}
+	UPar.CallServerPushPlyEffSetting = function(cfg, cache)
+		local data = {cfg, cache}
+
+		if not istable(data[1]) then data[1] = false end
+		if not istable(data[2]) then data[2] = false end
 
 		-- 为了过滤掉一些不能序列化的数据
 		local content = util.TableToJSON(data)
 		if not content then
-			print('[UPar]: sync player effect failed, content is not valid json')
+			print('[UPar]: push player effect failed, content is not valid json')
 			return
 		end
 		// content = util.Compress(content)
 
-		net.Start('SyncPlyEffSetting')
+		net.Start('PushPlyEffSetting')
 			net.WriteString(content)
 		net.SendToServer()
 	end
 
-	UPar.SaveUserEffCacheToDisk = function(data)
+	UPar.SaveUserEffCacheToDisk = function(data, noMeta)
+		data = data or LocalPlayer().upeff_cache
 		local override = hook.Run('UParSaveUserEffCacheToDisk', data)
-		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/cache.json')
+		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/cache.json', noMeta)
 	end
 
-	UPar.SaveUserEffCfgToDisk = function(data)
+	UPar.SaveUserEffCfgToDisk = function(data, noMeta)
+		data = data or LocalPlayer().upeff_cfg
 		local override = hook.Run('UParSaveUserEffCfgToDisk', data)
-		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/config.json')
+		UPar.SaveUserDataToDisk(override or data, 'uparkour_effect/config.json', noMeta)
 	end
 
 	UPar.LoadUserEffCacheFromDisk = function()
@@ -258,6 +270,15 @@ elseif CLIENT then
 		local cache = UPar.LoadUserEffCacheFromDisk()
 
 		UPar.PushPlyEffSetting(ply, cfg, cache)
-		UPar.SyncPlyEffSetting(ply, true, true)
+		UPar.CallServerPushPlyEffSetting(cfg, cache)
 	end)
 end
+
+
+concommand.Add('up_debug_effsetting_' .. (SERVER and 'sv' or 'cl'), function()
+	print('====================upeff_cache==================')
+	PrintTable(LocalPlayer().upeff_cache)
+
+	print('====================upeff_cfg====================')
+	PrintTable(LocalPlayer().upeff_cfg)
+end)

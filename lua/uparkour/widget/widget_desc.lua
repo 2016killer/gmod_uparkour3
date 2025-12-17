@@ -31,7 +31,7 @@ function Description:Init2(action)
 	end
 
 	self:Help('====================')
-	for effName, effect in pairs(UPar.ActGetEffects(action.Name)) do
+	for effName, effect in pairs(UPar.GetEffects(action.Name)) do
 		if not UPar.isupeffect(effect) then
 			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
 			continue

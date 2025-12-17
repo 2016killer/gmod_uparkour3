@@ -27,8 +27,13 @@ UPar.Version = '3.0.0 building'
 UPar.emptyfunc = function() end
 UPar.truefunc = function() return true end
 UPar.tablefunc = function() return {} end
-UPar.emptyTable = {}
 UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
+UPar.emptyTable = setmetatable({}, {
+	__index = UPar.emptyfunc,
+    __newindex = function()
+        error('UPar.emptyTable is readonly table, can not write')
+    end
+})
 
 UPar.IsInstance = function(obj, class)
     if not istable(obj) or not istable(class) then
@@ -51,7 +56,7 @@ if CLIENT then
 	UPar.SnakeTranslate = function(key, prefix, sep, joint)
 		-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
 		-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
-		if not GetConVar('developer'):GetBool() then 
+		if GetConVar('developer'):GetBool() then 
 			return key
 		end
 
@@ -277,6 +282,8 @@ end
 UPar.DeepClone = DeepClone
 UPar.DeepInject = DeepInject
 
+UPar.LoadLuaFiles('version_compat')
+UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
 UPar.LoadLuaFiles('actions')
@@ -285,9 +292,10 @@ UPar.LoadLuaFiles('effectseasy')
 UPar.LoadLuaFiles('expansion')
 UPar.LoadLuaFiles('widget', 'CLIENT')
 UPar.LoadLuaFiles('gui', 'CLIENT')
-UPar.LoadLuaFiles('version_compat')
 
 concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
+	UPar.LoadLuaFiles('version_compat')
+	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 	UPar.LoadLuaFiles('class')
 	UPar.LoadLuaFiles('core')
 	UPar.LoadLuaFiles('actions')
@@ -296,7 +304,6 @@ concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
 	UPar.LoadLuaFiles('expansion')
 	UPar.LoadLuaFiles('widget', 'CLIENT')
 	UPar.LoadLuaFiles('gui', 'CLIENT')
-	UPar.LoadLuaFiles('version_compat')
 end)
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()

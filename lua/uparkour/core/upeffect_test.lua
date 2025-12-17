@@ -38,8 +38,8 @@ UPar.EffectTest = function(ply, actName, effName)
 	end
 
 	effect:Start(ply)
-	timer.Simple(1, function() effect:OnRhythmChange(ply) end)
-	timer.Simple(2, function() effect:Clear(ply) end)
+	timer.Simple(0.5, function() effect:OnRhythmChange(ply) end)
+	timer.Simple(1, function() effect:Clear(ply) end)
 end
 
 if SERVER then

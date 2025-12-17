@@ -28,6 +28,12 @@ function EffectManager:CreatePreview(effect)
 	end
 
 	local mainPanel = vgui.Create('DPanel')
+
+	if IsValid(self.div) then 
+		if IsValid(self.div:GetRight()) then self.div:GetRight():Remove() end
+		self.div:SetRight(mainPanel)
+	end
+
 	local customButton = vgui.Create('DButton', mainPanel)
 	customButton:SetText('#upgui.custom')
 	customButton:SetIcon('icon64/tool.png')
@@ -42,20 +48,19 @@ function EffectManager:CreatePreview(effect)
 
 	if isfunction(effect.PreviewPanelOverride) then
 		effect:PreviewPanelOverride(scrollPanel, self)
-		return mainPanel
+	else
+		local kVVisible = effect.PreviewKVVisible or self.PreviewKVVisible
+		local kVExpand = effect.PreviewKVExpand or self.PreviewKVExpand
+
+		local preview = vgui.Create('UParFlatTablePreview', scrollPanel)
+		preview:Dock(FILL)
+		preview:Init2(effect, kVVisible, kVExpand)
+		preview:SetLabel(string.format('%s %s %s', 
+			effect.Name, 
+			language.GetPhrase('#upgui.property'),
+			''
+		))
 	end
-
-	local kVVisible = effect.PreviewKVVisible or self.PreviewKVVisible
-	local kVExpand = effect.PreviewKVExpand or self.PreviewKVExpand
-
-	local preview = vgui.Create('UParFlatTablePreview', scrollPanel)
-	preview:Dock(FILL)
-	preview:Init2(effect, kVVisible, kVExpand)
-	preview:SetLabel(string.format('%s %s %s', 
-		effect.Name, 
-		language.GetPhrase('#upgui.property'),
-		''
-	))
 
 	return mainPanel
 end
@@ -67,6 +72,10 @@ function EffectManager:CreateEditor(effect)
 	end
 
 	local mainPanel = vgui.Create('DPanel')
+	if IsValid(self.div) then 
+		if IsValid(self.div:GetRight()) then self.div:GetRight():Remove() end
+		self.div:SetRight(mainPanel)
+	end
 
 	local saveButton = vgui.Create('DButton', mainPanel)
 	saveButton:Dock(TOP)
@@ -91,34 +100,36 @@ function EffectManager:CreateEditor(effect)
 
 	if isfunction(effect.EditorPanelOverride) then
 		effect:EditorPanelOverride(scrollPanel, self)
-		return mainPanel
+	else
+		local kVVisible = effect.EditorKVVisible or self.EditorKVVisible
+		local kVExpand = effect.EditorKVExpand or self.EditorKVExpand
+
+		local editor = vgui.Create('UParFlatTableEditor', scrollPanel)
+		editor:Dock(FILL)
+		editor:Init2(effect, kVVisible, kVExpand)
+
+		editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. tostring(effect.linkName))
 	end
-
-	local kVVisible = effect.EditorKVVisible or self.EditorKVVisible
-	local kVExpand = effect.EditorKVExpand or self.EditorKVExpand
-
-	local editor = vgui.Create('UParFlatTableEditor', scrollPanel)
-	editor:Dock(FILL)
-	editor:Init2(effect, kVVisible, kVExpand)
-
-	editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. tostring(effect.linkName))
 
 	return mainPanel
 end
 
-function EffectManager:Init2(action)
-	if not UPar.isupaction(action) then
-		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
-		return
-	end
-
-	local actName = action.Name
-
+function EffectManager:Init2(actName)
+	self.actName = actName
 
 	local tree = vgui.Create('UParEasyTree')
 	tree.OnSelectedChange = function(_, node)
-		self:CreateEditor(action.Effects[node.effName])
-		self:OnSelectedEffect(node.effName, node)
+		if IsValid(self.div) and IsValid(self.div:GetRight()) then self.div:GetRight():Remove() end
+
+		local effect = self:GetEffectFromNode(node)
+
+		if UPar.IsCustomEffect(effect) then
+			self:CreateEditor(effect)
+		else
+			self:CreatePreview(effect)
+		end
+
+		self:OnSelectedEffect(self.actName, node.effName, node)
 	end
 
 	local div = vgui.Create('DHorizontalDivider', self)
@@ -131,29 +142,49 @@ function EffectManager:Init2(action)
 	if isnumber(w) then
 		div:SetLeftWidth(math.max(20, w))
 	else
-		div:SetLeftWidth(100)
+		div:SetLeftWidth(250)
 	end
 
 
 	self.tree = tree
 	self.div = div
+
+	self:Refresh()
+end
+
+function EffectManager:GetEffectFromNode(node)
+	local effect = self.Effects[node.effName]
+
+	if isstring(effect) then
+		effect = UPar.LoadUserCustEffFromDisk(self.actName, effect)
+
+		local label = isstring(effect.label) and effect.label or tostring(node.effName)
+		node:SetText(label)
+	end
+
+	return effect
 end
 
 function EffectManager:Refresh()
+	local effects = {}
 	local keys = {}
-	for k, _ in pairs(self.action.Effects) do table.insert(keys, k) end
+	for k, v in pairs(UPar.GetEffects(self.actName)) do 
+		table.insert(keys, k) 
+		effects[k] = v
+	end
 	table.sort(keys)
 
-	local customFiles = UPar.GetUserCustomEffectFiles(actName)
+	local customFiles = UPar.GetUserCustEffFiles(self.actName) or UPar.emptyTable
+	for i, k in pairs(customFiles) do effects[k] = k end 
 	table.sort(customFiles)
 
 	for _, effName in pairs(keys) do
-		local effect = action.Effects[effName]
+		local effect = UPar.GetEffect(self.actName, effName)
 
 		local label = isstring(effect.label) and effect.label or effName
 		local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
 
-		local node = tree:AddNode(label, icon)
+		local node = self.tree:AddNode(label, icon)
 		node.effName = effName
 		node.icon = icon
 
@@ -163,10 +194,16 @@ function EffectManager:Refresh()
 		playButton:SetText('#upgui.play')
 		playButton:SetIcon('icon16/cd_go.png')
 		playButton.DoClick = function()
-			UPar.EffectTest(LocalPlayer(), actName, effName)
+			UPar.EffectTest(LocalPlayer(), self.actName, effName)
+			UPar.CallServerEffectTest(self.actName, effName)
+
+			local cfg = {[self.actName] = effName}
+			UPar.SaveUserEffCfgToDisk()
+			UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
+			UPar.CallServerPushPlyEffSetting(cfg, nil)
 		end
 
-		if UPar.IsPlyUsingEffect(LocalPlayer(), actName, effect) then
+		if UPar.IsPlyUsingEffect(LocalPlayer(), self.actName, effect) then
 			self.curSelNode = node
 			node:SetIcon('icon16/accept.png')
 		end
@@ -176,8 +213,22 @@ function EffectManager:Refresh()
 		local label = filename
 		local icon = 'icon64/tool.png'
 
-		local node = tree:AddNode(label, icon)
+		local node = self.tree:AddNode(label, icon)
+		node.effName = filename
+		node.icon = icon
 	end
+
+	self.Effects = effects
+end
+
+function EffectManager:OnRemove()
+	local widthCacheKey = 'EffectEditor_LeftWidth'
+	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
+	UPar.LRUSet(widthCacheKey, w)
+
+	self.tree = nil
+	self.div = nil
+	self.curSelNode = nil
 end
 
 

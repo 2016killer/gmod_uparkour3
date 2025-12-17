@@ -47,7 +47,7 @@ function ActionEditor:Init2(action)
 	self.Tabs = Tabs
 
 	local effectManager = vgui.Create('UParEffectManager')
-	effectManager:Init2(action)
+	effectManager:Init2(actName)
 
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 

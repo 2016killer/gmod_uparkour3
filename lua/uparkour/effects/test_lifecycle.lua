@@ -28,6 +28,9 @@ function effect:Clear(ply, checkResult)
 	surface.PlaySound('hl1/fvox/deactivated.wav')
 end
 
+local example = UPEffect:Register('test_lifecycle', 'example', effect)
+example.label = '#upgui.dev.example'
+
 UPEffect:Register('test_lifecycle_t1', 'default', effect)
 -- ==================== 变奏覆盖 ===============
 // UPar.SeqHookAdd('UParOnChangeRhythm', 'test_rhythm_override', function(ply, action, effect, customData)

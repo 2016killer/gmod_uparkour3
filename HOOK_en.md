@@ -16,49 +16,94 @@
 # Hook
 
 ![shared](./materials/upgui/shared.jpg)
-UParRegisterAction(**string** actName, **UPAction** action)
+**@Name** UParRegisterAction  
+***@Params*** 
+- actName **string**  
+- action **UPAction**  
+
 ```note
 Called when registering an action.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
+**@Name** UParRegisterEffect  
+***@Params*** 
+- actName **string**  
+- effName **string**  
+- effect **UPEffect**  
+
 ```note
 Called when registering an effect.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserEffCacheToDisk(**table** cache)
+**@Name** UParSaveUserEffCacheToDisk  
+***@Params*** 
+- cache **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when saving the user's effect cache; returning a truthy value will override the default value
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserEffCfgToDisk(**table** cfg)
+**@Name** UParSaveUserEffCfgToDisk  
+***@Params*** 
+- cfg **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when saving the user's effect configuration; returning a truthy value will override the default value
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserEffCacheFromDisk(**table** cache)
+**@Name** UParLoadUserEffCacheFromDisk  
+***@Params*** 
+- cache **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when loading the user's effect cache; returning a truthy value will override the default value
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserEffCfgFromDisk(**table** cfg)
+**@Name** UParLoadUserEffCfgFromDisk  
+***@Params*** 
+- cfg **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when loading the user's effect configuration; returning a truthy value will override the default value
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserCustomEffectToDisk(**table** custom)
+**@Name** UParSaveUserCustomEffectToDisk  
+***@Params*** 
+- custom **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when saving the user's custom effect configuration; returning a truthy value will override the default value
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserCustomEffectFromDisk(**table** custom)
+**@Name** UParLoadUserCustomEffectFromDisk  
+***@Params*** 
+- custom **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 Called when loading the user's custom effect configuration; returning a truthy value will override the default value
 ```

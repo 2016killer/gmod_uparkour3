@@ -181,7 +181,7 @@ end
 -- ==================== 中断 ===============
 local action_interrupt = UPAction:Register('test_interrupt', {Invisible = true})
 
-UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource, interruptData)
+UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource)
 	local playingName = playing.Name
 	if playingName ~= 'test_lifecycle' then
 		return

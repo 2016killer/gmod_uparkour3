@@ -33,7 +33,15 @@ Remove the hook with the specified identifier.
 ## Existing Hooks
 
 ![shared](./materials/upgui/shared.jpg)
-**bool** UParInterrupt(**Player** ply, **UPAction** playing, **table** playingData, **bool** or **UPAction** interruptSource)
+**@Name** UParInterrupt  
+***@Params*** 
+- ply **Player**  
+- playing **UPAction**  
+- playingData **table**  
+- interruptSource **bool** or **UPAction**    
+
+***@Return***  
+- **bool** 
 ```note
 Return true to allow interruption.
 ```
@@ -41,7 +49,7 @@ Return true to allow interruption.
 -- Example:
 -- Allow "test_lifecycle" to be interrupted by any action
 -- Priority 0 is the highest
-UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource, interruptData)
+UPar.SeqHookAdd('UParInterrupt', 'test_interrupt', function(ply, playing, playingData, interruptSource)
 	local playingName = playing.Name
 	if playingName ~= 'test_lifecycle' then
 		return true
@@ -50,25 +58,64 @@ end, 0)
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**bool** UParPreStart(**Player** ply, **UPAction** action, **table** checkResult)
+**@Name** UParPreStart  
+***@Params*** 
+- ply **Player**  
+- action **UPAction**  
+- checkResult **table**    
+
+***@Return***  
+- **bool** 
 ```note
 Called after UPAction:Check passes. Return true to prevent the action from starting.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**bool** UParStart(**Player** ply, **UPAction** action, **table** checkResult)
+**@Name** UParStart  
+***@Params*** 
+- ply **Player**  
+- action **UPAction**  
+- checkResult **table**   
+
+***@Return***  
+- **bool** 
 ```note
 Called before UPAction:Start. Return true to override the default behavior.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**bool** UParOnChangeRhythm(**Player** ply, **UPAction** action, **UPEffect** effect, **any** customData)
+**@Name** UParOnChangeRhythm  
+***@Params*** 
+- ply **Player**  
+- action **UPAction**  
+- effect **UPEffect**  
+- customData **any**  
+
+***@Return***  
+- **bool** 
 ```note
 Called when UPar.ActChangeRhythm is called. Return true to override the default behavior.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**bool** UParClear(**Player** ply, **UPAction** playing, **table** playingData, **CMoveData** mv, **CUserCmd** cmd, **UPAction** interruptSource, **table** interruptData)
+**@Name** UParClear  
+***@Params*** 
+- ply **Player**  
+- playing **UPAction**  
+- playingData **table**  
+- mv **CMoveData**  
+- cmd **CUserCmd**  
+- interruptSource **bool** or **UPAction**   
+- interruptData **table**  
+
+***@Return***  
+- **bool** 
 ```note
 Called before UPAction:Clear. Return true to override the default behavior.
+```
+
+![shared](./materials/upgui/shared.jpg)
+**@Name** UParVersionCompat  
+```note
+SeqHookRunAllSafe will be called, which runs all hooks and automatically handles exceptions.
 ```

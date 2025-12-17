@@ -119,6 +119,32 @@ UPar.SeqHookRun = function(eventName, ...)
     end
 end
 
+UPar.SeqHookRunAllSafe = function(eventName, ...)
+    local funcList = SeqHookTable[eventName]
+    if not funcList then return end
+    
+    for i = 1, #funcList do
+        local succ, err = pcall(funcList[i], ...)
+        if not succ then
+            ErrorNoHaltWithStack(string.format('SeqHookRunAll Err: %s\n', err))
+        end
+    end
+end
+
+UPar.SeqHookRunSafe = function(eventName, ...)
+    local funcList = SeqHookTable[eventName]
+    if not funcList then return end
+    
+    for i = 1, #funcList do
+		local succ, result = pcall(funcList[i], ...)
+        if succ then
+            if result ~= nil then return result end
+        else
+            ErrorNoHaltWithStack(string.format('SeqHookRunSafe Err: %s\n', result))
+        end
+    end
+end
+
 UPar.SeqHookRemove = function(eventName, identifier)
     if not isstring(eventName) or eventName == "" then
         error("SeqHookRemove: Invalid eventName - must be a non-empty string")

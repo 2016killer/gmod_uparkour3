@@ -8,6 +8,11 @@ local EffInstances = UPar.EffInstances
 
 
 local function GetPlayerUsingEffect(ply, actName)
+	if actName == nil then
+		print(string.format('[UPar]: Warning: GetPlayerUsingEffect: actName is nil'))
+		return nil
+	end
+
     local effName = ply.upeff_cfg[actName] or 'default'
     if effName == 'CACHE' then
         return ply.upeff_cache[actName]

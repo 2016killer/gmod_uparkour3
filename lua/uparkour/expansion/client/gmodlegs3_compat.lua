@@ -3,9 +3,9 @@
 	2025 11 5
 --]]
 
-local up_gmodlegs3_compat = CreateClientConVar('up_gmodlegs3_compat', '1', true, false, '')
+local upeff_gmodlegs3_compat = CreateClientConVar('upeff_gmodlegs3_compat', '1', true, false, '')
 hook.Add('ShouldDisableLegs', 'upar.gmodlegs3', function()
-	if not up_gmodlegs3_compat:GetBool() then 
+	if not upeff_gmodlegs3_compat:GetBool() then 
 		return nil 
 	end
 	

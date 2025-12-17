@@ -7,7 +7,7 @@
 local function CreateMenu(panel)
 	panel:Clear()
 
-	panel:CheckBox('#up.gmodlegs3_compat', 'up_gmodlegs3_compat')
+	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
 	panel:ControlHelp('#up.gmodlegs3_compat.help')
 
 	panel:Help('==========Version==========')

@@ -16,49 +16,94 @@
 # Hook
 
 ![shared](./materials/upgui/shared.jpg)
-UParRegisterAction(**string** actName, **UPAction** action)
+**@Name** UParRegisterAction  
+***@Params*** 
+- actName **string**  
+- action **UPAction**  
+
 ```note
 注册动作时触发
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-UParRegisterEffect(**string** actName, **string** effName, **UPEffect** effect)
+**@Name** UParRegisterEffect  
+***@Params*** 
+- actName **string**  
+- effName **string**  
+- effect **UPEffect**  
+
 ```note
 注册特效时触发
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserEffCacheToDisk(**table** cache)
+**@Name** UParSaveUserEffCacheToDisk  
+***@Params*** 
+- cache **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 保存用户特效缓存时触发, 返回真值将覆盖默认值
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserEffCfgToDisk(**table** cfg)
+**@Name** UParSaveUserEffCfgToDisk  
+***@Params*** 
+- cfg **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 保存用户特效配置时触发, 返回真值将覆盖默认值
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserEffCacheFromDisk(**table** cache)
+**@Name** UParLoadUserEffCacheFromDisk  
+***@Params*** 
+- cache **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 加载用户特效缓存时触发, 返回真值将覆盖默认值
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserEffCfgFromDisk(**table** cfg)
+**@Name** UParLoadUserEffCfgFromDisk  
+***@Params*** 
+- cfg **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 加载用户特效配置时触发, 返回真值将覆盖默认值
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParSaveUserCustomEffectToDisk(**table** custom)
+**@Name** UParSaveUserCustomEffectToDisk  
+***@Params*** 
+- custom **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 保存用户自定义特效配置时触发, 返回真值将覆盖默认值
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**table** UParLoadUserCustomEffectFromDisk(**table** custom)
+**@Name** UParLoadUserCustomEffectFromDisk  
+***@Params*** 
+- custom **table**  
+
+***@Return***  
+- **any** 
+
 ```note
 加载用户自定义特效配置时触发, 返回真值将覆盖默认值
 ```

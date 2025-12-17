@@ -151,8 +151,13 @@ function FlatTablePreview:Init2(obj, kVVisible, kvExpand)
 			continue 
 		end
 
+		local label = nil
+		if key == 'AAADesc'  then 
+			label = self:Help(string.format('%s = %s', UPar.SnakeTranslate(key), language.GetPhrase(tostring(val))))
+		else
+			label = self:Help(string.format('%s = %s', UPar.SnakeTranslate(key), val))
+		end
 
-		local label = self:Help(string.format('%s = %s', UPar.SnakeTranslate(key), val))
 		if IsColor(keyColor) then label:SetColor(keyColor) end
 
 		local expanded = isfunction(kvExpand) and kvExpand(key, val, label, nil, keyColor) or nil
