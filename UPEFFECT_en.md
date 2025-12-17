@@ -22,7 +22,7 @@
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.label: ***string*** Name  
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.AAACreat: ***string*** Creator  
+**UPEffect**.AAAACreat: ***string*** Creator  
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.AAADesc: ***string*** Description  
 ![client](./materials/upgui/client.jpg)
@@ -32,20 +32,20 @@
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.PreviewKVVisible: ***table*** or ***function***  
 ```lua
--- Display AAACreat in red on the preview interface
+-- Display AAAACreat in red on the preview interface
 -- Hide AAADesc
 -- Display AAAContrib normally
 effect.PreviewKVVisible = {
-    AAACreat = Color(255, 0, 0),
+    AAAACreat = Color(255, 0, 0),
     AAADesc = false,
     AAAContrib = nil
 }
 ```
 ```lua
--- Display AAACreat, AAADesc, and AAAContrib in red on the preview interface
+-- Display AAAACreat, AAADesc, and AAAContrib in red on the preview interface
 -- Filter out values (val) that are functions
 local filter = {
-    AAACreat = Color(255, 0, 0),
+    AAAACreat = Color(255, 0, 0),
     AAADesc = Color(255, 0, 0),
     AAAContrib = Color(255, 0, 0),
 }
@@ -73,17 +73,17 @@ end
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.EditorKVVisible: ***table*** or ***function***  
 ```lua
--- Hide AAACreat, AAADesc, AAAContrib in the editor
+-- Hide AAAACreat, AAADesc, AAAContrib in the editor
 effect.EditorKVVisible = {
-    AAACreat = false,
+    AAAACreat = false,
     AAADesc = false,
     AAAContrib = false
 }
 ```
 ```lua
--- Hide AAACreat, AAADesc, AAAContrib, and function-type values in the editor
+-- Hide AAAACreat, AAADesc, AAAContrib, and function-type values in the editor
 local filter = {
-    AAACreat = false,
+    AAAACreat = false,
     AAADesc = false,
     AAAContrib = false,
 }
@@ -184,7 +184,7 @@ UPar.RegisterEffectEasy(
 	{
 		punch = true,
 		upunch = false,
-        AAACreat = 'Zack',
+        AAAACreat = 'Zack',
 		AAAContrib = 'Yu Zhibo',
 		AAADesc = 'Disable upunch, which resolves camera conflict issues.',
 	}

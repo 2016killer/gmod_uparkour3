@@ -57,7 +57,7 @@ function UPEffect:Register(actName, name, initData, new)
 
     self.icon = CLIENT and self.icon or nil
     self.label = CLIENT and self.label or nil
-    self.AAACreat = CLIENT and self.AAACreat or nil
+    self.AAAACreat = CLIENT and self.AAAACreat or nil
     self.AAADesc = CLIENT and self.AAADesc or nil
     self.AAAContrib = CLIENT and self.AAAContrib or nil
 

@@ -4,7 +4,7 @@
 --]]
 
 
-local white = Color(255, 255, 255)
+local color_black = color_black
 
 -- ==================== 动作编辑器 ===============
 local ActionEditor = {}
@@ -89,6 +89,16 @@ function ActionEditor:Init2(action)
 		'icon16/information.png', 
 		descriptionPanel
 	)
+
+	if GetConVar('developer') and GetConVar('developer'):GetBool() then
+		self.Paint = self.PaintDevMode
+		self:SetTitle(string.format(
+			'%s   %s  -  DevMode', 
+			language.GetPhrase('#upgui.menu.actionmanager'), 
+			actName
+		))
+	end
+
 end
 
 function ActionEditor:OnClose()
@@ -99,6 +109,10 @@ function ActionEditor:OnClose()
 	local w, h = self:GetSize()
 
 	UPar.LRUSet(sizeCacheKey, Vector(w, h, 0))
+end
+
+function ActionEditor:PaintDevMode(w, h)
+	draw.RoundedBox(8, 0, 0, w, h, color_black)
 end
 
 

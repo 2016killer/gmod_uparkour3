@@ -107,7 +107,7 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			if actName == 'AAAMetadata' then continue end
 			UPar.PushPlyEffCfg(ply, actName, effName)
 		end
-		PrintTable(ply.upeff_cfg)
+		PrintTable(cfg)
 	end
 
 	if istable(cache) then
@@ -116,7 +116,7 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			UPar.InitCustomEffect(cache)
 			UPar.PushPlyEffCache(ply, cache)
 		end
-		PrintTable(ply.upeff_cache)
+		PrintTable(cache)
 	end
 end
  
@@ -161,35 +161,30 @@ elseif CLIENT then
 	file.CreateDir('uparkour_effect')
 	file.CreateDir('uparkour_effect/custom')
 
-	UPar.SaveUserCustEffToDisk = function(custom, fileOverride, noMeta)
+	UPar.SaveUserCustEffToDisk = function(custom, noMeta)
 		if not UPar.IsCustomEffect(custom) then 
 			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" is not custom effect', istable(custom) and util.TableToJSON(custom, true) or custom))
 			return false
 		end
 
 		local dir = string.format('uparkour_effect/custom/%s', custom.linkAct)
-		if not file.Exists(dir, 'DATA') then file.CreateDir(dir) end
+		if not file.Exists(dir, 'DATA') then 
+			file.CreateDir(dir) 
+		end
 
 		local path = string.format('uparkour_effect/custom/%s/%s.json', custom.linkAct, custom.Name)
-		local exists = file.Exists(path, 'DATA')
-
-		if exists and not fileOverride then
-			ErrorNoHaltWithStack(string.format('save custom effect failed, "%s" already exists', path))
-			return false
-		end
 
 		local dataOverride = hook.Run('UParSaveUserCustomEffectToDisk', custom)
 		return UPar.SaveUserDataToDisk(dataOverride or custom, path, noMeta)
 	end
 
+	UPar.GetCustEffExist = function(actName, name)
+		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
+		return file.Exists(path, 'DATA')
+	end
+
 	UPar.CreateUserCustEff = function(actName, tarName, name, noMeta)
 		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
-		local exists = file.Exists(path, 'DATA')
-
-		if exists then
-			ErrorNoHaltWithStack(string.format('create custom effect failed, "%s" already exists', path))
-			return false
-		end
 
 		local custom = {
 			Name = name,
@@ -198,12 +193,12 @@ elseif CLIENT then
 			icon = 'icon64/tool.png',
 			label = name,
 
-			AAACreat = LocalPlayer():Nick(),
+			AAAACreat = LocalPlayer():Nick(),
 			AAAContrib = LocalPlayer():Nick(),
 			AAADesc = 'Desc',
 		}
 
-		UPar.SaveUserCustEffToDisk(custom, true, noMeta)
+		UPar.SaveUserCustEffToDisk(custom, noMeta)
 
 		return custom
 	end

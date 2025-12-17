@@ -56,7 +56,8 @@ if CLIENT then
 	UPar.SnakeTranslate = function(key, prefix, sep, joint)
 		-- 在树编辑器中所有的键名使用此翻译, 分隔符采用 '_'
 		-- 'vec_punch' --> '#upgui.vec' + '.' + '#upgui.punch'
-		if GetConVar('developer'):GetBool() then 
+		local dev = GetConVar('developer')
+		if dev and dev:GetBool() then 
 			return key
 		end
 
@@ -282,8 +283,6 @@ end
 UPar.DeepClone = DeepClone
 UPar.DeepInject = DeepInject
 
-UPar.LoadLuaFiles('version_compat')
-UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
 UPar.LoadLuaFiles('actions')
@@ -292,10 +291,10 @@ UPar.LoadLuaFiles('effectseasy')
 UPar.LoadLuaFiles('expansion')
 UPar.LoadLuaFiles('widget', 'CLIENT')
 UPar.LoadLuaFiles('gui', 'CLIENT')
+UPar.LoadLuaFiles('version_compat')
+UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 
 concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
-	UPar.LoadLuaFiles('version_compat')
-	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 	UPar.LoadLuaFiles('class')
 	UPar.LoadLuaFiles('core')
 	UPar.LoadLuaFiles('actions')
@@ -304,6 +303,8 @@ concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
 	UPar.LoadLuaFiles('expansion')
 	UPar.LoadLuaFiles('widget', 'CLIENT')
 	UPar.LoadLuaFiles('gui', 'CLIENT')
+	UPar.LoadLuaFiles('version_compat')
+	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 end)
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()

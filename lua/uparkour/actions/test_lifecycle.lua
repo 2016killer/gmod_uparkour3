@@ -4,9 +4,9 @@
 ]]--
 
 -- ==================== 生命周期 ===============
-if not GetConVar('developer'):GetBool() then return end
+if not GetConVar('developer') or not GetConVar('developer'):GetBool() then return end
 
-local action = UPAction:Register('test_lifecycle', {AAACreat = '白狼', AAADesc = '#upgui.dev.test.desc'})
+local action = UPAction:Register('test_lifecycle', {AAAACreat = '白狼', AAADesc = '#upgui.dev.test.desc'})
 
 -- 注册控制台变量
 action:InitConVars(
@@ -71,7 +71,7 @@ if CLIENT then
 	action:RegisterPreset(
 		'example',
 		{
-			AAACreat = 'Miss DouBao',
+			AAAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',
 
 			label = '#upgui.dev.example',

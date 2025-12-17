@@ -43,6 +43,8 @@ function FlatTableEditor:Init2(obj, kVVisible, kvExpand)
 			self:AddItem(expanded)
 		end
 	end
+	
+	self:Help('')
 end
 
 function FlatTableEditor:CreateKeyValueWidget(key, val, color)
@@ -165,6 +167,8 @@ function FlatTablePreview:Init2(obj, kVVisible, kvExpand)
 			self:AddItem(expanded)
 		end
 	end
+
+	self:Help('')
 end
 
 function FlatTablePreview:OnRemove()

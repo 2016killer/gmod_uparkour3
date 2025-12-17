@@ -4,12 +4,12 @@
 ]]--
 
 -- ==================== 生命周期 ===============
-if not GetConVar('developer'):GetBool() then return end
+if not GetConVar('developer') or not GetConVar('developer'):GetBool() then return end
 
 local effect = UPEffect:Register(
 	'test_lifecycle', 
 	'default', 
-	{label = '#default', AAACreat = '白狼'}
+	{label = '#default', AAAACreat = '白狼'}
 )
 
 function effect:Start(ply, checkResult)

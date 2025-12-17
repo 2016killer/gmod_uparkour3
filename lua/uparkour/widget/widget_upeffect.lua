@@ -8,7 +8,7 @@ local lightblue = Color(0, 170, 255)
 local EffectManager = {}
 
 EffectManager.EditorKVVisible = function(key, val) 
-	if key == 'linkName' then
+	if key == 'linkName' or key == 'linkAct' or key == 'Name' then
 		return false
 	end
 
@@ -16,10 +16,50 @@ EffectManager.EditorKVVisible = function(key, val)
 end
 
 EffectManager.PreviewKVVisible = {
-	AAACreat = lightblue,
+	AAAACreat = lightblue,
 	AAAContrib = lightblue,
 	AAADesc = lightblue,
 }
+
+local function CreateCustomEffectByDerma(actName, tarName, effManager)
+	Derma_StringRequest(
+		'#upgui.derma.filename',           
+		'',  
+		string.format('Custom-%s', os.time()),         
+		function(text)    
+			if string.find(text, '[\\/:*?"<>|]') then
+				error(string.format('Invalid name "%s" (contains invalid filename characters)', text))
+			end
+
+			local exist = true
+			for i = 0, 2 do
+				local suffix = i == 0 and '' or ('_' .. tostring(i))
+				local newFileName = string.format('%s%s', text, suffix)
+				if not UPar.GetCustEffExist(actName, newFileName) then 
+					text = newFileName
+					exist = false
+					break
+				end
+			end
+
+			if exist then
+				notification.AddLegacy(string.format('Custom Effect "%s" already exist', text), NOTIFY_ERROR, 5)
+				surface.PlaySound('Buttons.snd10')
+
+				return
+			end
+
+			local custom = UPar.CreateUserCustEff(actName, tarName, text, true)
+			UPar.InitCustomEffect(custom)
+
+			effManager.Effects[text] = custom
+			effManager:AddCustEffNode(text .. '.json')
+		end,
+		nil,
+		'#upgui.derma.submit',                    
+		'#upgui.derma.cancel'
+	)
+end
 
 function EffectManager:CreatePreview(effect)
 	if not istable(effect) then
@@ -38,7 +78,7 @@ function EffectManager:CreatePreview(effect)
 	customButton:SetText('#upgui.custom')
 	customButton:SetIcon('icon64/tool.png')
 	customButton.DoClick = function()
-		self:OnCreateCustom()
+		CreateCustomEffectByDerma(self.actName, effect.Name, self)
 	end
 	customButton:Dock(TOP)
 	customButton:DockMargin(0, 5, 0, 5)
@@ -83,7 +123,7 @@ function EffectManager:CreateEditor(effect)
 	saveButton:SetText('#upgui.save')
 	saveButton:SetIcon('icon16/application_put.png')
 	saveButton.DoClick = function()
-		self:OnSave()
+
 	end
 
 	local playButton = vgui.Create('DButton', mainPanel)
@@ -92,7 +132,13 @@ function EffectManager:CreateEditor(effect)
 	playButton:SetText('#upgui.play')
 	playButton:SetIcon('icon16/cd_go.png')
 	playButton.DoClick = function()
-		self:OnPlay()
+		// UPar.EffectTest(LocalPlayer(), self.actName, effName)
+		// UPar.CallServerEffectTest(self.actName, effName)
+
+		// local cfg = {[self.actName] = effName}
+		// UPar.SaveUserEffCfgToDisk()
+		// UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
+		// UPar.CallServerPushPlyEffSetting(cfg, nil)
 	end
 
 	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
@@ -128,8 +174,10 @@ function EffectManager:Init2(actName)
 		else
 			self:CreatePreview(effect)
 		end
+	end
 
-		self:OnSelectedEffect(self.actName, node.effName, node)
+	tree.OnDoubleClick = function(_, node)
+		self:HitNode(node)
 	end
 
 	local div = vgui.Create('DHorizontalDivider', self)
@@ -165,60 +213,85 @@ function EffectManager:GetEffectFromNode(node)
 	return effect
 end
 
+function EffectManager:AddEffNode(effect)
+	local effName = effect.Name
+	local label = isstring(effect.label) and effect.label or effName
+	local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
+
+	local node = self.tree:AddNode(label, icon)
+	node.effName = effName
+	node.icon = icon
+
+	local playButton = vgui.Create('DButton', node)
+	playButton:SetSize(60, 18)
+	playButton:Dock(RIGHT)
+	playButton:SetText('#upgui.play')
+	playButton:SetIcon('icon16/cd_go.png')
+	playButton.DoClick = function()
+		UPar.EffectTest(LocalPlayer(), self.actName, effName)
+		UPar.CallServerEffectTest(self.actName, effName)
+
+		local cfg = {[self.actName] = effName}
+		UPar.SaveUserEffCfgToDisk()
+		UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
+		UPar.CallServerPushPlyEffSetting(cfg, nil)
+
+		self:HitNode(node)
+	end
+
+	if UPar.IsPlyUsingEffect(LocalPlayer(), self.actName, effect) then
+		self:HitNode(node)
+	end
+end
+
+function EffectManager:AddCustEffNode(filename)
+	local label = filename
+	local icon = 'icon64/tool.png'
+
+	local node = self.tree:AddNode(label, icon)
+	node.effName = filename
+	node.icon = icon
+
+	self.Effects[filename] = filename
+end
+
 function EffectManager:Refresh()
-	local effects = {}
 	local keys = {}
+	local Effects = {}
 	for k, v in pairs(UPar.GetEffects(self.actName)) do 
+		Effects[k] = v
 		table.insert(keys, k) 
-		effects[k] = v
 	end
 	table.sort(keys)
 
 	local customFiles = UPar.GetUserCustEffFiles(self.actName) or UPar.emptyTable
-	for i, k in pairs(customFiles) do effects[k] = k end 
 	table.sort(customFiles)
 
+	self.Effects = Effects
+
 	for _, effName in pairs(keys) do
-		local effect = UPar.GetEffect(self.actName, effName)
+		local effect = Effects[effName]
 
-		local label = isstring(effect.label) and effect.label or effName
-		local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
-
-		local node = self.tree:AddNode(label, icon)
-		node.effName = effName
-		node.icon = icon
-
-		local playButton = vgui.Create('DButton', node)
-		playButton:SetSize(60, 18)
-		playButton:Dock(RIGHT)
-		playButton:SetText('#upgui.play')
-		playButton:SetIcon('icon16/cd_go.png')
-		playButton.DoClick = function()
-			UPar.EffectTest(LocalPlayer(), self.actName, effName)
-			UPar.CallServerEffectTest(self.actName, effName)
-
-			local cfg = {[self.actName] = effName}
-			UPar.SaveUserEffCfgToDisk()
-			UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
-			UPar.CallServerPushPlyEffSetting(cfg, nil)
+		if not istable(effect) then
+			ErrorNoHaltWithStack(string.format('Invalid effect named "%s" (not table)', effName))
+			continue
 		end
 
-		if UPar.IsPlyUsingEffect(LocalPlayer(), self.actName, effect) then
-			self.curSelNode = node
-			node:SetIcon('icon16/accept.png')
-		end
+		self:AddEffNode(effect)
 	end
 
 	for _, filename in pairs(customFiles) do
-		local label = filename
-		local icon = 'icon64/tool.png'
+		self:AddCustEffNode(filename)
+	end
+end
 
-		local node = self.tree:AddNode(label, icon)
-		node.effName = filename
-		node.icon = icon
+function EffectManager:HitNode(node)
+	if IsValid(self.curSelNode) then
+		self.curSelNode:SetIcon(self.curSelNode.icon)
 	end
 
-	self.Effects = effects
+	self.curSelNode = node
+	node:SetIcon('icon16/accept.png')
 end
 
 function EffectManager:OnRemove()
@@ -226,27 +299,11 @@ function EffectManager:OnRemove()
 	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
 	UPar.LRUSet(widthCacheKey, w)
 
+	self.Effects = nil
 	self.tree = nil
 	self.div = nil
 	self.curSelNode = nil
 end
-
-
-function EffectManager:OnRemove()
-	local widthCacheKey = 'EffectEditor_LeftWidth'
-	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
-	UPar.LRUSet(widthCacheKey, w)
-
-	self.tree = nil
-	self.div = nil
-	self.curSelNode = nil
-end
-
-EffectManager.OnSelectedEffect = function(self, ...) print('OnSelectedEffect', ...) end
-
-EffectManager.OnPlay = function(self, ...) print('OnPlay', ...) end
-EffectManager.OnSave = function(self, ...) print('OnSave', ...) end
-EffectManager.OnCreateCustom = function(self, ...) print('OnCreateCustom', ...) end
 
 vgui.Register('UParEffectManager', EffectManager, 'DPanel')
 EffectManager = nil

@@ -22,7 +22,7 @@
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.label: ***string*** 名称  
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.AAACreat: ***string*** 创建者  
+**UPEffect**.AAAACreat: ***string*** 创建者  
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.AAADesc: ***string*** 描述  
 ![client](./materials/upgui/client.jpg)
@@ -32,20 +32,20 @@
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.PreviewKVVisible: ***table*** or ***function***  
 ```lua
--- 预览界面显示AAACreat为红色
+-- 预览界面显示 AAAACreat 为红色
 -- 隐藏AAADesc
 -- 正常显示AAAContrib
 effect.PreviewKVVisible = {
-    AAACreat = Color(255, 0, 0),
+    AAAACreat = Color(255, 0, 0),
     AAADesc = false,
     AAAContrib = nil
 }
 ```
 ```lua
--- 预览界面显示AAACreat, AAADesc, AAAContrib为红色
+-- 预览界面显示 AAAACreat, AAADesc, AAAContrib为红色
 -- 过滤val为函数
 local filter = {
-    AAACreat = Color(255, 0, 0),
+    AAAACreat = Color(255, 0, 0),
     AAADesc = Color(255, 0, 0),
     AAAContrib = Color(255, 0, 0),
 }
@@ -77,17 +77,17 @@ end
 ![client](./materials/upgui/client.jpg)
 **UPEffect**.EditorKVVisible: ***table*** or ***function***  
 ```lua
--- 编辑器隐藏AAACreat, AAADesc, AAAContrib
+-- 编辑器隐藏 AAAACreat, AAADesc, AAAContrib
 effect.EditorKVVisible = {
-    AAACreat = false,
+    AAAACreat = false,
     AAADesc = false,
     AAAContrib = false
 }
 ```
 ```lua
--- 编辑器隐藏AAACreat, AAADesc, AAAContrib, 函数 
+-- 编辑器隐藏 AAAACreat, AAADesc, AAAContrib, 函数 
 local filter = {
-    AAACreat = false,
+    AAAACreat = false,
     AAADesc = false,
     AAAContrib = false,
 }
@@ -188,7 +188,7 @@ UPar.RegisterEffectEasy(
 	{
 		punch = true,
 		upunch = false,
-        AAACreat = 'Zack',
+        AAAACreat = 'Zack',
 		AAAContrib = '余智博',
 		AAADesc = '禁用upunch, 这可以解决相机冲突问题。',
 	}

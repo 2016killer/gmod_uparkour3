@@ -23,7 +23,7 @@
 ![client](./materials/upgui/client.jpg)
 **UPAction**.label: ***string*** 名称  
 ![client](./materials/upgui/client.jpg)
-**UPAction**.AAACreat: ***string*** 创建者  
+**UPAction**.AAAACreat: ***string*** 创建者  
 ![client](./materials/upgui/client.jpg)
 **UPAction**.AAADesc: ***string*** 描述  
 ![client](./materials/upgui/client.jpg)
@@ -202,7 +202,7 @@ action:InitConVars(
 if CLIENT then
 	action:RegisterPreset(
 		{
-			AAACreat = 'Miss DouBao',
+			AAAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',
 
 			label = '#upgui.dev.example',

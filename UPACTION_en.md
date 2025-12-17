@@ -25,7 +25,7 @@ This approach also offers several advantages. For instance, certain persistent d
 ![client](./materials/upgui/client.jpg)
 **UPAction**.label: ***string*** Name  
 ![client](./materials/upgui/client.jpg)
-**UPAction**.AAACreat: ***string*** Creator  
+**UPAction**.AAAACreat: ***string*** Creator  
 ![client](./materials/upgui/client.jpg)
 **UPAction**.AAADesc: ***string*** Description  
 ![client](./materials/upgui/client.jpg)
@@ -203,7 +203,7 @@ action:InitConVars(
 if CLIENT then
 	action:RegisterPreset(
 		{
-			AAACreat = 'Miss DouBao',
+			AAAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',
 
 			label = '#upgui.dev.example',
