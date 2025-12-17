@@ -126,6 +126,15 @@ function EffectManager:Init2(action)
 	div:SetDividerWidth(10)
 	div:SetLeft(tree)
 
+	local widthCacheKey = 'EffectEditor_LeftWidth'
+	local w = UPar.LRUGet(widthCacheKey)
+	if isnumber(w) then
+		div:SetLeftWidth(math.max(20, w))
+	else
+		div:SetLeftWidth(100)
+	end
+
+
 	self.tree = tree
 	self.div = div
 end
@@ -172,12 +181,11 @@ function EffectManager:Refresh()
 end
 
 
-function EffectManager:SetLeftWidth(w)
-	if not IsValid(self.div) then return end
-	self.div:SetLeftWidth(w)
-end
-
 function EffectManager:OnRemove()
+	local widthCacheKey = 'EffectEditor_LeftWidth'
+	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
+	UPar.LRUSet(widthCacheKey, w)
+
 	self.tree = nil
 	self.div = nil
 	self.curSelNode = nil

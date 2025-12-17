@@ -48,7 +48,6 @@ function ActionEditor:Init2(action)
 
 	local effectManager = vgui.Create('UParEffectManager')
 	effectManager:Init2(action)
-	effectManager:SetLeftWidth(0.5 * self:GetWide())
 
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 
