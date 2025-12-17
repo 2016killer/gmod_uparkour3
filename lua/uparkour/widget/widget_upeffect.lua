@@ -7,31 +7,23 @@ local lightblue = Color(0, 170, 255)
 -- ==================== 特效管理器 ===============
 local EffectManager = {}
 
-EffectManager.EditorKeyFilter = {
-	linkName = true
-}
-
 EffectManager.EditorKVVisible = function(key, val) 
-	if self.EditorKeyFilter[key] then
+	if key == 'linkName' then
 		return false
 	end
 
 	return !(isfunction(val) or ismatrix(val) or isentity(val) or ispanel(val) or istable(val))
 end
 
-EffectManager.PreviewKeyImportant = {
+EffectManager.PreviewKVVisible = {
 	AAACreat = lightblue,
 	AAAContrib = lightblue,
 	AAADesc = lightblue,
 }
 
-EffectManager.PreviewKVVisible = function(key, val) 
-	return self.PreviewKeyImportant[key]
-end
-
 function EffectManager:CreatePreview(effect)
-	if not UPar.isupeffect(effect) or not UPar.IsCustomEffect(effect) then
-		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect or not custom effect)', effect))
+	if not istable(effect) then
+		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not table)', effect))
 		return
 	end
 
@@ -40,7 +32,6 @@ function EffectManager:CreatePreview(effect)
 	customButton:SetText('#upgui.custom')
 	customButton:SetIcon('icon64/tool.png')
 	customButton.DoClick = function()
-		
 		self:OnCreateCustom()
 	end
 	customButton:Dock(TOP)
@@ -70,8 +61,8 @@ function EffectManager:CreatePreview(effect)
 end
 
 function EffectManager:CreateEditor(effect)
-	if not UPar.isupeffect(effect) or not UPar.IsCustomEffect(effect) then
-		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect or not custom effect)', effect))
+	if not istable(effect) then
+		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not table)', effect))
 		return
 	end
 
@@ -106,11 +97,11 @@ function EffectManager:CreateEditor(effect)
 	local kVVisible = effect.EditorKVVisible or self.EditorKVVisible
 	local kVExpand = effect.EditorKVExpand or self.EditorKVExpand
 
-	local editor = vgui.Create('UParTableEditor', scrollPanel)
+	local editor = vgui.Create('UParFlatTableEditor', scrollPanel)
 	editor:Dock(FILL)
 	editor:Init2(effect, kVVisible, kVExpand)
 
-	editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. effect.linkName)
+	editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. tostring(effect.linkName))
 
 	return mainPanel
 end
@@ -123,15 +114,30 @@ function EffectManager:Init2(action)
 
 	local actName = action.Name
 
+
 	local tree = vgui.Create('UParEasyTree')
-	
+	tree.OnSelectedChange = function(_, node)
+		self:CreateEditor(action.Effects[node.effName])
+		self:OnSelectedEffect(node.effName, node)
+	end
+
+	local div = vgui.Create('DHorizontalDivider', self)
+	div:Dock(FILL)
+	div:SetDividerWidth(10)
+	div:SetLeft(tree)
+
+	self.tree = tree
+	self.div = div
+end
+
+function EffectManager:Refresh()
 	local keys = {}
-	for k, _ in pairs(action.Effects) do table.insert(keys, k) end
+	for k, _ in pairs(self.action.Effects) do table.insert(keys, k) end
 	table.sort(keys)
 
 	local customFiles = UPar.GetUserCustomEffectFiles(actName)
 	table.sort(customFiles)
-	
+
 	for _, effName in pairs(keys) do
 		local effect = action.Effects[effName]
 
@@ -149,12 +155,6 @@ function EffectManager:Init2(action)
 		playButton:SetIcon('icon16/cd_go.png')
 		playButton.DoClick = function()
 			UPar.EffectTest(LocalPlayer(), actName, effName)
-
-			self:PlayEffect(selNode.effName)
-			self:ChangeEffectConfig(selNode.effName)
-			self:ChangeHitNode(selNode)
-
-			self:OnClickPlayButton(effName)
 		end
 
 		if UPar.IsPlyUsingEffect(LocalPlayer(), actName, effect) then
@@ -169,15 +169,8 @@ function EffectManager:Init2(action)
 
 		local node = tree:AddNode(label, icon)
 	end
-
-	local div = vgui.Create('DHorizontalDivider', self)
-	div:Dock(FILL)
-	div:SetDividerWidth(10)
-	div:SetLeft(tree)
-
-	self.tree = tree
-	self.div = div
 end
+
 
 function EffectManager:SetLeftWidth(w)
 	if not IsValid(self.div) then return end
@@ -189,6 +182,8 @@ function EffectManager:OnRemove()
 	self.div = nil
 	self.curSelNode = nil
 end
+
+EffectManager.OnSelectedEffect = function(self, ...) print('OnSelectedEffect', ...) end
 
 EffectManager.OnPlay = function(self, ...) print('OnPlay', ...) end
 EffectManager.OnSave = function(self, ...) print('OnSave', ...) end

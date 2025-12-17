@@ -59,15 +59,15 @@ function UPAction:Register(name, initData, new)
 
     self:InitCVarDisabled(self.defaultDisabled)
 
-    self.icon = SERVER and nil or self.icon
-    self.label = SERVER and nil or self.label
-    self.AAACreate = SERVER and nil or self.AAACreate
-    self.AAADesc = SERVER and nil or self.AAADesc
-    self.AAAContrib = SERVER and nil or self.AAAContrib
+    self.icon = CLIENT and self.icon or nil
+    self.label = CLIENT and self.label or nil
+    self.AAACreat = CLIENT and self.AAACreat or nil
+    self.AAADesc = CLIENT and self.AAADesc or nil
+    self.AAAContrib = CLIENT and self.AAAContrib or nil
 
-    self.ConVarWidgetExpand = SERVER and nil or self.ConVarWidgetExpand
-    self.ConVarsPanelOverride = SERVER and nil or self.ConVarsPanelOverride
-    self.SundryPanels = SERVER and nil or self.SundryPanels
+    self.ConVarWidgetExpand = CLIENT and self.ConVarWidgetExpand or nil
+    self.ConVarsPanelOverride = CLIENT and self.ConVarsPanelOverride or nil
+    self.SundryPanels = CLIENT and self.SundryPanels or nil
 
     self.TrackId = self.TrackId or 0
     
@@ -208,7 +208,7 @@ function UPAction:RemoveConVar(cvName)
         error(string.format('Invalid cvName "%s" (not a string)', cvName))
     end
 
-    self.ConVarsWidget = SERVER and nil or (istable(self.ConVarsWidget) and self.ConVarsWidget or {})
+    self.ConVarsWidget = CLIENT and (istable(self.ConVarsWidget) and self.ConVarsWidget or {}) or nil
     self.ConVars = istable(self.ConVars) and self.ConVars or {}
     
     self.ConVars[cvName] = nil
@@ -227,13 +227,17 @@ function UPAction:InitConVars(config)
     end
 
     self.ConVars = {}
-    self.ConVarsWidget = SERVER and nil or {}
+    self.ConVarsWidget = CLIENT and {} or nil
 
     for i, v in ipairs(config) do self:AddConVar(v) end
 end
 
 if CLIENT then
-    function UPAction:RegisterPreset(preset)
+    function UPAction:RegisterPreset(name, preset)
+        if not isstring(name) then
+            error(string.format('Invalid name "%s" (not a string)', name))
+        end
+
         if not istable(preset) then
             error(string.format('Invalid preset "%s" (not a table)', preset))
         end
@@ -254,7 +258,7 @@ if CLIENT then
 
         self.ConVarsPreset = istable(self.ConVarsPreset) and self.ConVarsPreset or {}
 
-        table.insert(self.ConVarsPreset, preset)
+        self.ConVarsPreset[name] = preset
     end
 end
 

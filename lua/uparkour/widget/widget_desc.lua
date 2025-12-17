@@ -20,18 +20,18 @@ function Description:Init2(action)
 	self:Help('====================')
 
 	if istable(action.ConVarsPreset) then
-		for _, presetdata in pairs(action.ConVarsPreset) do
-			local label = isstring(presetdata.label) and presetdata.label or 'UNKNOWN'
+		for pname, pdata in pairs(action.ConVarsPreset) do
+			local label = isstring(pdata.label) and pdata.label or pname
 			self:Help(string.format('%s: %s', language.GetPhrase('#preset'), language.GetPhrase(label)))
-			self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), presetdata.AAACreat))
-			self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), presetdata.AAAContrib))
+			self:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), pdata.AAACreat))
+			self:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), pdata.AAAContrib))
 			
 			self:Help('')
 		end
 	end
 
 	self:Help('====================')
-	for effName, effect in pairs(action.Effects) do
+	for effName, effect in pairs(UPar.ActGetEffects(action.Name)) do
 		if not UPar.isupeffect(effect) then
 			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
 			continue

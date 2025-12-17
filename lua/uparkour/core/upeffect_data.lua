@@ -4,8 +4,25 @@
 --]]
 
 UPar.GetEffect = function(actName, effName)
-    return EffInstances[actName][effName]
+	local actEffects = UPar.EffInstances[actName]
+	if not istable(actEffects) then
+		return nil
+	end
+
+    return actEffects[effName]
 end
+
+UPar.ActGetEffects = function(actName)
+	local actEffects = UPar.EffInstances[actName]
+
+	if not istable(actEffects) then
+		actEffects = {}
+		UPar.EffInstances[actName] = actEffects
+	end
+		
+	return actEffects
+end
+
 
 UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 	local targetEffect = UPar.GetEffect(actName, tarName)

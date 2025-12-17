@@ -69,6 +69,7 @@ action:AddConVar({
 if CLIENT then
 	-- 注册预设
 	action:RegisterPreset(
+		'example',
 		{
 			AAACreat = 'Miss DouBao',
 			AAAContrib = 'Zack',

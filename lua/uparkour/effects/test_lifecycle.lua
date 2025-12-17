@@ -6,9 +6,11 @@
 -- ==================== 生命周期 ===============
 if not GetConVar('developer'):GetBool() then return end
 
-local effect = UPEffect:new('default', {label = '#default', AAACreat = '白狼'})
-effect:Register('test_lifecycle')
-effect:Register('test_lifecycle_t1')
+local effect = UPEffect:Register(
+	'test_lifecycle', 
+	'default', 
+	{label = '#default', AAACreat = '白狼'}
+)
 
 function effect:Start(ply, checkResult)
 	if SERVER then return end
@@ -26,6 +28,7 @@ function effect:Clear(ply, checkResult)
 	surface.PlaySound('hl1/fvox/deactivated.wav')
 end
 
+UPEffect:Register('test_lifecycle_t1', 'default', effect)
 -- ==================== 变奏覆盖 ===============
 // UPar.SeqHookAdd('UParOnChangeRhythm', 'test_rhythm_override', function(ply, action, effect, customData)
 // 	local actName = action.Name

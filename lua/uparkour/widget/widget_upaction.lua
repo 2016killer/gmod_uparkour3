@@ -241,9 +241,9 @@ ActionEditor.CreateConVarsPanel = function(action, panel)
 	
 	ctrl:AddOption('#preset.default', defaultPreset)
 
-	for i, presetdata in pairs(action.ConVarsPreset) do
-		local label = isstring(presetdata.label) and presetdata.label or 'UNKNOWN'
-		local values = presetdata.values
+	for pname, pdata in pairs(action.ConVarsPreset) do
+		local label = isstring(pdata.label) and pdata.label or pname
+		local values = pdata.values
 
 		ctrl:AddOption(label, values)
 	end

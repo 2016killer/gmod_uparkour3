@@ -4,10 +4,15 @@
 --]]
 
 UPar.GetPlayerEffect = function(ply, actName, effName)
+	local actEffects = UPar.EffInstances[actName]
+	if not istable(actEffects) then
+		return nil
+	end
+
     if effName == 'CACHE' then
         return ply.upeff_cache[actName]
     else
-        return EffInstances[actName][effName]
+        return actEffects[effName]
     end
 end
 

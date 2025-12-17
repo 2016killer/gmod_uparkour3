@@ -55,19 +55,19 @@ function UPEffect:Register(actName, name, initData, new)
 	self.Clear = self.Clear or UPar.emptyfunc
 	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
 
-    self.icon = SERVER and nil or self.icon
-    self.label = SERVER and nil or self.label
-    self.AAACreate = SERVER and nil or self.AAACreate
-    self.AAADesc = SERVER and nil or self.AAADesc
-    self.AAAContrib = SERVER and nil or self.AAAContrib
+    self.icon = CLIENT and self.icon or nil
+    self.label = CLIENT and self.label or nil
+    self.AAACreat = CLIENT and self.AAACreat or nil
+    self.AAADesc = CLIENT and self.AAADesc or nil
+    self.AAAContrib = CLIENT and self.AAAContrib or nil
 
-    self.EditorKVVisible = SERVER and nil or self.EditorKVVisible
-    self.EditorKVExpand = SERVER and nil or self.EditorKVExpand
-    self.PreviewKVVisible = SERVER and nil or self.PreviewKVVisible
-    self.PreviewKVExpand = SERVER and nil or self.PreviewKVExpand
+    self.EditorKVVisible = CLIENT and self.EditorKVVisible or nil
+    self.EditorKVExpand = CLIENT and self.EditorKVExpand or nil
+    self.PreviewKVVisible = CLIENT and self.PreviewKVVisible or nil
+    self.PreviewKVExpand = CLIENT and self.PreviewKVExpand or nil
 
-    self.EditorPanelOverride = SERVER and nil or self.EditorPanelOverride
-    self.PreviewPanelOverride = SERVER and nil or self.PreviewPanelOverride
+    self.EditorPanelOverride = CLIENT and self.EditorPanelOverride or nil
+    self.PreviewPanelOverride = CLIENT and self.PreviewPanelOverride or nil
 
     if not isfunction(self.Start) then
         error(string.format('Invalid field "Start" = "%s" (not a function)', self.Start))

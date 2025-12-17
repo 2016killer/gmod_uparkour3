@@ -301,6 +301,4 @@ end)
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()
 	PrintTable(UPar)
-	print('================== All Actions ==================')
-	PrintTable(UPar.GetAllActions())
 end)
