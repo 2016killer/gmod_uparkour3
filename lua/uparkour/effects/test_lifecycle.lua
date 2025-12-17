@@ -18,8 +18,8 @@ function effect:Start(ply, checkResult)
 end
 
 function effect:OnRhythmChange(ply, customData)
-	if SERVER then return end
 	print('customData:', customData)
+	if SERVER then return end
 	surface.PlaySound(customData or 'hl1/fvox/blip.wav')
 end
 

@@ -120,23 +120,23 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 	end
 end
  
-UPar.IsPlyUsingEffect = function(ply, actName, effect)
+
+UPar.GetPlyEffCache = function(ply, actName)
 	if not isstring(actName) then
-		error(string.format('Invalid actName "%s" (not string)', actName))
+		ErrorNoHaltWithStack(string.format('Invalid actName "%s" (not string)', actName))
+		return nil
 	end
 
-	local usingName = ply.upeff_cfg[actName] or 'default'
-	if not usingName then
-		return false
+	return ply.upeff_cache[actName]
+end
+
+UPar.GetPlyUsingEffName = function(ply, actName)
+	if not isstring(actName) then
+		ErrorNoHaltWithStack(string.format('Invalid actName "%s" (not string)', actName))
+		return nil
 	end
-	
-    local isCustom = UPar.IsCustomEffect(effect)
-    if isCustom then
-        local cacheEffect = ply.upeff_cache[actName]
-        return usingName == 'CACHE' and istable(cacheEffect) and cacheEffect.Name == effect.Name
-    else
-        return usingName ~= 'CACHE' and usingName == effect.Name
-    end
+
+	return ply.upeff_cfg[actName] or 'default'
 end
 
 if SERVER then
@@ -194,8 +194,8 @@ elseif CLIENT then
 			label = name,
 
 			AAAACreat = LocalPlayer():Nick(),
-			AAAContrib = LocalPlayer():Nick(),
-			AAADesc = 'Desc',
+			AAAContrib = '',
+			AAADesc = '',
 		}
 
 		UPar.SaveUserCustEffToDisk(custom, noMeta)
@@ -205,11 +205,18 @@ elseif CLIENT then
 
 	UPar.GetUserCustEffFiles = function(actName)
 		local files = file.Find(string.format('uparkour_effect/custom/%s/*.json', actName), 'DATA')
+		
+		if istable(files) then
+			for k, v in pairs(files) do
+				files[k] = string.sub(v, 1, -6)
+			end
+		end
+		
 		return files, actName
 	end
 
-	UPar.LoadUserCustEffFromDisk = function(actName, filename)
-		local data = UPar.LoadUserDataFromDisk(string.format('uparkour_effect/custom/%s/%s', actName, filename))
+	UPar.LoadUserCustEffFromDisk = function(actName, name)
+		local data = UPar.LoadUserDataFromDisk(string.format('uparkour_effect/custom/%s/%s.json', actName, name))
 		local override = hook.Run('UParLoadUserCustomEffectFromDisk', data)
 		return override or data
 	end

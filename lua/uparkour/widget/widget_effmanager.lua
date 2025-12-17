@@ -1,6 +1,6 @@
 --[[
 	作者:白狼
-	2025 12 09
+	2025 12 17
 --]]
 
 local lightblue = Color(0, 170, 255)
@@ -25,7 +25,7 @@ local function CreateCustomEffectByDerma(actName, tarName, effManager)
 	Derma_StringRequest(
 		'#upgui.derma.filename',           
 		'',  
-		string.format('Custom-%s', os.time()),         
+		string.format('Custom-%s-%s', tarName, os.time()),         
 		function(text)    
 			if string.find(text, '[\\/:*?"<>|]') then
 				error(string.format('Invalid name "%s" (contains invalid filename characters)', text))
@@ -35,7 +35,7 @@ local function CreateCustomEffectByDerma(actName, tarName, effManager)
 			for i = 0, 2 do
 				local suffix = i == 0 and '' or ('_' .. tostring(i))
 				local newFileName = string.format('%s%s', text, suffix)
-				if not UPar.GetCustEffExist(actName, newFileName) then 
+				if not effManager.Effects[newFileName] then 
 					text = newFileName
 					exist = false
 					break
@@ -163,135 +163,45 @@ end
 function EffectManager:Init2(actName)
 	self.actName = actName
 
-	local tree = vgui.Create('UParEasyTree')
-	tree.OnSelectedChange = function(_, node)
-		if IsValid(self.div) and IsValid(self.div:GetRight()) then self.div:GetRight():Remove() end
-
-		local effect = self:GetEffectFromNode(node)
-
-		if UPar.IsCustomEffect(effect) then
-			self:CreateEditor(effect)
-		else
-			self:CreatePreview(effect)
-		end
-	end
-
-	tree.OnDoubleClick = function(_, node)
-		self:HitNode(node)
-	end
-
 	local div = vgui.Create('DHorizontalDivider', self)
+	local div2 = vgui.Create('DVerticalDivider', div)
+	local effTree = vgui.Create('UParEffTree', div2)
+	local custEffTree = vgui.Create('UParCustEffTree', div2)
+	
+
+	effTree:Init2(actName)
+	custEffTree:Init2(actName)
+
 	div:Dock(FILL)
-	div:SetDividerWidth(10)
-	div:SetLeft(tree)
+	div:SetLeft(div2)
+	div:SetLeftWidth(250)
+	div:SetDividerWidth(5)
 
-	local widthCacheKey = 'EffectEditor_LeftWidth'
-	local w = UPar.LRUGet(widthCacheKey)
-	if isnumber(w) then
-		div:SetLeftWidth(math.max(20, w))
-	else
-		div:SetLeftWidth(250)
-	end
+	div2:SetDividerHeight(5)
+	div2:SetTop(effTree)
+	div2:SetBottom(custEffTree)
 
-
-	self.tree = tree
 	self.div = div
+	self.div2 = div2
+	self.effTree = effTree
+	self.custEffTree = custEffTree
 
-	self:Refresh()
-end
-
-function EffectManager:GetEffectFromNode(node)
-	local effect = self.Effects[node.effName]
-
-	if isstring(effect) then
-		effect = UPar.LoadUserCustEffFromDisk(self.actName, effect)
-
-		local label = isstring(effect.label) and effect.label or tostring(node.effName)
-		node:SetText(label)
-	end
-
-	return effect
-end
-
-function EffectManager:AddEffNode(effect)
-	local effName = effect.Name
-	local label = isstring(effect.label) and effect.label or effName
-	local icon = isstring(effect.icon) and effect.icon or 'icon16/attach.png'
-
-	local node = self.tree:AddNode(label, icon)
-	node.effName = effName
-	node.icon = icon
-
-	local playButton = vgui.Create('DButton', node)
-	playButton:SetSize(60, 18)
-	playButton:Dock(RIGHT)
-	playButton:SetText('#upgui.play')
-	playButton:SetIcon('icon16/cd_go.png')
-	playButton.DoClick = function()
-		UPar.EffectTest(LocalPlayer(), self.actName, effName)
-		UPar.CallServerEffectTest(self.actName, effName)
-
-		local cfg = {[self.actName] = effName}
-		UPar.SaveUserEffCfgToDisk()
-		UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
-		UPar.CallServerPushPlyEffSetting(cfg, nil)
-
-		self:HitNode(node)
-	end
-
-	if UPar.IsPlyUsingEffect(LocalPlayer(), self.actName, effect) then
-		self:HitNode(node)
-	end
-end
-
-function EffectManager:AddCustEffNode(filename)
-	local label = filename
-	local icon = 'icon64/tool.png'
-
-	local node = self.tree:AddNode(label, icon)
-	node.effName = filename
-	node.icon = icon
-
-	self.Effects[filename] = filename
+	// local widthCacheKey = 'EffectEditor_LeftWidth'
+	// local w = UPar.LRUGet(widthCacheKey)
+	// if isnumber(w) then
+	// 	div:SetLeftWidth(math.max(20, w))
+	// else
+	// 	div:SetLeftWidth(250)
+	// end
 end
 
 function EffectManager:Refresh()
-	local keys = {}
-	local Effects = {}
-	for k, v in pairs(UPar.GetEffects(self.actName)) do 
-		Effects[k] = v
-		table.insert(keys, k) 
+	self.effTree:Refresh()
+	self.custEffTree:Refresh()
+
+	if IsValid(self.div:GetRight()) then 
+		self.div:GetRight():Remove() 
 	end
-	table.sort(keys)
-
-	local customFiles = UPar.GetUserCustEffFiles(self.actName) or UPar.emptyTable
-	table.sort(customFiles)
-
-	self.Effects = Effects
-
-	for _, effName in pairs(keys) do
-		local effect = Effects[effName]
-
-		if not istable(effect) then
-			ErrorNoHaltWithStack(string.format('Invalid effect named "%s" (not table)', effName))
-			continue
-		end
-
-		self:AddEffNode(effect)
-	end
-
-	for _, filename in pairs(customFiles) do
-		self:AddCustEffNode(filename)
-	end
-end
-
-function EffectManager:HitNode(node)
-	if IsValid(self.curSelNode) then
-		self.curSelNode:SetIcon(self.curSelNode.icon)
-	end
-
-	self.curSelNode = node
-	node:SetIcon('icon16/accept.png')
 end
 
 function EffectManager:OnRemove()
@@ -299,10 +209,10 @@ function EffectManager:OnRemove()
 	local w = IsValid(self.div) and self.div:GetLeftWidth() or 200
 	UPar.LRUSet(widthCacheKey, w)
 
-	self.Effects = nil
-	self.tree = nil
-	self.div = nil
-	self.curSelNode = nil
+	// self.Effects = nil
+	// self.tree = nil
+	// self.div = nil
+	// self.curSelNode = nil
 end
 
 vgui.Register('UParEffectManager', EffectManager, 'DPanel')

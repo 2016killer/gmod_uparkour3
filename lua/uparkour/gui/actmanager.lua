@@ -9,16 +9,16 @@ local function CreateMenu(panel)
 	panel:Clear()
 
 	local isAdmin = LocalPlayer():IsAdmin()
-	local actionManager = vgui.Create('UParEasyTree')
-	actionManager:SetSize(200, 400)
-	actionManager.OnDoubleClick = function(self, selNode)
-		local action = UPar.GetAction(selNode.actName)
-		local actionEditor = vgui.Create('UParActionEditor')
-		actionEditor:Init2(action)
+	local actManager = vgui.Create('UParEasyTree')
+	actManager:SetSize(200, 400)
+	actManager.OnDoubleClick = function(self, selNode)
+		local action = UPar.GetAction()
+		local actEditor = vgui.Create('UParActEditor')
+		actEditor:Init2(selNode.actName)
 	end
 
-	actionManager.RefreshNode = function(self)
-		actionManager:Clear()
+	actManager.RefreshNode = function(self)
+		actManager:Clear()
 
 		local ActionSet = UPar.GetAllActions()
 		local keys = {}
@@ -80,37 +80,37 @@ local function CreateMenu(panel)
 		end
 	end
 
-	actionManager:RefreshNode()
-	panel:AddItem(actionManager)
+	actManager:RefreshNode()
+	panel:AddItem(actManager)
 
 	local refreshButton = panel:Button('#upgui.refresh', '')
 	refreshButton.DoClick = function()
-		actionManager:RefreshNode()
+		actManager:RefreshNode()
 	end
 
 	panel:Help('==========Version==========')
 	panel:ControlHelp(UPar.Version)
 
-	UPar.GUI_ActionManager = actionManager
+	UPar.GUI_ActManager = actManager
 
-	hook.Add('UParRegisterAction', 'upar.update.actionmanager', function(actName, action)
-		timer.Create('upar.update.actionmanager', 0.5, 1, function()
+	hook.Add('UParRegisterAction', 'upar.update.actmanager', function(actName, action)
+		timer.Create('upar.update.actmanager', 0.5, 1, function()
 			if not IsValid(panel) then
-				hook.Remove('UParRegisterAction', 'upar.update.actionmanager')
-				timer.Remove('upar.update.actionmanager')
+				hook.Remove('UParRegisterAction', 'upar.update.actmanager')
+				timer.Remove('upar.update.actmanager')
 				return 
 			end
 
-			actionManager:RefreshNode()
+			actManager:RefreshNode()
 		end)
 	end)
 end
 
-hook.Add('PopulateToolMenu', 'upar.menu.actionmanager', function()
+hook.Add('PopulateToolMenu', 'upar.menu.actmanager', function()
 	spawnmenu.AddToolMenuOption('Options', 
 		'UParkour', 
-		'upar.menu.actionmanager', 
-		'#upgui.menu.actionmanager', '', '', 
+		'upar.menu.actmanager', 
+		'#upgui.menu.actmanager', '', '', 
 		CreateMenu
 	)
 end)

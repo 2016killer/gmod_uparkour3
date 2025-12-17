@@ -7,9 +7,10 @@
 local color_black = color_black
 
 -- ==================== 动作编辑器 ===============
-local ActionEditor = {}
+local ActEditor = {}
 
-function ActionEditor:Init2(action)
+function ActEditor:Init2(actName)
+	local action = UPar.GetAction(actName)
 	if not UPar.isupaction(action) then
 		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
 		return
@@ -18,12 +19,12 @@ function ActionEditor:Init2(action)
 	local actName = action.Name
 	self.action = action
 
-	local panelCacheKey = string.format('ActionEditor_%s', actName)
+	local panelCacheKey = string.format('ActEditor_%s', actName)
 	local old = UPar.LRUGet(panelCacheKey)
 	if IsValid(old) and ispanel(old) then old:Remove() end
 	UPar.LRUSet(panelCacheKey, self)
 
-	local sizeCacheKey = 'ActionEditor_Size'
+	local sizeCacheKey = 'ActEditor_Size'
 	local size = UPar.LRUGet(sizeCacheKey)
 	if isvector(size) then
 		self:SetSize(math.max(100, size[1]), math.max(100, size[2]))
@@ -37,7 +38,7 @@ function ActionEditor:Init2(action)
 	self:SetDeleteOnClose(true)
 	self:SetTitle(string.format(
 		'%s   %s', 
-		language.GetPhrase('#upgui.menu.actionmanager'), 
+		language.GetPhrase('#upgui.menu.actmanager'), 
 		language.GetPhrase(isstring(action.label) and action.label or actName)
 	))
 	self:SetIcon(isstring(action.icon) and action.icon or 'icon32/tool.png')
@@ -94,29 +95,29 @@ function ActionEditor:Init2(action)
 		self.Paint = self.PaintDevMode
 		self:SetTitle(string.format(
 			'%s   %s  -  DevMode', 
-			language.GetPhrase('#upgui.menu.actionmanager'), 
+			language.GetPhrase('#upgui.menu.actmanager'), 
 			actName
 		))
 	end
 
 end
 
-function ActionEditor:OnClose()
-	local panelCacheKey = string.format('ActionEditor_%s', self.action.Name)
+function ActEditor:OnClose()
+	local panelCacheKey = string.format('ActEditor_%s', self.action.Name)
 	UPar.LRUDelete(panelCacheKey)
 
-	local sizeCacheKey = 'ActionEditor_Size'
+	local sizeCacheKey = 'ActEditor_Size'
 	local w, h = self:GetSize()
 
 	UPar.LRUSet(sizeCacheKey, Vector(w, h, 0))
 end
 
-function ActionEditor:PaintDevMode(w, h)
+function ActEditor:PaintDevMode(w, h)
 	draw.RoundedBox(8, 0, 0, w, h, color_black)
 end
 
 
-function ActionEditor:AddSheet(label, icon, panel)
+function ActEditor:AddSheet(label, icon, panel)
 	if not ispanel(panel) and not isfunction(panel) then
 		ErrorNoHaltWithStack(string.format('panel must be a panel or function, but got %s', type(panel)))
 		return
@@ -158,7 +159,7 @@ local function GetConVarPhrase(name)
 	end
 end
 
-ActionEditor.CreateConVarsPanel = function(action, panel)
+ActEditor.CreateConVarsPanel = function(action, panel)
 	if not istable(action.ConVarsWidget) then
 		error('action.ConVarsWidget must be a table')
 		return
@@ -288,10 +289,10 @@ ActionEditor.CreateConVarsPanel = function(action, panel)
 	panel:Help('')
 end
 
-function ActionEditor:OnRemove()
+function ActEditor:OnRemove()
 	self.action = nil
 	self.Tabs = nil
 end
 
-vgui.Register('UParActionEditor', ActionEditor, 'DFrame')
-ActionEditor = nil
+vgui.Register('UParActEditor', ActEditor, 'DFrame')
+ActEditor = nil

@@ -2,8 +2,8 @@
 	作者:白狼
 	2025 12 09
 
-	我们不再使用UltiPar来管理所有的方法, 因为这会导致代码十分混乱、难以维护
-    对于Action、 Effect, 我们使用UPAction、UPEffect类而不是直接使用表
+	不再使用UltiPar来管理所有的方法, 因为这会导致代码十分混乱、难以维护
+    对于Action、 Effect, 使用UPAction、UPEffect类而不是直接使用表
 	
 	UPar表的功能将集中在最基础的一些方法, 例如翻译、打印数据、调试框、通用检测等
 

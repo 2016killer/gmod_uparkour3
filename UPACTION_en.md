@@ -14,7 +14,7 @@
 <a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 
 ## About UPAction Interface Implementation
-The parameter alignment syntax used in version 2.1.0 is no longer adopted here. Although sequence tables perform well in network transmission, frequent `unpack` operations are cumbersome and the code is difficult to maintain. Therefore, we revert to the approach used in version 1.0.0.
+The parameter alignment syntax used in version 2.1.0 is no longer adopted here. Although sequence tables perform well in network transmission, frequent `unpack` operations are cumbersome and the code is difficult to maintain. Therefore, i revert to the approach used in version 1.0.0.
 
 This approach also offers several advantages. For instance, certain persistent data can be directly stored in tables, and inherited data can also be placed in them directly—this **greatly reduces development difficulty**.
 
