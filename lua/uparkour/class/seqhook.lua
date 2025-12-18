@@ -13,7 +13,7 @@ local SeqHookMeta = {}
 local SeqHookTable = {}
 
 -- 私有函数：获取指定事件下的最高优先级数值（最大数值=最低优先级）
-local function getMaxPriority(eventName)
+local function GetMaxPriority(eventName)
     local maxPrio = 0
     if not SeqHookMeta[eventName] then return maxPrio end
     for _, meta in pairs(SeqHookMeta[eventName]) do
@@ -47,6 +47,20 @@ local function insertSortedFunc(eventFuncList, func, prio)
     table.insert(eventFuncList, insertPos, func)
 end
 
+UPar.GetMinPriority = function(eventName)
+    local minPrio = nil
+    if not SeqHookMeta[eventName] then return 0 end
+    for _, meta in pairs(SeqHookMeta[eventName]) do
+        local prio = meta.prio
+        if minPrio == nil or prio < minPrio then
+            minPrio = prio
+        end
+    end
+    return minPrio or 0
+end
+
+UPar.GetMaxPriority = GetMaxPriority
+
 UPar.SeqHookAdd = function(eventName, identifier, func, priority)
     if not isstring(eventName) or eventName == "" then
         error("SeqHookAdd: Invalid eventName - must be a non-empty string")
@@ -78,7 +92,7 @@ UPar.SeqHookAdd = function(eventName, identifier, func, priority)
             finalPrio = SeqHookMeta[eventName][identifier].prio
         else
             -- 情况2：新标识符 → 设为当前最高优先级+1（排在最后）
-            finalPrio = getMaxPriority(eventName) + 1
+            finalPrio = GetMaxPriority(eventName) + 1
         end
     end
 
@@ -175,6 +189,22 @@ UPar.SeqHookRemove = function(eventName, identifier)
         SeqHookTable[eventName] = nil
     end
 end
+
+UPar.GetPriorityByIdentifier = function(eventName, identifier)
+    if not isstring(eventName) or eventName == "" then
+        error("GetPriorityByIdentifier: Invalid eventName - must be a non-empty string")
+    end
+    if identifier == nil then
+        error("GetPriorityByIdentifier: Invalid identifier - cannot be nil")
+    end
+
+    if not SeqHookMeta[eventName] or not SeqHookMeta[eventName][identifier] then
+        return nil
+    end
+    return SeqHookMeta[eventName][identifier].prio
+end
+
+
 
 UPar.SeqHookGetTable = function() return SeqHookTable end
 UPar.SeqHookGetMeta = function() return SeqHookMeta end
