@@ -53,7 +53,7 @@ function UPEffect:Register(actName, name, initData, new)
 
 	self.Start = self.Start or UPar.emptyfunc
 	self.Clear = self.Clear or UPar.emptyfunc
-	self.OnRhythmChange = self.OnRhythmChange or UPar.emptyfunc
+	self.Rhythm = self.Rhythm or UPar.emptyfunc
 
     self.icon = CLIENT and self.icon or nil
     self.label = CLIENT and self.label or nil
@@ -77,8 +77,8 @@ function UPEffect:Register(actName, name, initData, new)
         error(string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
     end
 
-    if not isfunction(self.OnRhythmChange) then
-        print(string.format('[UPEffect]: Warning: Invalid field "OnRhythmChange" = "%s" (not a function)', self.OnRhythmChange))
+    if not isfunction(self.Rhythm) then
+        print(string.format('[UPEffect]: Warning: Invalid field "Rhythm" = "%s" (not a function)', self.Rhythm))
     end
 
     if new then hook.Run('UParRegisterEffect', actName, name, self) end

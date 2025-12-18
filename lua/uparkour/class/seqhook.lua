@@ -8,9 +8,11 @@
     - SeqHookGetTable: 获取执行表（事件名→优先级排序的函数数组）
     - SeqHookGetMeta: 获取元信息表（事件名→标识符→{func, prio}）
 ]]--
+UPar.SeqHookMeta = UPar.SeqHookMeta or {}
+UPar.SeqHookTable = UPar.SeqHookTable or {}
 
-local SeqHookMeta = {}
-local SeqHookTable = {}
+local SeqHookMeta = UPar.SeqHookMeta
+local SeqHookTable = UPar.SeqHookTable
 
 -- 私有函数：获取指定事件下的最高优先级数值（最大数值=最低优先级）
 local function GetMaxPriority(eventName)
@@ -47,7 +49,7 @@ local function insertSortedFunc(eventFuncList, func, prio)
     table.insert(eventFuncList, insertPos, func)
 end
 
-UPar.GetMinPriority = function(eventName)
+UPar.SeqHookGetMinPriority = function(eventName)
     local minPrio = nil
     if not SeqHookMeta[eventName] then return 0 end
     for _, meta in pairs(SeqHookMeta[eventName]) do
@@ -59,7 +61,7 @@ UPar.GetMinPriority = function(eventName)
     return minPrio or 0
 end
 
-UPar.GetMaxPriority = GetMaxPriority
+UPar.SeqHookGetMaxPriority = GetMaxPriority
 
 UPar.SeqHookAdd = function(eventName, identifier, func, priority)
     if not isstring(eventName) or eventName == "" then
@@ -118,9 +120,14 @@ UPar.SeqHookRunAll = function(eventName, ...)
     local funcList = SeqHookTable[eventName]
     if not funcList then return end
     
+    local results = {}
+
     for i = 1, #funcList do
-        funcList[i](...)
+        local result = funcList[i](...)
+        if result ~= nil then table.insert(results, result) end
     end
+    
+    return results
 end
 
 UPar.SeqHookRun = function(eventName, ...)
@@ -137,12 +144,17 @@ UPar.SeqHookRunAllSafe = function(eventName, ...)
     local funcList = SeqHookTable[eventName]
     if not funcList then return end
     
+    local results = {}
     for i = 1, #funcList do
-        local succ, err = pcall(funcList[i], ...)
+        local succ, result = pcall(funcList[i], ...)
         if not succ then
-            ErrorNoHaltWithStack(string.format('SeqHookRunAll Err: %s\n', err))
+            ErrorNoHaltWithStack(string.format('SeqHookRunAll Err: %s\n', result))
+        elseif result ~= nil then
+            table.insert(results, result)
         end
     end
+
+    return results
 end
 
 UPar.SeqHookRunSafe = function(eventName, ...)

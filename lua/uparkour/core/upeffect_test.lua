@@ -38,7 +38,7 @@ UPar.EffectTest = function(ply, actName, effName)
 	end
 
 	effect:Start(ply)
-	timer.Simple(0.5, function() effect:OnRhythmChange(ply) end)
+	timer.Simple(0.5, function() effect:Rhythm(ply) end)
 	timer.Simple(1, function() effect:Clear(ply) end)
 end
 

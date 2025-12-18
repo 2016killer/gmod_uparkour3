@@ -301,7 +301,11 @@ UPar.LoadLuaFiles('gui', 'CLIENT')
 UPar.LoadLuaFiles('version_compat')
 UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 
-concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function()
+concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function(ply)
+	if SERVER and not ply:IsSuperAdmin() then
+		return
+	end
+	
 	UPar.LoadLuaFiles('class')
 	UPar.LoadLuaFiles('core')
 	UPar.LoadLuaFiles('actions')

@@ -23,13 +23,8 @@ local function isupaction(obj)
 end
 
 function UPAction:Register(name, initData, new)
-    if string.find(name, '[\\/:*?"<>|]') then
-        error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
-    end
-
-    if not istable(initData) then
-        error(string.format('Invalid initData "%s" (not a table)', initData))
-    end
+    assert(not string.find(name, '[\\/:*?"<>|]'), string.format('Invalid name "%s" (contains invalid filename characters)', name))
+    assert(istable(initData), string.format('Invalid initData "%s" (not a table)', initData))
 
     local cached = Instances[name]
     local exist = istable(cached)
@@ -58,6 +53,8 @@ function UPAction:Register(name, initData, new)
     self.Clear = self.Clear or UPar.emptyfunc
 
     self:InitCVarDisabled(self.defaultDisabled)
+    self:InitCVarPredictionMode(self.defaultPredictionMode)
+    if CLIENT then self:InitCVarKeybind(self.defaultKeybind) end
 
     self.icon = CLIENT and self.icon or nil
     self.label = CLIENT and self.label or nil
@@ -65,38 +62,30 @@ function UPAction:Register(name, initData, new)
     self.AAADesc = CLIENT and self.AAADesc or nil
     self.AAAContrib = CLIENT and self.AAAContrib or nil
 
-    self.ConVarWidgetExpand = CLIENT and self.ConVarWidgetExpand or nil
-    self.ConVarsPanelOverride = CLIENT and self.ConVarsPanelOverride or nil
-    self.SundryPanels = CLIENT and self.SundryPanels or nil
-
     self.TrackId = self.TrackId or 0
     
-    if not isfunction(self.Check) then
-        error(string.format('Invalid field "Check" = "%s" (not a function)', self.Check))
-    end
-
-    if not isfunction(self.Start) then
-        error(string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
-    end
-
-    if not isfunction(self.Think) then
-        error(string.format('Invalid field "Think" = "%s" (not a function)', self.Think))
-    end
-    
-    if not isfunction(self.Clear) then
-        error(string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
-    end
+    assert(isfunction(self.Check), string.format('Invalid field "Check" = "%s" (not a function)', self.Check))
+    assert(isfunction(self.Start), string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
+    assert(isfunction(self.Think), string.format('Invalid field "Think" = "%s" (not a function)', self.Think))
+    assert(isfunction(self.Clear), string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
 
     if new then hook.Run('UParRegisterAction', name, self) end
     
     return self
 end
 
-
 function UPAction:InitCVarDisabled(default)
     local cvName = sanitizeConVarName(self.Name) .. '_disabled'
-    local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
 
+    if self.CV_Disabled and self.CV_Disabled:GetName() ~= cvName then 
+        self.CV_Disabled = nil
+    end
+
+    if default == nil then 
+        return 
+    end
+
+    local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
     local cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
     self.CV_Disabled = cvar
 end
@@ -107,6 +96,10 @@ function UPAction:GetDisabled()
 end
 
 function UPAction:SetDisabled(disabled)
+    if not self.CV_Disabled then 
+        print(string.format('[UPAction]: Warning: Action "%s" has no CV_Disabled', self.Name))
+        return 
+    end
     if SERVER then 
         self.CV_Disabled:SetBool(!!disabled)
     elseif CLIENT then
@@ -116,8 +109,16 @@ end
 
 function UPAction:InitCVarPredictionMode(default)
     local cvName = sanitizeConVarName(self.Name) .. '_pred_mode'
-    local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
+    
+    if self.CV_PredictionMode and self.CV_PredictionMode:GetName() ~= cvName then 
+        self.CV_PredictionMode = nil
+    end
 
+    if default == nil then 
+        return 
+    end
+
+    local cvFlags = {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY}
     local cvar = CreateConVar(cvName, default and '1' or '0', cvFlags, '')
     self.CV_PredictionMode = cvar
 end
@@ -128,6 +129,11 @@ function UPAction:GetPredictionMode()
 end
 
 function UPAction:SetPredictionMode(predictionMode)
+    if not self.CV_PredictionMode then 
+        print(string.format('[UPAction]: Warning: Action "%s" has no CV_PredictionMode', self.Name))
+        return 
+    end
+
     if SERVER then 
         self.CV_PredictionMode:SetBool(!!predictionMode)
     elseif CLIENT then
@@ -138,8 +144,16 @@ end
 if CLIENT then
     function UPAction:InitCVarKeybind(default)
         local cvName = sanitizeConVarName(self.Name) .. '_keybind'
-        local cvar = CreateClientConVar(cvName, tostring(default), true, false, '')
+        
+        if self.CV_Keybind and self.CV_Keybind:GetName() ~= cvName then 
+            self.CV_Keybind = nil
+        end
+        
+        if default == nil then 
+            return 
+        end
 
+        local cvar = CreateClientConVar(cvName, tostring(default), true, false, '')
         self.CV_Keybind = cvar
     end
 
@@ -151,6 +165,11 @@ if CLIENT then
     end
 
     function UPAction:SetKeybind(keys) 
+        if not self.CV_Keybind then 
+            print(string.format('[UPAction]: Warning: Action "%s" has no CV_Keybind', self.Name))
+            return 
+        end
+
         local val = nil
         if isstring(keys) then
             val = keys
@@ -165,9 +184,7 @@ if CLIENT then
 end
 
 function UPAction:AddConVar(cvCfg)
-    if not istable(cvCfg) then
-        error(string.format('Invalid cvCfg "%s" (not a table)', cvCfg))
-    end
+    assert(istable(cvCfg), string.format('Invalid cvCfg "%s" (not a table)', cvCfg))
 
     self.ConVars = istable(self.ConVars) and self.ConVars or {}
     
@@ -175,17 +192,9 @@ function UPAction:AddConVar(cvCfg)
     local cvDefault = cvCfg.default or '0'
     local isclient = cvCfg.client
 
-    if not isstring(cvName) then
-        error(string.format('Invalid field "name" (not a string), name = "%s"', cvName))
-    end
-
-    if not isstring(cvDefault) then
-        error(string.format('Invalid field "default" (not a string), name = "%s"', cvName))
-    end
-
-    if isclient ~= nil and not isbool(isclient) then
-        error(string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', cvName))
-    end
+    assert(isstring(cvName), string.format('Invalid field "name" (not a string), name = "%s"', cvName))
+    assert(isstring(cvDefault), string.format('Invalid field "default" (not a string), name = "%s"', cvName))
+    assert(isclient == nil or isbool(isclient), string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', cvName))
 
     if isclient == nil then
         self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
@@ -204,9 +213,7 @@ function UPAction:AddConVar(cvCfg)
 end
 
 function UPAction:RemoveConVar(cvName)
-    if not isstring(cvName) then
-        error(string.format('Invalid cvName "%s" (not a string)', cvName))
-    end
+    assert(isstring(cvName), string.format('Invalid cvName "%s" (not a string)', cvName))
 
     self.ConVarsWidget = CLIENT and (istable(self.ConVarsWidget) and self.ConVarsWidget or {}) or nil
     self.ConVars = istable(self.ConVars) and self.ConVars or {}
@@ -222,9 +229,7 @@ function UPAction:RemoveConVar(cvName)
 end
 
 function UPAction:InitConVars(config)
-    if not istable(config) then
-        error(string.format('Invalid config "%s" (not a table)', config))
-    end
+    assert(istable(config), string.format('Invalid config "%s" (not a table)', config))
 
     self.ConVars = {}
     self.ConVarsWidget = CLIENT and {} or nil
@@ -234,26 +239,13 @@ end
 
 if CLIENT then
     function UPAction:RegisterPreset(name, preset)
-        if not isstring(name) then
-            error(string.format('Invalid name "%s" (not a string)', name))
-        end
-
-        if not istable(preset) then
-            error(string.format('Invalid preset "%s" (not a table)', preset))
-        end
-
-        if not istable(preset.values) then
-            error(string.format('Invalid values "%s" (not a table)', preset.values))
-        end
+        assert(isstring(name), string.format('Invalid name "%s" (not a string)', name))
+        assert(istable(preset), string.format('Invalid preset "%s" (not a table)', preset))
+        assert(istable(preset.values), string.format('Invalid values "%s" (not a table)', preset.values))
 
         for cvName, val in pairs(preset.values) do
-            if not isstring(cvName) then
-                error(string.format('Invalid cvName "%s" (not a string)', cvName))
-            end
-
-            if not isstring(val) then
-                error(string.format('Invalid val "%s" (not a string), cvName = "%s"', val, cvName))
-            end
+            assert(isstring(cvName), string.format('Invalid cvName "%s" (not a string)', cvName))
+            assert(isstring(val), string.format('Invalid val "%s" (not a string), cvName = "%s"', val, cvName))
         end
 
         self.ConVarsPreset = istable(self.ConVarsPreset) and self.ConVarsPreset or {}

@@ -5,7 +5,7 @@
 local SeqHookRun = UPar.SeqHookRun
 local emptyTable = UPar.emptyTable
 local EffInstances = UPar.EffInstances
-
+local DeepClone = UPar.DeepClone
 
 local function GetPlayerUsingEffect(ply, actName)
 	if actName == nil then
@@ -23,47 +23,39 @@ end
 
 
 local function ActStart(ply, action, checkResult)
-	local prevent = SeqHookRun('UParStart', ply, action, checkResult)
-	if not prevent then
-		action:Start(ply, checkResult)
-		local effect = GetPlayerUsingEffect(ply, action.Name)
-		if effect then effect:Start(ply, checkResult) end
-	end
+	local actName = action.Name
+	action:Start(ply, checkResult)
+
+	local resultCopy = DeepClone(checkResult)
+
+	local effect = GetPlayerUsingEffect(ply, actName)
+	if effect then effect:Start(ply, resultCopy) end
+
+	SeqHookRun('UParActStartOut_' .. actName, ply, resultCopy)
+	SeqHookRun('UParActStartOut', actName, ply, resultCopy)
 end
 
-local function ActClear(ply, playing, playingData, mv, cmd, interruptSource, interruptData)
-	local prevent = SeqHookRun('UParClear', ply, playing, playingData, mv, cmd, interruptSource, interruptData)
-	if not prevent then
-		playing:Clear(ply, playingData, mv, cmd, interruptSource, interruptData)
-		local effect = GetPlayerUsingEffect(ply, playing.Name)
-		if effect then effect:Clear(ply, playingData, interruptSource, interruptData) end
-	end
+local function ActClear(ply, playing, playingData, mv, cmd, external)
+	local playingName = playing.Name
+	playing:Clear(ply, playingData, mv, cmd, external)
+
+	local resultCopy = DeepClone(playingData)
+
+	local effect = GetPlayerUsingEffect(ply, playingName)
+	if effect then effect:Clear(ply, playingData, external) end
+
+	SeqHookRun('UParClearOut_' .. playingName, ply, playingData, mv, cmd, external)
+	SeqHookRun('UParClearOut', playingName, ply, playingData, mv, cmd, external)
 end
 
-local function ActChangeRhythm(ply, action, customData)
-	local effect = GetPlayerUsingEffect(ply, action.Name)
-	local prevent = SeqHookRun('UParOnChangeRhythm', ply, action, effect, customData)
-	if not prevent and effect then
-		effect:OnRhythmChange(ply, customData)
-	end
-
-	if SERVER then
-		local netData = {
-			{
-				method = 'ChangeRhythm',
-				actName = action.Name,
-				args = customData,
-			}
-		}
-
-		net.Start('UParCallClientAction')
-			net.WriteTable(netData)
-		net.Send(ply)
-	end
-end
+local START_FLAG = 0
+local CLEAR_FLAG = 1
+local INTERRUPT_FLAG = 2
+local RHYTHM_FLAG = 3
+local END_FLAG = 4
 
 UPar.GetPlayerUsingEffect = GetPlayerUsingEffect
-UPar.ActChangeRhythm = ActChangeRhythm
+
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
 
@@ -94,33 +86,30 @@ if SERVER then
 			return
 		end
 
-		local netData = {}
+		net.Start('UParCallClientAction')
 		if playing then
 			ply.uptracks[trackId] = nil
 
-			ActClear(ply, playing, playingData, nil, nil, action, checkResult)
+			local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, action, checkResult)
+			if not succ then
+				ErrorNoHaltWithStack(err)
+			end
 
-			table.insert(netData, {
-				method = 'Clear',
-				actName = playing.Name,
-				args = playingData,
-				iactName = action.Name,
-				iargs = checkResult,
-			})
+			net.WriteInt(CLEAR_FLAG, 3)
+			net.WriteTable({playing.Name, playingData, actName})
 		end
 
-		ActStart(ply, action, checkResult)
+		local succ, err = pcall(ActStart, ply, action, checkResult)
+		if not succ then
+			ErrorNoHaltWithStack(err)
+		end
+
+		net.WriteInt(START_FLAG, 3)
+		net.WriteTable({actName, checkResult})
 
 		ply.uptracks[trackId] = {action, checkResult}
 
-		table.insert(netData, {
-			method = 'Start',
-			actName = actName,
-			args = checkResult,
-		})
-	
-        net.Start('UParCallClientAction')
-            net.WriteTable(netData)
+		net.WriteInt(END_FLAG, 3)
         net.Send(ply)
 
 		return checkResult
@@ -131,43 +120,38 @@ if SERVER then
 
 		ply.uptracks[trackId] = nil
 
-		ActClear(ply, playing, playingData, nil, nil, true, nil)
-
-		local netData = {
-			{
-				method = 'Clear',
-				actName = playing.Name,
-				args = playingData,
-				iactName = true,
-				iargs = nil,
-			}
-		}
+		local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, true, nil)
+		if not succ then
+			ErrorNoHaltWithStack(err)
+		end
 
 		net.Start('UParCallClientAction')
-			net.WriteTable(netData)
+			net.WriteInt(CLEAR_FLAG, 3)
+			net.WriteTable({playing.Name, playingData, true})
+			net.WriteInt(END_FLAG, 3)
 		net.Send(ply)
 	end
 
 	local function ForceEndAll(ply)
 		local netData = {}
+
+		net.Start('UParCallClientAction')
 		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
 			local playing, playingData = unpack(trackContent or emptyTable)
 
 			ply.uptracks[trackId] = nil
 
-			ActClear(ply, playing, playingData, nil, nil, true, nil)
+			local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, true, nil)
+			if not succ then
+				ErrorNoHaltWithStack(err)
+			end
 
-			table.insert(netData, {
-				method = 'Clear',
-				actName = playing.Name,
-				args = playingData,
-				iactName = true,
-				iargs = nil,
-			})
+			net.WriteInt(CLEAR_FLAG, 3)
+			net.WriteTable({playing.Name, playingData, true}, true)
 		end
 
-		net.Start('UParCallClientAction')
-			net.WriteTable(netData)
+		
+		net.WriteInt(END_FLAG, 3)
 		net.Send(ply)
 	end
 
@@ -210,7 +194,10 @@ if SERVER then
 
 			ply.uptracks[trackId] = nil
 			
-			ActClear(ply, action, checkResult, mv, cmd, nil, nil)
+			succ, err = pcall(ActClear, ply, action, checkResult, mv, cmd, nil, nil)
+			if not succ then
+				ErrorNoHaltWithStack(err)
+			end
 
 			local netData = {
 				{
@@ -300,15 +287,20 @@ elseif CLIENT then
 			end
 
 			if v.method == 'Start' then
-				ActStart(ply, action, checkResult)
+				local succ, err = pcall(ActStart, ply, action, checkResult)
+				if not succ then
+					ErrorNoHaltWithStack(err)
+				end
 			elseif v.method == 'Clear' then
 				local iactName = v.iactName
 				local interruptSource = isbool(iactName) and iactName or GetAction(iactName)
 				local interruptData = v.iargs
-				ActClear(ply, action, checkResult, nil, nil, interruptSource, interruptData)
+				local succ, err = pcall(ActClear, ply, action, checkResult, nil, nil, interruptSource, interruptData)
+				if not succ then
+					ErrorNoHaltWithStack(err)
+				end
 			elseif v.method == 'ChangeRhythm' then
-				local customData = checkResult
-				ActChangeRhythm(ply, action, customData)
+	
 			end
         end
     end)

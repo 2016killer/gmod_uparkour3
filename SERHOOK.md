@@ -83,21 +83,7 @@ end, 0)
 在UPAction:Start前调用, 返回 true 覆盖默认
 ```
 
-![shared](./materials/upgui/shared.jpg)
-**@Name** UParOnChangeRhythm  
-***@Params*** 
-- ply **Player**  
-- action **UPAction**  
-- effect **UPEffect**  
-- customData **any**  
 
-***@Return***  
-- **bool** 
-```note
-使用 UPar.ActChangeRhythm 时触发, 返回 true 覆盖默认
-```
-
- 
 ![shared](./materials/upgui/shared.jpg)
 **@Name** UParClear  
 ***@Params***  

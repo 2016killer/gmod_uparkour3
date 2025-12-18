@@ -178,9 +178,8 @@ elseif CLIENT then
 		return UPar.SaveUserDataToDisk(dataOverride or custom, path, noMeta)
 	end
 
-	UPar.GetCustEffExist = function(actName, name)
-		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
-		return file.Exists(path, 'DATA')
+	UPar.GetCustEffPath = function(actName, name)
+		return string.format('uparkour_effect/custom/%s/%s.json', actName, name)
 	end
 
 	UPar.CreateUserCustEff = function(actName, tarName, name, noMeta)

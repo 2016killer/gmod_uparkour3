@@ -134,14 +134,7 @@ true: 使用客户端预测
 参数本身无作用，需要自行处理。
 ```
 
-![server](./materials/upgui/server.jpg)
-UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
-```note
-应当在action:Think中手动调用, 这会触发effect:OnRhythmChange,
-自动同步客户端, 不建议每帧调用
 
-通常用于节奏多变的动作, 比如Double Vault
-```
 
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:InitConVars(**table** config)

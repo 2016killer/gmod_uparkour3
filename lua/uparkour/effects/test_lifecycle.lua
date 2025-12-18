@@ -17,7 +17,7 @@ function effect:Start(ply, checkResult)
 	surface.PlaySound('hl1/fvox/activated.wav')
 end
 
-function effect:OnRhythmChange(ply, customData)
+function effect:Rhythm(ply, customData)
 	print('customData:', customData)
 	if SERVER then return end
 	surface.PlaySound(customData or 'hl1/fvox/blip.wav')
@@ -32,14 +32,3 @@ local example = UPEffect:Register('test_lifecycle', 'example', effect)
 example.label = '#upgui.dev.example'
 
 UPEffect:Register('test_lifecycle_t1', 'default', effect)
--- ==================== 变奏覆盖 ===============
-// UPar.SeqHookAdd('UParOnChangeRhythm', 'test_rhythm_override', function(ply, action, effect, customData)
-// 	local actName = action.Name
-// 	if actName ~= 'test_lifecycle' then
-// 		return
-// 	end
-
-// 	print(string.format('\n============ Rhythm Override Test, TrackId: %s ============', action.TrackId))
-
-// 	return true
-// end)

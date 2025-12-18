@@ -11,13 +11,12 @@ local ActEditor = {}
 
 function ActEditor:Init2(actName)
 	local action = UPar.GetAction(actName)
+	local actName = action.Name
+
 	if not UPar.isupaction(action) then
 		ErrorNoHaltWithStack(string.format('Invalid action "%s" (not upaction)', action))
 		return
 	end
-
-	local actName = action.Name
-	self.action = action
 
 	local old = UPar.LRUGet(string.format('UI_ActEditor_%s', actName))
 	if IsValid(old) and ispanel(old) then old:Remove() end
@@ -41,54 +40,33 @@ function ActEditor:Init2(actName)
 	))
 	self:SetIcon(isstring(action.icon) and action.icon or 'icon32/tool.png')
 
+
 	local Tabs = vgui.Create('DPropertySheet', self)
-	Tabs:Dock(FILL)
+	local effectManager = vgui.Create('UParEffectManager', self)
+
 	self.Tabs = Tabs
+	self.action = action
 
-	local effectManager = vgui.Create('UParEffectManager')
-	effectManager:Init2(actName)
 
+	Tabs:Dock(FILL)
 	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 
+	effectManager:Init2(actName)
 
 	if istable(action.ConVarsWidget) then
-		self:AddSheet(
-			'#upgui.options', 
-			'icon16/wrench.png', 
-			isfunction(action.ConVarsPanelOverride) and action.ConVarsPanelOverride or self.CreateConVarsPanel
-		)
+		local mainPanel = self:AddSheet('#upgui.options', 'icon16/wrench.png')
+		local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
+		local panel = vgui.Create('DForm', scrollPanel)
+
+		scrollPanel:Dock(FILL)
+		panel:Dock(FILL)
+
+		pcall(self.CreateConVarsPanel, self, panel)
 	end
 
-	if istable(action.SundryPanels) then
-		for k, panelData in pairs(action.SundryPanels) do
-			if not istable(panelData) then
-				print(string.format('[UPar]: Warning: SundryPanels must be a table of tables, but got %s', type(panelData)))
-				continue
-			end
-
-			if not isfunction(panelData.func) then
-				print(string.format('[UPar]: Warning: panelData.func must be a function, but got %s', type(panelData.func)))
-				continue
-			end
-
-			self:AddSheet(
-				panelData.label, 
-				'icon16/add.png', 
-				panelData.func
-			)
-		end
-	end
-
-	local descriptionPanel = vgui.Create('UParDescription')
-	descriptionPanel:SetLabel('#upgui.desc')
-	descriptionPanel:Init2(action)
-
-	self:AddSheet(
-		'#upgui.desc', 
-		'icon16/information.png', 
-		descriptionPanel
-	)
-
+	UPar.SeqHookRunAllSafe('UParActSundryPanels_' .. actName, self)
+	UPar.SeqHookRunAllSafe('UParActSundryPanels', actName, self)
+	
 	if GetConVar('developer') and GetConVar('developer'):GetBool() then
 		self.Paint = self.PaintDevMode
 		self:SetTitle(string.format(
@@ -97,7 +75,6 @@ function ActEditor:Init2(actName)
 			actName
 		))
 	end
-
 end
 
 function ActEditor:OnClose()
@@ -112,71 +89,46 @@ function ActEditor:PaintDevMode(w, h)
 end
 
 
-function ActEditor:AddSheet(label, icon, panel)
-	if not ispanel(panel) and not isfunction(panel) then
-		ErrorNoHaltWithStack(string.format('panel must be a panel or function, but got %s', type(panel)))
+function ActEditor:AddSheet(label, icon, mainPanel)
+	mainPanel = mainPanel or vgui.Create('DPanel')
+	
+	if IsValid(mainPanel) and ispanel(mainPanel) then
+		mainPanel:SetParent(Tabs)
+		mainPanel:Dock(FILL)
+	else 
+		ErrorNoHaltWithStack(string.format('Invalid mainPanel "%s"', mainPanel))
 		return
 	end
 
-	label = isstring(label) and label or tostring(k)
+	label = isstring(label) and label or 'UNKNOWN'
 	icon = isstring(icon) and icon or 'icon16/add.png'
 
-	local mainPanel = vgui.Create('DPanel', self.Tabs)
-	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
-	scrollPanel:Dock(FILL)
-
-	if isfunction(panel) then
-		local func = panel
-		local contentPanel = vgui.Create('DForm', scrollPanel)
-		contentPanel:SetLabel('#upgui.options')
-		contentPanel:Dock(FILL)
-
-		local succ, err = pcall(func, self.action, contentPanel)
-		if not succ then
-			ErrorNoHaltWithStack(string.format('AddSheet failed: %s', err))			
-		end
-	elseif ispanel(panel) then
-		panel:SetParent(scrollPanel)
-		panel:Dock(FILL)
-	end
-
 	self.Tabs:AddSheet(label, mainPanel, icon, false, false, '')
+
+	return mainPanel
 end
 
-local function GetConVarPhrase(name)
-	-- 替换第一个下划线为点号
-	local start, ending, phrase = string.find(name, "_", 1)
 
-	if start == nil then
-		return name
-	else
-		return '#' .. name:sub(1, start - 1) .. '.' .. name:sub(ending + 1)
-	end
-end
-
-ActEditor.CreateConVarsPanel = function(action, panel)
-	if not istable(action.ConVarsWidget) then
-		error('action.ConVarsWidget must be a table')
-		return
-	end
+function ActEditor:CreateConVarsPanel(panel)
+	local action = self.action
+	local actName = action.Name
 
 	local ctrl = vgui.Create('ControlPresets', panel)
-	ctrl:SetPreset(action.Name)
+	ctrl:SetPreset(actName)
 	panel:AddItem(ctrl)
 
 	local isAdmin = not LocalPlayer():IsAdmin()
 
 	local defaultPreset = {}
-	for idx, v in ipairs(action.ConVarsWidget) do
-		local name = v.name
-		local widgetClass = v.widget or 'NumSlider'
-		local default = v.default or '0'
-		local label = v.label or UPar.GetConVarPhrase(name)
-		local invisible = v.invisible
-		local admin = v.admin
+	for idx, cvCfg in ipairs(action.ConVarsWidget) do
+		local invisible = cvCfg.invisible
+		local admin = cvCfg.admin
+		local cvName = cvCfg.name
+		local cvDefault = cvCfg.default or '0'
+		local cvHelp = cvCfg.help
 
-		ctrl:AddConVar(name)
-		defaultPreset[name] = default
+		ctrl:AddConVar(cvName)
+		defaultPreset[cvName] = cvDefault
 
 		if invisible then 
 			continue 
@@ -186,90 +138,14 @@ ActEditor.CreateConVarsPanel = function(action, panel)
 			continue 
 		end
 
-		local widget = nil
+		local override = UPar.SeqHookRunSafe('UParActCVarWidget_' .. actName, cvCfg, panel) or
+		UPar.SeqHookRunSafe('UParActCVarWidget', actName, cvCfg, panel)
 
-		if widgetClass == 'NumSlider' then 
-			widget = panel:NumSlider(
-				label, 
-				name, 
-				isnumber(v.min) and v.min or 0, 
-				isnumber(v.max) and v.max or 1, 
-				isnumber(v.decimals) and v.decimals or 2
-			)
-		elseif widgetClass == 'CheckBox' then
-			widget = panel:CheckBox(label, name)
-		elseif widgetClass == 'ComboBox' then
-			widget = panel:ComboBox(label, name)
-
-			if istable(v.choices) then
-				for _, choice in ipairs(v.choices) do
-					if isstring(choice) then
-						widget:AddChoice(choice)
-					elseif istable(choice) then
-						widget:AddChoice(unpack(choice))
-					else
-						print(string.format('[UPar]: Warning: ComboBox choice must be a string or a table, but got %s', type(choice)))
-					end
-				end
-			end
-		elseif widgetClass == 'TextEntry' then
-			widget = panel:TextEntry(label, name)
-		elseif widgetClass == 'KeyBinder' then
-			widget = panel:KeyBinder(label, name)
-		elseif widgetClass == 'UParColorEditor' then
-			widget = vgui.Create('UParColorEditor', panel)
-			widget:SetConVar(name)
-
-			panel:Help(label)
-			panel:AddItem(widget)
-		elseif widgetClass == 'UParAngEditor' then
-			widget = vgui.Create('UParAngEditor', panel)
-			widget:SetMin(isnumber(v.min) and v.min or -10000)
-			widget:SetMax(isnumber(v.max) and v.max or 10000)
-			widget:SetDecimals(isnumber(v.decimals) and v.decimals or 2)
-			widget:SetInterval(isnumber(v.interval) and v.interval or 0.5)
-			widget:SetConVar(name)
-
-			panel:Help(label)
-		elseif widgetClass == 'UParVecEditor' then
-			widget = vgui.Create('UParVecEditor', panel)
-			widget:SetMin(isnumber(v.min) and v.min or -10000)
-			widget:SetMax(isnumber(v.max) and v.max or 10000)
-			widget:SetDecimals(isnumber(v.decimals) and v.decimals or 2)
-			widget:SetInterval(isnumber(v.interval) and v.interval or 0.5)
-			widget:SetConVar(name)
-
-			panel:Help(label)
-		elseif widgetClass == 'UParKeyBinder' then
-			widget = vgui.Create('UParKeyBinder', panel)
-			widget:SetConVar(name)
-
-			panel:Help(label)
+		if override then
+			continue
 		end
 
-		local expanded = nil
-		if isfunction(action.ConVarWidgetExpand) then
-			local succ, err = pcall(action.ConVarWidgetExpand, action, idx, v, widget, panel)
-			if succ then
-				expanded = err
-			else
-				ErrorNoHaltWithStack(string.format('ConVarWidgetExpand label "%s" failed: %s', label, err))
-			end
-		end
-
-		if IsValid(widget) and ispanel(widget) then
-			panel:AddItem(widget)
-		end
-		
-		if IsValid(expanded) and ispanel(expanded) then
-			panel:AddItem(expanded)
-		end
-
-		if isstring(v.help) then
-			panel:ControlHelp(v.help)
-		elseif v.help then
-			panel:ControlHelp(label .. '.' .. 'help')
-		end
+		self:CreateConVarsWidget(cvCfg, panel)
 	end
 	
 	ctrl:AddOption('#preset.default', defaultPreset)
@@ -284,6 +160,83 @@ ActEditor.CreateConVarsPanel = function(action, panel)
 	panel:Help('')
 end
 
+
+function ActEditor:CreateConVarsWidget(cvCfg, panel)
+	local cvName = cvCfg.name
+	local cvHelp = cvCfg.help
+	local cvWidget = cvCfg.widget or 'NumSlider'
+	
+	local label = cvCfg.label or UPar.GetConVarPhrase(cvName)
+	
+	if cvWidget == 'NumSlider' then 
+		panel:NumSlider(
+			label, 
+			cvName, 
+			isnumber(cvCfg.min) and cvCfg.min or 0, 
+			isnumber(cvCfg.max) and cvCfg.max or 1, 
+			isnumber(cvCfg.decimals) and cvCfg.decimals or 2
+		)
+	elseif cvWidget == 'CheckBox' then
+		panel:CheckBox(label, cvName)
+	elseif cvWidget == 'ComboBox' then
+		local comboBox = panel:ComboBox(label, cvName)
+
+		if istable(cvCfg.choices) then
+			for _, choice in ipairs(cvCfg.choices) do
+				if isstring(choice) then
+					comboBox:AddChoice(choice)
+				elseif istable(choice) then
+					comboBox:AddChoice(unpack(choice))
+				else
+					print(string.format('[UPar]: Warning: ComboBox choice must be a string or a table, but got %s', type(choice)))
+				end
+			end
+		end
+	elseif cvWidget == 'TextEntry' then
+		panel:TextEntry(label, cvName)
+	elseif cvWidget == 'KeyBinder' then
+		panel:KeyBinder(label, cvName)
+	elseif cvWidget == 'UParColorEditor' then
+		local colorEditor = vgui.Create('UParColorEditor', panel)
+		colorEditor:SetConVar(cvName)
+
+		panel:Help(label)
+		panel:AddItem(colorEditor)
+	elseif cvWidget == 'UParAngEditor' then
+		local angEditor = vgui.Create('UParAngEditor', panel)
+		angEditor:SetMin(isnumber(cvCfg.min) and cvCfg.min or -10000)
+		angEditor:SetMax(isnumber(cvCfg.max) and cvCfg.max or 10000)
+		angEditor:SetDecimals(isnumber(cvCfg.decimals) and cvCfg.decimals or 2)
+		angEditor:SetInterval(isnumber(cvCfg.interval) and cvCfg.interval or 0.5)
+		angEditor:SetConVar(cvName)
+
+		panel:Help(label)
+		panel:AddItem(angEditor)
+	elseif cvWidget == 'UParVecEditor' then
+		local vecEditor = vgui.Create('UParVecEditor', panel)
+		vecEditor:SetMin(isnumber(cvCfg.min) and cvCfg.min or -10000)
+		vecEditor:SetMax(isnumber(cvCfg.max) and cvCfg.max or 10000)
+		vecEditor:SetDecimals(isnumber(cvCfg.decimals) and cvCfg.decimals or 2)
+		vecEditor:SetInterval(isnumber(cvCfg.interval) and cvCfg.interval or 0.5)
+		vecEditor:SetConVar(cvName)
+
+		panel:Help(label)
+		panel:AddItem(vecEditor)
+	elseif cvWidget == 'UParKeyBinder' then
+		local keyBinder = vgui.Create('UParKeyBinder', panel)
+		keyBinder:SetConVar(cvName)
+
+		panel:Help(label)
+		panel:AddItem(keyBinder)
+	end
+
+	if isstring(cvHelp) then
+		panel:ControlHelp(cvHelp)
+	elseif cvHelp then
+		panel:ControlHelp(UPar.GetConVarPhrase(cvName) .. '.help')
+	end
+end
+
 function ActEditor:OnRemove()
 	self.action = nil
 	self.Tabs = nil
@@ -291,3 +244,54 @@ end
 
 vgui.Register('UParActEditor', ActEditor, 'DFrame')
 ActEditor = nil
+
+
+UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
+	local action = UPar.GetAction(actName)
+
+	if not UPar.isupaction(action) then
+		print(string.format('[UPar]: DescPanel failed: can not find action named "%s"', actName))
+		return
+	end
+
+	local mainPanel = editor:AddSheet('#upgui.desc', 'icon16/information.png', panel)
+	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
+	local panel = vgui.Create('DForm', scrollPanel)
+
+	scrollPanel:Dock(FILL)
+	panel:Dock(FILL)
+
+	panel.label = '#upgui.desc'
+	panel.icon = 'icon16/information.png'
+	panel:SetLabel('#upgui.desc')
+	
+	panel:Help(string.format('%s: %s', language.GetPhrase('upgui.desc'), language.GetPhrase(tostring(action.AAADesc))))
+	panel:Help('')
+
+	panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), action.AAAACreat or ''))
+	panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), action.AAAContrib or ''))
+	panel:Help('====================')
+
+	if istable(action.ConVarsPreset) then
+		for pname, pdata in pairs(action.ConVarsPreset) do
+			local label = isstring(pdata.label) and pdata.label or pname
+			panel:Help(string.format('%s: %s', language.GetPhrase('#preset'), language.GetPhrase(label)))
+			panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), pdata.AAAACreat or ''))
+			panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), pdata.AAAContrib or ''))
+			
+			panel:Help('')
+		end
+	end
+
+	panel:Help('====================')
+	for effName, effect in pairs(UPar.GetEffects(action.Name)) do
+		if not UPar.isupeffect(effect) then
+			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
+			continue
+		end
+		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))
+		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), effect.AAAACreat or ''))
+		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), effect.AAAContrib or ''))	
+		panel:Help('')
+	end
+end, 10)

@@ -160,12 +160,6 @@ end
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
-```note
-由 UPar.ActChangeRhythm 触发
-```
-
-![shared](./materials/upgui/shared.jpg)
 **UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 会在UPAction:Clear后自动调用

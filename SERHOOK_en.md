@@ -84,20 +84,6 @@ Called before UPAction:Start. Return true to override the default behavior.
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**@Name** UParOnChangeRhythm  
-***@Params*** 
-- ply **Player**  
-- action **UPAction**  
-- effect **UPEffect**  
-- customData **any**  
-
-***@Return***  
-- **bool** 
-```note
-Called when UPar.ActChangeRhythm is called. Return true to override the default behavior.
-```
-
-![shared](./materials/upgui/shared.jpg)
 **@Name** UParClear  
 ***@Params*** 
 - ply **Player**  

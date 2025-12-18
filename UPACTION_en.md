@@ -135,14 +135,7 @@ Example: '33 83 65' represents KEY_W + KEY_LCONTROL + KEY_SPACE.
 The parameter itself has no inherent function and needs to be handled manually.
 ```
 
-![server](./materials/upgui/server.jpg)
-UPar.ActChangeRhythm(**Player** ply, **UPAction** action, **any** customData)
-```note
-Should be called manually in `action:Think`. This triggers `effect:OnRhythmChange` and automatically synchronizes with the client.
-Calling it every frame is not recommended.
 
-Typically used for actions with variable rhythms (e.g., Double Vault).
-```
 
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:InitConVars(**table** config)

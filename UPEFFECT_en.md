@@ -156,12 +156,6 @@ Automatically called after UPAction:Start
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**UPEffect**:OnRhythmChange(**Player** ply, **any** customData)
-```note
-Called by UPar.ActChangeRhythm
-```
-
-![shared](./materials/upgui/shared.jpg)
 **UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
 ```note
 Automatically called after UPAction:Clear

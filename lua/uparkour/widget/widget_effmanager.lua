@@ -95,11 +95,7 @@ function EffectManager:CreatePreview(effect)
 		local preview = vgui.Create('UParFlatTablePreview', scrollPanel)
 		preview:Dock(FILL)
 		preview:Init2(effect, kVVisible, kVExpand)
-		preview:SetLabel(string.format('%s %s %s', 
-			effect.Name, 
-			language.GetPhrase('#upgui.property'),
-			''
-		))
+		preview:SetLabel(effect.Name)
 	end
 
 	return mainPanel
@@ -154,7 +150,7 @@ function EffectManager:CreateEditor(effect)
 		editor:Dock(FILL)
 		editor:Init2(effect, kVVisible, kVExpand)
 
-		editor:SetLabel(language.GetPhrase('#upgui.link') .. ':' .. tostring(effect.linkName))
+		editor:SetLabel(language.GetPhrase('#upgui.link') .. '-' .. tostring(effect.linkName))
 	end
 
 	return mainPanel
@@ -209,6 +205,10 @@ function EffectManager:Init2(actName)
 		div:SetLeftWidth(250)
 		div2:SetTopHeight(200)
 	end
+end
+
+function EffectManager:IsEffNameExist(effName)
+	// self.effTree
 end
 
 function EffectManager:Refresh()
