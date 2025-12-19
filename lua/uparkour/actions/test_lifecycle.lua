@@ -30,7 +30,7 @@ function action:Think(ply, mv, cmd, checkResult)
 
 	if curtime > checkResult.endtime - 0.5 and checkResult.rhythm == 0 then
 		checkResult.rhythm = 1
-		UPar.ActEffChangeRhythm(ply, self, 1)
+		UPar.ActEffRhythmChange(ply, self, 1)
 	elseif curtime > checkResult.endtime then
 		print(string.format('====== Think Out, TrackId: %s ======', self.TrackId))
 		print('checkResult:', checkResult)

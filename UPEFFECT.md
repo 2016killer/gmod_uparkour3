@@ -30,32 +30,6 @@
 
 
 ![client](./materials/upgui/client.jpg)
-**UPEffect**.PreviewKVVisible: ***table*** or ***function***  
-```lua
--- 预览界面显示 AAAACreat 为红色
--- 隐藏AAADesc
--- 正常显示AAAContrib
-effect.PreviewKVVisible = {
-    AAAACreat = Color(255, 0, 0),
-    AAADesc = false,
-    AAAContrib = nil
-}
-```
-```lua
--- 预览界面显示 AAAACreat, AAADesc, AAAContrib为红色
--- 过滤val为函数
-local filter = {
-    AAAACreat = Color(255, 0, 0),
-    AAADesc = Color(255, 0, 0),
-    AAAContrib = Color(255, 0, 0),
-}
-effect.PreviewKVVisible = function(key, val)
-    return filter[key] or !isfunction(val)
-end
-```
-
-
-![client](./materials/upgui/client.jpg)
 **UPEffect**.PreviewKVExpand: ***function***  
 ```lua
 -- 覆盖默认键值对预览
@@ -69,84 +43,6 @@ if CLIENT then
         label:SetText(tostring(val))
 
         return label
-    end
-end
-```
-
-
-![client](./materials/upgui/client.jpg)
-**UPEffect**.EditorKVVisible: ***table*** or ***function***  
-```lua
--- 编辑器隐藏 AAAACreat, AAADesc, AAAContrib
-effect.EditorKVVisible = {
-    AAAACreat = false,
-    AAADesc = false,
-    AAAContrib = false
-}
-```
-```lua
--- 编辑器隐藏 AAAACreat, AAADesc, AAAContrib, 函数 
-local filter = {
-    AAAACreat = false,
-    AAADesc = false,
-    AAAContrib = false,
-}
-effect.EditorKVVisible = function(key, val)
-    return filter[key] or !isfunction(val)
-end
-```
-
-![client](./materials/upgui/client.jpg)
-**UPEffect**.EditorKVExpand: ***function***  
-```lua
--- 覆盖默认键值对编辑
-if CLIENT then
-    effect.EditorKVExpand = function(key, val, originWidget, obj, _)
-        if IsValid(originWidget) and ispanel(originWidget) then
-            originWidget:Remove()
-        end
-
-        local entry = vgui.Create('TextEntry')
-        entry:SetText(tostring(val))
-        entry.OnEnter = function()
-            obj[key] = entry:GetText()
-        end
-
-        return entry
-    end
-end
-```
-
-![client](./materials/upgui/client.jpg)
-**UPEffect**:PreviewPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
-```note
-预览面板覆盖
-```
-```lua
-if CLIENT then
-    function UPEffect:PreviewPanelOverride(panel, managerPanel)
-        local content = vgui.Create('DForm', panel)
-        content:Help(self.Name)
-        content:Help(managerPanel.action.Name)
-        content:Help(tostring(managerPanel.tree))
-        content:Help(tostring(managerPanel.div))
-    end
-end
-```
-
-![client](./materials/upgui/client.jpg)
-**UPEffect**:EditorPanelOverride(**DScrollPanel** panel, **UParEffectManager** managerPanel)
-```note
-编辑器面板覆盖
-```
-```lua
-if CLIENT then
-    function UPEffect:EditorPanelOverride(panel, managerPanel)
-        local content = vgui.Create('DForm', panel)
-        content:Help(self.Name)
-        content:Help(managerPanel.action.Name)
-        content:Help(tostring(managerPanel.tree))
-        content:Help(tostring(managerPanel.div))
     end
 end
 ```

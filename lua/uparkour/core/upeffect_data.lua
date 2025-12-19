@@ -183,6 +183,7 @@ elseif CLIENT then
 	end
 
 	UPar.CreateUserCustEff = function(actName, tarName, name, noMeta)
+		name = string.lower(name)
 		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
 
 		local custom = {
@@ -197,9 +198,16 @@ elseif CLIENT then
 			AAADesc = '',
 		}
 
-		UPar.SaveUserCustEffToDisk(custom, noMeta)
+		local succ = UPar.SaveUserCustEffToDisk(custom, noMeta)
 
-		return custom
+		return custom, succ
+	end
+
+	UPar.DeleteUserCustEff = function(actName, name)
+		local path = string.format('uparkour_effect/custom/%s/%s.json', actName, name)
+		local succ = file.Delete(path)
+		print(string.format('delete custom effect "%s", success: %s', path, succ))
+		return succ
 	end
 
 	UPar.GetUserCustEffFiles = function(actName)

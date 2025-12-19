@@ -53,7 +53,7 @@ local function ActClear(ply, playing, playingData, mv, cmd, interruptSource)
 	SeqHookRun('UParActClearOut', playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
 end
 
-local function ActEffChangeRhythm(ply, action, customData)
+local function ActEffRhythmChange(ply, action, customData)
 	local actName = action.Name
 
 	if SERVER then
@@ -75,7 +75,7 @@ UPar.GetPlayerUsingEffect = GetPlayerUsingEffect
 
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
-UPar.ActEffChangeRhythm = ActEffChangeRhythm
+UPar.ActEffRhythmChange = ActEffRhythmChange
 
 if SERVER then
     util.AddNetworkString('UParCallClientAction')
@@ -350,7 +350,7 @@ elseif CLIENT then
 				end
 			elseif flag == RHYTHM_FLAG then
 				local customData = checkResult
-				local succ, err = pcall(ActEffChangeRhythm, ply, action, customData)
+				local succ, err = pcall(ActEffRhythmChange, ply, action, customData)
 				if not succ then
 					ErrorNoHaltWithStack(err)
 				end

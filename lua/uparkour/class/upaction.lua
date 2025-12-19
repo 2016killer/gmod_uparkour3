@@ -23,6 +23,7 @@ local function isupaction(obj)
 end
 
 function UPAction:Register(name, initData, new)
+    assert(isstring(name), string.format('Invalid name "%s" (not a string)', name))
     assert(not string.find(name, '[\\/:*?"<>|]'), string.format('Invalid name "%s" (contains invalid filename characters)', name))
     assert(istable(initData), string.format('Invalid initData "%s" (not a table)', initData))
 

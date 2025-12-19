@@ -17,17 +17,11 @@ local function isupeffect(obj)
 end
 
 function UPEffect:Register(actName, name, initData, new)
-    if string.find(actName, '[\\/:*?"<>|]') then
-        error(string.format('Invalid actName "%s" (contains invalid filename characters)', actName))
-    end
-
-    if string.find(name, '[\\/:*?"<>|]') then
-        error(string.format('Invalid name "%s" (contains invalid filename characters)', name))
-    end
-
-    if not istable(initData) then
-        error(string.format('Invalid initData "%s" (not a table)', initData))
-    end
+    assert(isstring(actName), string.format('Invalid actName "%s" (not a string)', actName))
+    assert(isstring(name), string.format('Invalid name "%s" (not a string)', name))
+    assert(not string.find(actName, '[\\/:*?"<>|]'), string.format('Invalid actName "%s" (contains invalid filename characters)', actName))
+    assert(not string.find(name, '[\\/:*?"<>|]'), string.format('Invalid name "%s" (contains invalid filename characters)', name))
+    assert(istable(initData), string.format('Invalid initData "%s" (not a table)', initData))
 
     EffInstances[actName] = istable(EffInstances[actName]) and EffInstances[actName] or {}
 
@@ -61,22 +55,9 @@ function UPEffect:Register(actName, name, initData, new)
     self.AAADesc = CLIENT and self.AAADesc or nil
     self.AAAContrib = CLIENT and self.AAAContrib or nil
 
-    self.EditorKVVisible = CLIENT and self.EditorKVVisible or nil
-    self.EditorKVExpand = CLIENT and self.EditorKVExpand or nil
-    self.PreviewKVVisible = CLIENT and self.PreviewKVVisible or nil
-    self.PreviewKVExpand = CLIENT and self.PreviewKVExpand or nil
-
-    self.EditorPanelOverride = CLIENT and self.EditorPanelOverride or nil
-    self.PreviewPanelOverride = CLIENT and self.PreviewPanelOverride or nil
-
-    if not isfunction(self.Start) then
-        error(string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
-    end
-
-    if not isfunction(self.Clear) then
-        error(string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
-    end
-
+    assert(isfunction(self.Start), string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
+    assert(isfunction(self.Clear), string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
+    
     if not isfunction(self.Rhythm) then
         print(string.format('[UPEffect]: Warning: Invalid field "Rhythm" = "%s" (not a function)', self.Rhythm))
     end

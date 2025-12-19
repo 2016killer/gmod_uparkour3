@@ -19,10 +19,12 @@ function CustEffTree:OnDoubleClick(node)
 end
 
 function CustEffTree:Refresh()
+	self:Clear()
+
 	local keys = UPar.GetUserCustEffFiles(self.actName) or UPar.emptyTable
 	table.sort(keys)
 
-	self.EffNames = keys
+	self.EffNames = table.Flip(keys)
 	
 	local actName = self.actName
 	local usingName = UPar.GetPlyUsingEffName(LocalPlayer(), actName)
@@ -36,6 +38,8 @@ function CustEffTree:Refresh()
 			node:SetIcon('icon16/accept.png')
 		end
 	end
+
+	self:OnRefresh()
 end
 
 function CustEffTree:AddNode2(effName)
@@ -90,8 +94,8 @@ function CustEffTree:Play(node)
 	local actName = self.actName
 	local effName = node.effName
 
-	UPar.EffectTest(LocalPlayer(), actName, effName)
-	UPar.CallServerEffectTest(actName, effName)
+	UPar.EffectTest(LocalPlayer(), actName, 'CACHE')
+	UPar.CallServerEffectTest(actName, 'CACHE')
 
 	self:OnPlay(node)
 end
@@ -105,11 +109,13 @@ function CustEffTree:Take(node)
 	local cfg = {[actName] = 'CACHE'}
 	local cache = {[actName] = effect}
 
-	UPar.SaveUserEffCacheToDisk()
 	UPar.PushPlyEffSetting(LocalPlayer(), cfg, cache)
+	UPar.SaveUserEffCfgToDisk()
+	UPar.SaveUserEffCacheToDisk()
+	UPar.SaveUserCustEffToDisk(effect, true)
 	UPar.CallServerPushPlyEffSetting(cfg, cache)
-		
-	self:OnTake(effect, node)
+	
+	self:OnTake(node)
 end
 
 function CustEffTree:OnSelectedChange(node)
@@ -135,9 +141,27 @@ function CustEffTree:OnRemove()
 	self.EffNames = nil
 end
 
+function CustEffTree:DoRightClick(node)
+	local menu = DermaMenu()
+	menu:AddOption('删除', function()
+		local actName = self.actName
+		local effName = node.effName
+
+		local succ = UPar.DeleteUserCustEff(actName, effName)
+		if succ then 
+			UPar.LRUDelete(string.format('UI_CE_%s', effName))
+			self:Refresh()
+		end
+	end)
+	menu:AddOption('复制', function()
+		
+	end)
+	menu:Open()
+end
+
 CustEffTree.OnHitNode = UPar.emptyfunc
 CustEffTree.OnPlay = UPar.emptyfunc
 CustEffTree.OnTake = UPar.emptyfunc
-
+CustEffTree.OnRefresh = UPar.emptyfunc
 vgui.Register('UParCustEffTree', CustEffTree, 'UParEasyTree')
 CustEffTree = nil

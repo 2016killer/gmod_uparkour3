@@ -9,8 +9,7 @@ if not GetConVar('developer') or not GetConVar('developer'):GetBool() then retur
 local effect = UPEffect:Register('test_lifecycle', 'default', {
 	label = '#default', 
 	AAAACreat = '白狼',
-	rhythm_1_sound = 'hl1/fvox/blip.wav',
-	rhythm_2_sound = 'hl1/fvox/blip.wav'
+	rhythm_sound = 'hl1/fvox/blip.wav'
 })
 
 function effect:Start(ply, checkResult)
@@ -19,17 +18,9 @@ function effect:Start(ply, checkResult)
 end
 
 function effect:Rhythm(ply, customData)
-	print('\n')
 	print('customData:', customData)
-	print('\n')
 	if SERVER then return end
-	if customData == 1 then
-		surface.PlaySound(self.rhythm_1_sound)
-	elseif customData == 2 then
-		surface.PlaySound(self.rhythm_2_sound)
-	else
-		surface.PlaySound(self.rhythm_1_sound)
-	end
+	surface.PlaySound(self.rhythm_sound)
 end
 
 function effect:Clear(ply, checkResult)

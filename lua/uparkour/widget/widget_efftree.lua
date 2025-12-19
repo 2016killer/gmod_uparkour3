@@ -18,12 +18,14 @@ function EffTree:OnDoubleClick(node)
 end
 
 function EffTree:Refresh()
+	self:Clear()
+
 	local keys = {}
 	local Effects = UPar.GetEffects(self.actName)
 	for k, v in pairs(Effects) do table.insert(keys, k) end
 	table.sort(keys)
 
-	self.EffNames = keys
+	self.EffNames = table.Flip(keys)
 	
 	local actName = self.actName
 	local usingName = UPar.GetPlyUsingEffName(LocalPlayer(), actName)
@@ -76,8 +78,8 @@ function EffTree:Take(node)
 	local effName = node.effName
 
 	local cfg = {[actName] = effName}
-	UPar.SaveUserEffCfgToDisk()
 	UPar.PushPlyEffSetting(LocalPlayer(), cfg, nil)
+	UPar.SaveUserEffCfgToDisk()
 	UPar.CallServerPushPlyEffSetting(cfg, nil)
 		
 	self:OnTake(node)
@@ -105,6 +107,6 @@ end
 EffTree.OnHitNode = UPar.emptyfunc
 EffTree.OnPlay = UPar.emptyfunc
 EffTree.OnTake = UPar.emptyfunc
-
+EffTree.OnRefresh = UPar.emptyfunc
 vgui.Register('UParEffTree', EffTree, 'UParEasyTree')
 EffTree = nil

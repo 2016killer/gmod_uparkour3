@@ -14,23 +14,23 @@ if SERVER then
 			return true
 		end
 	end)
+
+	// UPar.SeqHookAdd('UParActAllowInterrupt', 'example.interrupt', function(playingName, ply, playingData, interruptSource)
+	// 	if playingName == 'test_lifecycle' and interruptSource == 'test_interrupt' then
+	// 		return true
+	// 	end
+	// end)
+
+	-- 随机停止
+	// UPar.SeqHookAdd('UParActPreStartValidate_test_lifecycle', 'example.prestart.validate', function(...)
+	// 	return math.random() > 0.5
+	// end)
+
+	-- 随机停止所有
+	// UPar.SeqHookAdd('UParActPreStartValidate', 'example.prestart.validate', function(...)
+	// 	return math.random() > 0.5
+	// end)
 end
-// UPar.SeqHookAdd('UParActAllowInterrupt', 'example.interrupt', function(playingName, ply, playingData, interruptSource)
-// 	if playingName == 'test_lifecycle' and interruptSource == 'test_interrupt' then
-// 		return true
-// 	end
-// end)
-
-
--- 随机停止
-// UPar.SeqHookAdd('UParActPreStartValidate_test_lifecycle', 'example.prestart.validate', function(...)
-// 	return math.random() > 0.5
-// end)
-
--- 随机停止所有
-// UPar.SeqHookAdd('UParActPreStartValidate', 'example.prestart.validate', function(...)
-// 	return math.random() > 0.5
-// end)
 
 -- 启动后
 // UPar.SeqHookAdd('UParActStartOut_test_lifecycle', 'example.prestart.out', function(ply, checkResult)
