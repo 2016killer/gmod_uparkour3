@@ -16,20 +16,17 @@ UPar.SeqHookAdd('UParActSundryPanels_test_lifecycle', 'TriggerPanel', function(e
 
 	local run = panel:Button('#upgui.dev.run_track_0', '')
 	run.DoClick = function()
-		local act = UPar.GetAction('test_lifecycle')
-		UPar.Trigger(LocalPlayer(), act, 'oh shit')
+		UPar.Trigger(LocalPlayer(), 'test_lifecycle', 'oh shit')
 	end
 	
 	local run_t1 = panel:Button('#upgui.dev.run_track_1', '')
 	run_t1.DoClick = function()
-		local act = UPar.GetAction('test_lifecycle_t1')
-		UPar.Trigger(LocalPlayer(), act, 'oh good')
+		UPar.Trigger(LocalPlayer(), 'test_lifecycle_t1', 'oh good')
 	end
 
 	local interrupt = panel:Button('#upgui.dev.run_interrupt_0', '')
 	interrupt.DoClick = function()
-		local act = UPar.GetAction('test_interrupt')
-		UPar.Trigger(LocalPlayer(), act)
+		UPar.Trigger(LocalPlayer(), 'test_interrupt')
 	end
 
 	local killself = panel:Button('#upgui.dev.killself', '')
@@ -53,7 +50,6 @@ end)
 
 UPar.SeqHookAdd('UParActSundryPanels_test_lifecycle', 'sundrypanel.example.2', function(editor)
 	local panel = editor:AddSheet('#upgui.dev.sundry', 'icon16/add.png')
-	print(panel)
 	panel:Dock(FILL)
 
 	local panel2 = vgui.Create('DForm', panel)

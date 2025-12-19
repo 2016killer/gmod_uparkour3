@@ -22,13 +22,16 @@ function action:Start(ply, checkResult)
 	print('checkResult:', checkResult)
 	PrintTable(checkResult)
 	checkResult.endtime = CurTime() + 2
-
+	checkResult.rhythm = 0
 end
 
 function action:Think(ply, mv, cmd, checkResult)
 	local curtime = CurTime()
 
-	if curtime > checkResult.endtime then
+	if curtime > checkResult.endtime - 0.5 and checkResult.rhythm == 0 then
+		checkResult.rhythm = 1
+		UPar.ActChangeRhythm(ply, self, 1)
+	elseif curtime > checkResult.endtime then
 		print(string.format('====== Think Out, TrackId: %s ======', self.TrackId))
 		print('checkResult:', checkResult)
 		PrintTable(checkResult)
@@ -38,14 +41,13 @@ function action:Think(ply, mv, cmd, checkResult)
 	return false
 end
 
-function action:Clear(ply, checkResult, mv, cmd, interruptSource, interruptData)
+function action:Clear(ply, checkResult, mv, cmd, interruptSource)
 	print(string.format('====== Clear, TrackId: %s ======', self.TrackId))
 	print('checkResult:', checkResult)
 	PrintTable(checkResult)
 	print('mv:', mv)
 	print('cmd:', cmd)
 	print('interruptSource:', interruptSource)
-	print('interruptData:', interruptData)
 end
 
 UPAction:Register('test_lifecycle_t1', action, true)
