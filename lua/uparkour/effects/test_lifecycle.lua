@@ -28,10 +28,11 @@ function effect:Clear(ply, checkResult)
 	surface.PlaySound('hl1/fvox/deactivated.wav')
 end
 
-local example = UPEffect:Register('test_lifecycle', 'example', effect)
-example.label = '#upgui.dev.example'
-
-UPEffect:Register('test_lifecycle_t1', 'default', effect)
+local example = UPar.RegisterEffectEasy('test_lifecycle', 'default', 'example', {
+	AAAACreat = 'Miss DouBao',
+	AAADesc = '#upgui.dev.example',
+	label = '#upgui.dev.example'
+})
 
 
 if CLIENT then

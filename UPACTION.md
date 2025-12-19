@@ -9,13 +9,19 @@
 <a href="./UPEFFECT.md">UPEffect</a>  
 <a href="./SERHOOK.md">SeqHook</a>  
 <a href="./HOOK.md">Hook</a>  
-<a href="./LIFECYCLE.md">Lifecycle</a>  
 <a href="./LRU.md">LRU</a>  
 <a href="./CUSTOMEFFECT.md">Custom Effect</a>  
+
+# UPEffect类
+```note
+我们应当将UPAction视为静态容器, 不应该将任何运行的结果存储在其中。
+```
 
 ## 关于UPAction接口实现
 这里不再采用2.1.0版本的参数对齐写法, 虽然序列表在网络传输中表现良好, 但是高频地unpack也很难受，代码也不好维护, 所以退回1.0.0版本的方法。
 当然, 这样也有很多好处, 比如某些需要持久的数据可以直接放表中, 或者需要继承的数据也可以直接扔进去, 这使开发难度大大滴降低。
+但是坏处也很多, 比如数据不安全, 最好在一开始确定要保护哪些, 否则后来的开发者在钩子中乱来的话, 就会导致一些未知的问题。
+
 
 ## 可选参数
 ![client](./materials/upgui/client.jpg)
@@ -34,67 +40,20 @@
 默认为0, 相同TrackId的动作同时触发时会触发中断判断。
 ```
 
-![client](./materials/upgui/client.jpg)
-**UPAction**:SundryPanels ***table***
-```lua 
--- 例:
-if CLIENT then
-	local function ExamplePanel(self, panel)
-		panel:Help('This is example')
-	end
-
-	action.SundryPanels = {
-		{
-			label = '#upgui.dev.example',
-			func = ExamplePanel,
-		}
-	}
-end
-```
-
-![client](./materials/upgui/client.jpg)
-**UPAction**:ConVarsPanelOverride(**DForm** panel)
-```note
-可以在这里自定义参数界面, 比如创建复杂结构的参数编辑器
-```
-```lua 
-if CLIENT then
-    function action:ConVarsPanelOverride(panel)
-        panel:Help(self.Name)
-    end
-end
-```
-
-![client](./materials/upgui/client.jpg)
-**UPAction**:ConVarWidgetExpand(**int** idx, **table** cvCfg, **panel** originWidget, **DForm** panel)
-```note
-You can extend the controls of the parameter interface here, or override the default ones.
-```
-```lua 
-if CLIENT then
-    function action:ConVarWidgetExpand(idx, cvCfg, originWidget, panel)
-		if IsValid(originWidget) and ispanel(originWidget) and idx == 1 then
-			local label = vgui.Create('DLabel')
-			label:SetText('#upgui.dev.cv_widget_expand')
-			label:SetTextColor(Color(0, 150, 0))
-
-			return label
-		end
-    end
-end
-```
-
 ## 需要实现的方法
 ![shared](./materials/upgui/shared.jpg) 
 ***table*** **UPAction**:Check(**Player** ply, **any** data)  
 ```note
-返回表后进入Start
+返回表后将会触发 "UParActPreStartValidate_" + "actName" "和UParActStartValidate", 验证通过后进入Start。
+
+"UParActPreStartValidate" 是 后来者为动作添加额外触发条件的钩子。
 ```
 
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:Start(**Player** ply, **table** checkResult)
 ```note
-在启动时执行一次, 然后进入Think
+在启动时执行一次, 然后进入Think。
+在这里初始化所需要的资源, 资源的载入和释放最好不要有上下文依赖，也就是任何情况都能载入和释放。
 ```
 
 ![server](./materials/upgui/server.jpg)
@@ -108,6 +67,8 @@ end
 ```note
 在Think返回真值、强制结束、 中断 等情况下调用
 强制结束时, interruptSource为true, 其他情况为中断名称
+
+在这里清理资源, 资源的载入和释放最好不要有上下文依赖，也就是任何情况都能载入和释放。
 ```
 
 

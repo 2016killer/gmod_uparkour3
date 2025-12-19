@@ -9,7 +9,6 @@
 <a href="./UPEFFECT.md">UPEffect</a>  
 <a href="./SERHOOK.md">SeqHook</a>  
 <a href="./HOOK.md">Hook</a>  
-<a href="./LIFECYCLE.md">Lifecycle</a>  
 <a href="./LRU.md">LRU</a>  
 <a href="./CUSTOMEFFECT.md">Custom Effect</a>  
 
@@ -31,4 +30,295 @@ UPar.SeqHookRemove(**string** eventName, **string** identifier)
 ```
 
 ## 已存在的钩子
+![shared](./materials/upgui/shared.jpg)
+**@名字:** UParVersionCompat
+```note
+尽量将代码放在 version_compat 目录下, 这是用来处理不同版本的数据兼容, 最好优先级设为 版本号 例如: 210
+```
 
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParActCVarWidget** + **actName**  
+**@参数:** cvCfg **table**, panel **DForm**  
+**@返回:** created **bool**
+```note
+这是局部的, 只针对指定的动作的面板。
+可以用来自定义动作的参数编辑器。
+```
+```lua
+UPar.SeqHookAdd('UParActCVarWidget_test_lifecycle', 'example.special.widget', function(cvCfg, panel)
+  if cvCfg.name == 'example_special' then
+    panel:Help('#upgui.dev.special_widget')
+    return true
+  end
+end)
+```
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParActCVarWidget**   
+**@参数:** actName **string**, cvCfg **table**, panel **DForm**  
+**@返回:** created **bool**
+```note
+这是全局的, 当局部的没有返回值时生效。
+可以用来自定义动作的参数编辑器。
+```
+```lua
+UPar.SeqHookAdd('UParActCVarWidget', 'example.special.widget', function(actName, cvCfg, panel)
+  if cvCfg.name == 'example_special' then
+    panel:Help('#upgui.dev.special_widget_global')
+    return true
+  end
+end)
+```
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParActSundryPanels** + **actName**  
+**@参数:** editor **UParActEditor**
+
+```note
+这是局部的。
+```
+```lua
+UPar.SeqHookAdd('UParActSundryPanels_test_lifecycle', 'sundrypanel.example.1', function(editor)
+	local panel = vgui.Create('DButton', editor)
+	panel:Dock(FILL)
+	panel:SetText('#upgui.button')
+	editor:AddSheet('#upgui.dev.sundry', 'icon16/add.png', panel)
+end)
+```
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParActSundryPanels**    
+**@参数:** actName **string**, editor **UParActEditor**
+
+```note
+这是全局的。
+
+内部使用了此来添加描述面板。
+```
+
+
+![server](./materials/upgui/server.jpg)
+**@名字:** **UParActAllowInterrupt** + **actName**  
+**@参数:** ply **Player**, playingData **table**, interruptSource **string**  
+**@返回:** allowInterrupt **bool**
+```note
+这是局部的。
+
+interruptSource 为中断者 (UPAction) 的名字。
+playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+```lua
+UPar.SeqHookAdd('UParActAllowInterrupt_test_lifecycle', 'example.interrupt', function(ply, playingData, interruptSource)
+  if interruptSource == 'test_interrupt' then
+    return true
+  end
+end)
+```
+
+![server](./materials/upgui/server.jpg)
+**@名字:** **UParActAllowInterrupt**  
+**@参数:** playingName **string**, ply **Player**, playingData **table**, interruptSource **string**  
+**@返回:** allowInterrupt **bool**
+```note
+这是全局的。
+
+playingName 为被中断的动作的名字。
+interruptSource 为中断者 (UPAction) 的名字。
+playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+
+```lua
+UPar.SeqHookAdd('UParActAllowInterrupt', 'example.interrupt', function(playingName, ply, playingData, interruptSource)
+	if playingName == 'test_lifecycle' and interruptSource == 'test_interrupt' then
+		return true
+	end
+end)
+```
+
+![server](./materials/upgui/server.jpg)
+**@名字:** **UParActPreStartValidate** + **actName**  
+**@参数:** ply **Player**, checkResult **table**  
+**@返回:** invalid **bool**
+```note
+这是局部的。
+
+checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+```lua
+-- 随机停止
+UPar.SeqHookAdd('UParActPreStartValidate_test_lifecycle', 'example.prestart.validate', function(ply, checkResult)
+	return math.random() > 0.5
+end)
+```
+
+![server](./materials/upgui/server.jpg)
+**@名字:** **UParActPreStartValidate**  
+**@参数:** actName **string**, ply **Player**, checkResult **table**  
+**@返回:** invalid **bool**
+```note
+这是全局的。
+
+checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+```lua
+-- 随机停止所有
+UPar.SeqHookAdd('UParActPreStartValidate', 'example.prestart.validate', function(actName, ply, checkResult)
+	return math.random() > 0.5
+end)
+```
+
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActStartOut** + **actName**  
+**@参数:** ply **Player**, checkResult **table**  
+
+```note
+这是局部的。
+
+checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActStartOut**  
+**@参数:** actName **string**, ply **Player**, checkResult **table**  
+
+```note
+这是全局的。
+
+checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+
+
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActClearOut** + **actName**  
+**@参数:** ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
+
+```note
+这是局部的。
+
+playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActClearOut**    
+**@参数:** actName **string**, ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
+
+```note
+这是全局的。
+
+playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+```
+
+
+
+	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
+	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActEffRhythmChange** + **actName**  
+**@参数:** ply **Player**, effect **UPEffect**, customData **any**
+
+```note
+这是局部的。
+
+effect 是当前动作使用的特效。
+effect 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。 
+
+我还没想好这个钩子怎么用。
+```
+
+![shared](./materials/upgui/shared.jpg)
+**@名字:** **UParActEffRhythmChange**   
+**@参数:** actName **string**, ply **Player**, effect **UPEffect**, customData **any**
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarPreviewColor** + **actName** + **effName**  
+**@参数:** key **string**, val **any**  
+**@返回:** color **Color** or **nil** or **bool**
+```note
+这是局部的。
+
+返回一个颜色, 或者 nil, 或者 false 来取消预览。
+```
+```lua
+local red = Color(255, 0, 0)
+UPar.SeqHookAdd('UParEffVarPreviewColor_test_lifecycle_default', 'example.red', function(key, val)
+  if key == 'rhythm_sound' then return red end
+end, 1)
+```
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarPreviewColor**   
+**@参数:** actName **string**, effName **string**, key **string**, val **any**  
+**@返回:** color **Color** or **nil** or **bool**
+```note
+这是全局的。
+
+返回一个颜色, 或者 nil, 或者 false 来取消预览。
+```
+```lua
+local yellow = Color(255, 255, 0)
+UPar.SeqHookAdd('UParEffVarPreviewColor', 'example.yellow', function(actName, effName, key, val)
+  if actName == 'test_lifecycle' and key == 'rhythm_sound' then 
+    return yellow 
+  end
+end, 1)
+```
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarEditorColor** + **actName** + **effName**  
+**@参数:** key **string**, val **any**  
+**@返回:** color **Color** or **nil** or **bool**
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarEditorColor**   
+**@参数:** actName **string**, effName **string**, key **string**, val **any**  
+**@返回:** color **Color** or **nil** or **bool**
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarEditorWidget** + **actName** + **effName**  
+**@参数:** key **string**, val **any**, editor **DForm**, keyColor **Color**  
+**@返回:** created **bool**
+```note
+这是局部的。
+
+keyColor 是来自 UParEffVarEditorColor 的颜色。
+```
+```lua
+UPar.SeqHookAdd('UParEffVarEditorWidget_test_lifecycle_default', 'example.local', function(key, val, editor, keyColor)
+  if key == 'rhythm_sound' then
+    local comboBox = editor:ComboBox(UPar.SnakeTranslate_2(key), '')
+
+    comboBox.OnSelect = function(self, index, value, data)
+      editor:Update(key, value)
+    end
+    comboBox:AddChoice('hl1/fvox/blip.wav')
+    comboBox:AddChoice('Weapon_AR2.Single')
+    comboBox:AddChoice('Weapon_Pistol.Single')
+
+    editor:Help('#upgui.dev.special_widget')
+    return true
+  end
+end, 1)
+```
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarEditorWidget**   
+**@参数:** actName **string**, effName **string**, key **string**, val **any**, editor **DForm**, keyColor **Color**  
+**@返回:** created **bool**
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarPreviewWidget** + **actName** + **effName**  
+**@参数:** key **string**, val **any**, editor **DForm**, keyColor **Color**  
+**@返回:** created **bool**
+
+
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParEffVarPreviewWidget**   
+**@参数:** actName **string**, effName **string**, key **string**, val **any**, editor **DForm**, keyColor **Color**  
+**@返回:** created **bool**

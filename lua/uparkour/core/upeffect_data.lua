@@ -29,14 +29,20 @@ end
 
 
 UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
-	local targetEffect = UPar.GetEffect(actName, tarName)
-	if not targetEffect then
-		error(string.format('can not find effect named "%s" from act "%s"', tarName, actName))
-	end
+	assert(isstring(actName), string.format('actName "%s" is not string', actName))
+	assert(isstring(tarName), string.format('tarName "%s" is not string', tarName))
+	assert(isstring(name), string.format('name "%s" is not string', name))
+	assert(tarName ~= name, string.format('effect name "%s" is same as target name "%s"', name, tarName))
+	assert(istable(initData), string.format('initData "%s" is not table', initData))
 
-	local effect = table.Merge(UPar.DeepClone(targetEffect), initData)
+	local targetEffect = UPar.GetEffect(actName, tarName)
+	assert(targetEffect, string.format('can not find effect named "%s" from act "%s"', tarName, actName))
+	assert(UPar.isupeffect(targetEffect), string.format('effect named "%s" from act "%s" is not upeffect', tarName, actName))
+
+	local effect = UPar.DeepClone(targetEffect)
 	effect.Name = name
-	effect:Register()
+
+	effect:Register(actName, name, initData)
 	
 	return effect
 end

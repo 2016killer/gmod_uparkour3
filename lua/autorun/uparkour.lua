@@ -22,7 +22,7 @@
 
 AddCSLuaFile()
 UPar = UPar or {}
-UPar.Version = '3.0.0 building'
+UPar.Version = '3.0.0 beta'
 
 UPar.emptyfunc = function() end
 UPar.truefunc = function() return true end
