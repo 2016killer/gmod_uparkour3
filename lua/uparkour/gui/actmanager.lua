@@ -20,7 +20,7 @@ local function CreateMenu(panel)
 	actManager.RefreshNode = function(self)
 		actManager:Clear()
 
-		local ActionSet = UPar.GetAllActions()
+		local ActionSet = UPar.ActInstances
 		local keys = {}
 		for k, v in pairs(ActionSet) do table.insert(keys, k) end
 		table.sort(keys)
@@ -32,7 +32,7 @@ local function CreateMenu(panel)
 				continue
 			end
 
-			if v.Invisible then 
+			if v.invisible then 
 				continue 
 			end
 

@@ -30,7 +30,7 @@ function action:Think(ply, mv, cmd, checkResult)
 
 	if curtime > checkResult.endtime - 0.5 and checkResult.rhythm == 0 then
 		checkResult.rhythm = 1
-		UPar.ActChangeRhythm(ply, self, 1)
+		UPar.ActEffChangeRhythm(ply, self, 1)
 	elseif curtime > checkResult.endtime then
 		print(string.format('====== Think Out, TrackId: %s ======', self.TrackId))
 		print('checkResult:', checkResult)
@@ -50,4 +50,5 @@ function action:Clear(ply, checkResult, mv, cmd, interruptSource)
 	print('interruptSource:', interruptSource)
 end
 
-UPAction:Register('test_lifecycle_t1', action, true)
+local action_t1 = UPAction:Register('test_lifecycle_t1', action, true)
+action_t1.TrackId = 1

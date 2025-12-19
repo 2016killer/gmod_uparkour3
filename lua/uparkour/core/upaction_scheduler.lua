@@ -38,8 +38,8 @@ local function ActStart(ply, action, checkResult)
 	local effect = GetPlayerUsingEffect(ply, actName)
 	if effect then effect:Start(ply, checkResult) end
 
-	SeqHookRun('UParActStartOut_' .. actName, ply, checkResult)
-	SeqHookRun('UParActStartOut', actName, ply, checkResult)
+	SeqHookRun('UParActStartOut_' .. actName, ply, checkResult, action.TrackId)
+	SeqHookRun('UParActStartOut', actName, ply, checkResult, action.TrackId)
 end
 
 local function ActClear(ply, playing, playingData, mv, cmd, interruptSource)
@@ -49,11 +49,11 @@ local function ActClear(ply, playing, playingData, mv, cmd, interruptSource)
 	local effect = GetPlayerUsingEffect(ply, playingName)
 	if effect then effect:Clear(ply, playingData, interruptSource) end
 
-	SeqHookRun('UParClearOut_' .. playingName, ply, playingData, mv, cmd, interruptSource)
-	SeqHookRun('UParClearOut', playingName, ply, playingData, mv, cmd, interruptSource)
+	SeqHookRun('UParActClearOut_' .. playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
+	SeqHookRun('UParActClearOut', playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
 end
 
-local function ActChangeRhythm(ply, action, customData)
+local function ActEffChangeRhythm(ply, action, customData)
 	local actName = action.Name
 
 	if SERVER then
@@ -67,15 +67,15 @@ local function ActChangeRhythm(ply, action, customData)
 	local effect = GetPlayerUsingEffect(ply, actName)
 	if effect then effect:Rhythm(ply, customData) end
 
-	SeqHookRun('UParRhythmChange_' .. actName, ply, customData)
-	SeqHookRun('UParRhythmChange', actName, ply, customData)
+	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
+	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
 end
 
 UPar.GetPlayerUsingEffect = GetPlayerUsingEffect
 
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
-UPar.ActChangeRhythm = ActChangeRhythm
+UPar.ActEffChangeRhythm = ActEffChangeRhythm
 
 if SERVER then
     util.AddNetworkString('UParCallClientAction')
@@ -256,7 +256,8 @@ elseif CLIENT then
 
 		local action = ActInstances[actName]
 		if not action then
-			error(string.format('act named %s is not found', actName))
+			print(string.format('act named "%s" is not found', actName))
+			return
 		end
 
 		if action.CV_Disabled and action.CV_Disabled:GetBool() then
@@ -287,7 +288,7 @@ elseif CLIENT then
 		if not MoveControl.enable then 
 			return 
 		end
-		
+
 		if MoveControl.ClearMovement then
 			cmd:ClearMovement()
 		end
@@ -349,7 +350,7 @@ elseif CLIENT then
 				end
 			elseif flag == RHYTHM_FLAG then
 				local customData = checkResult
-				local succ, err = pcall(ActChangeRhythm, ply, action, customData)
+				local succ, err = pcall(ActEffChangeRhythm, ply, action, customData)
 				if not succ then
 					ErrorNoHaltWithStack(err)
 				end
