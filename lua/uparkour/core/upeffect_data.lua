@@ -107,7 +107,7 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			if actName == 'AAAMetadata' then continue end
 			UPar.PushPlyEffCfg(ply, actName, effName)
 		end
-		PrintTable(cfg)
+		// PrintTable(cfg)
 	end
 
 	if istable(cache) then
@@ -116,7 +116,7 @@ UPar.PushPlyEffSetting = function(ply, cfg, cache)
 			UPar.InitCustomEffect(cache)
 			UPar.PushPlyEffCache(ply, cache)
 		end
-		PrintTable(cache)
+		// PrintTable(cache)
 	end
 end
  

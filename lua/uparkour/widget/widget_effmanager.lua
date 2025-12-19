@@ -143,7 +143,8 @@ function EffectManager:CreatePreview(effect, node)
 		ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not table)', effect))
 		return
 	end
-
+	
+	local actName = self.actName
 	local effName = effect.Name
 	local mainPanel = vgui.Create('DPanel')
 
@@ -204,6 +205,7 @@ function EffectManager:CreateEditor(effect, node)
 
 	local effName = effect.Name
 	local actName = self.actName
+	local linkName = effect.linkName
 
 	local mainPanel = vgui.Create('DPanel')
 	if IsValid(self.div) then 
@@ -248,15 +250,15 @@ function EffectManager:CreateEditor(effect, node)
 	for _, key in ipairs(keys) do
 		local val = obj[key]
 
-		local keyColor = UPar.SeqHookRunSafe(string.format('UParEffVarEditorColor_%s_%s', actName, effName), key, val) 
-		or UPar.SeqHookRunSafe('UParEffVarEditorColor', actName, effName, key, val)
+		local keyColor = UPar.SeqHookRunSafe(string.format('UParEffVarEditorColor_%s_%s', actName, linkName), key, val) 
+		or UPar.SeqHookRunSafe('UParEffVarEditorColor', actName, linkName, key, val)
 	
 		if keyColor == false then 
 			continue 
 		end
 
-		local temp = UPar.SeqHookRunSafe(string.format('UParEffVarEditorWidget_%s_%s', actName, effName), key, val, editor, keyColor) 
-		or UPar.SeqHookRunSafe('UParEffVarEditorWidget', actName, effName, key, val, editor, keyColor)
+		local temp = UPar.SeqHookRunSafe(string.format('UParEffVarEditorWidget_%s_%s', actName, linkName), key, val, editor, keyColor) 
+		or UPar.SeqHookRunSafe('UParEffVarEditorWidget', actName, linkName, key, val, editor, keyColor)
 	end
 	
 	editor:Help('')
@@ -289,12 +291,12 @@ UPar.SeqHookAdd('UParEffVarPreviewColor', 'default', function(_, _, key, val)
 	end
 end, 10)
 
-UPar.SeqHookAdd('UParEffVarPreviewWidget', 'default', function(_, _, key, val, editor, keyColor)
+UPar.SeqHookAdd('UParEffVarPreviewWidget', 'default', function(_, _, key, val, preview, keyColor)
 	local label = nil
 	if key == 'AAADesc'  then 
-		label = editor:Help(string.format('%s = %s', UPar.SnakeTranslate(key), language.GetPhrase(tostring(val))))
+		label = preview:Help(string.format('%s = %s', UPar.SnakeTranslate(key), language.GetPhrase(tostring(val))))
 	else
-		label = editor:Help(string.format('%s = %s', UPar.SnakeTranslate(key), val))
+		label = preview:Help(string.format('%s = %s', UPar.SnakeTranslate(key), val))
 	end
 
 	if IsColor(keyColor) and IsValid(label) then 

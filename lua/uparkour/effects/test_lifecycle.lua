@@ -32,3 +32,53 @@ local example = UPEffect:Register('test_lifecycle', 'example', effect)
 example.label = '#upgui.dev.example'
 
 UPEffect:Register('test_lifecycle_t1', 'default', effect)
+
+
+if CLIENT then
+	local red = Color(255, 0, 0)
+	local yellow = Color(150, 150, 0)
+
+
+	UPar.SeqHookAdd('UParEffVarPreviewColor_test_lifecycle_default', 'example.red', function(key, val)
+		if key == 'rhythm_sound' then return red end
+	end, 1)
+
+	UPar.SeqHookAdd('UParEffVarPreviewColor', 'example.yellow', function(actName, effName, key, val)
+		if actName == 'test_lifecycle' and key == 'rhythm_sound' then 
+			return yellow 
+		end
+	end, 1)
+
+	UPar.SeqHookAdd('UParEffVarEditorWidget_test_lifecycle_default', 'example.local', function(key, val, editor, keyColor)
+		if key == 'rhythm_sound' then
+			local comboBox = editor:ComboBox(UPar.SnakeTranslate_2(key), '')
+
+			comboBox.OnSelect = function(self, index, value, data)
+				editor:Update(key, value)
+			end
+			comboBox:AddChoice('hl1/fvox/blip.wav')
+			comboBox:AddChoice('Weapon_AR2.Single')
+			comboBox:AddChoice('Weapon_Pistol.Single')
+
+			editor:Help('#upgui.dev.special_widget')
+			return true
+		end
+	end, 1)
+
+	UPar.SeqHookAdd('UParEffVarEditorWidget', 'example.global', function(actName, effName, key, val, editor, keyColor)
+		if actName == 'test_lifecycle' and key == 'rhythm_sound' then
+			local comboBox = editor:ComboBox(UPar.SnakeTranslate_2(key), '')
+
+			comboBox.OnSelect = function(self, index, value, data)
+				editor:Update(key, value)
+			end
+			comboBox:AddChoice('hl1/fvox/blip.wav')
+			comboBox:AddChoice('Weapon_Shotgun.Double')
+			comboBox:AddChoice('Weapon_357.Single')
+
+			editor:Help('#upgui.dev.special_widget_global')
+			return true
+		end
+	end, 1)
+
+end
