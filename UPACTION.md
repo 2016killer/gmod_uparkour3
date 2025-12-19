@@ -104,11 +104,10 @@ end
 ```
 
 ![shared](./materials/upgui/shared.jpg)
-**UPAction**:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **UPAction** interruptSource, **table** interruptData)
+**UPAction**:Clear(**Player** ply, **table** checkResult, **CMoveData** mv, **CUserCmd** cmd, **bool** or **string** interruptSource)
 ```note
 在Think返回真值、强制结束、 中断 等情况下调用
-强制结束时, interruptSource为true
-中断时, interruptSource为table, interruptData为中断者的checkResult
+强制结束时, interruptSource为true, 其他情况为中断名称
 ```
 
 

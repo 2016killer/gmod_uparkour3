@@ -159,11 +159,7 @@ end
 会在UPAction:Start后自动调用
 ```
 
-![shared](./materials/upgui/shared.jpg)
-**UPEffect**:Clear(**Player** ply, **table** checkResult, **bool** or **UPAction** interruptSource, **table** interruptData)
-```note
-会在UPAction:Clear后自动调用
-```
+
 
 ![shared](./materials/upgui/shared.jpg)
 **UPEffect** UPar.RegisterEffectEasy(**string** actName, **string** tarName, **string** name, **table** initData)
