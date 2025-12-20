@@ -13,11 +13,11 @@ local function CreateMenu(panel)
 	panel:ControlHelp(UPar.Version)
 end
 
-hook.Add('PopulateToolMenu', 'upar.menu.setting', function()
+hook.Add('PopulateToolMenu', 'upar.menu.extend', function()
 	spawnmenu.AddToolMenuOption('Options', 
 		'UParkour', 
-		'upar.menu.setting', 
-		'#upgui.menu.setting', '', '', 
+		'upar.menu.extend', 
+		'#upgui.menu.extend', '', '', 
 		CreateMenu
 	)
 end)
