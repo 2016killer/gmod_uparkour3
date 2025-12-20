@@ -34,6 +34,8 @@ function VecEditor:Init()
 	self:SetInterval(0.5)
 	self:SetDecimals(2)
 	self:SetMinMax(-10000, 10000)
+
+	// self.UUID = 'VecEditor-' .. UPar.MiniUUID()
 end
 
 function VecEditor:OnSizeChanged(newWidth, newHeight)
@@ -105,16 +107,51 @@ function VecEditor:SetFraction(frac)
 end
 
 function VecEditor:SetConVar(cvName)
+	self.OnChange = UPar.emptyfunc
+
+	if not isstring(cvName) then
+		self.cvName = nil
+		return
+	end
+
+	self.cvName = cvName
 	local cvar = GetConVar(cvName)
 
 	local vec = Vector(cvar and cvar:GetString() or '0 0 0')
 	self:SetValue(vec)
-	self.OnChange = function(self, newVal)
-		RunConsoleCommand(cvName, tostring(newVal))
+	self.OnChange = self.ChangeCVar
+end
+
+function VecEditor:Think()
+	-- cvars.AddChangeCallback 没法稳定触发
+	if CurTime() < (self.NEXT or 0) then 
+		return 
+	end
+
+	self.NEXT = CurTime() + 0.5
+
+	local cvar = isstring(self.cvName) and GetConVar(self.cvName)
+	if cvar then
+		self.OnChange = UPar.emptyfunc
+		self:SetValue(Vector(cvar:GetString()))
+		self.OnChange = self.ChangeCVar
 	end
 end
 
+function VecEditor:ChangeCVar(newVal)
+	if not isstring(self.cvName) then
+		return false
+	end
+
+	RunConsoleCommand(self.cvName, tostring(newVal))
+
+	return true
+end
+
 function VecEditor:OnRemove()
+	self.NEXT = nil
+	self.cvName = nil
+	// self.UUID = nil
 	self.inputX = nil
 	self.inputY = nil
 	self.inputZ = nil

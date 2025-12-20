@@ -61,7 +61,10 @@ function ActEditor:Init2(actName)
 		scrollPanel:Dock(FILL)
 		panel:Dock(FILL)
 
-		pcall(self.CreateConVarsPanel, self, panel)
+		local succ, err = pcall(self.CreateConVarsPanel, self, panel)
+		if not succ then
+			ErrorNoHaltWithStack(string.format('CreateConVarsPanel: %s', err))
+		end
 	end
 
 	UPar.SeqHookRunAllSafe('UParActSundryPanels_' .. actName, self)
@@ -138,14 +141,8 @@ function ActEditor:CreateConVarsPanel(panel)
 			continue 
 		end
 
-		local override = UPar.SeqHookRunSafe('UParActCVarWidget_' .. actName, cvCfg, panel) or
+		local temp = UPar.SeqHookRunSafe('UParActCVarWidget_' .. actName, cvCfg, panel) or
 		UPar.SeqHookRunSafe('UParActCVarWidget', actName, cvCfg, panel)
-
-		if override then
-			continue
-		end
-
-		self:CreateConVarsWidget(cvCfg, panel)
 	end
 	
 	ctrl:AddOption('#preset.default', defaultPreset)
@@ -161,7 +158,16 @@ function ActEditor:CreateConVarsPanel(panel)
 end
 
 
-function ActEditor:CreateConVarsWidget(cvCfg, panel)
+function ActEditor:OnRemove()
+	self.action = nil
+	self.Tabs = nil
+end
+
+vgui.Register('UParActEditor', ActEditor, 'DFrame')
+ActEditor = nil
+
+
+UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 	local cvName = cvCfg.name
 	local cvHelp = cvCfg.help
 	local cvWidget = cvCfg.widget or 'NumSlider'
@@ -235,16 +241,8 @@ function ActEditor:CreateConVarsWidget(cvCfg, panel)
 	elseif cvHelp then
 		panel:ControlHelp(UPar.GetConVarPhrase(cvName) .. '.help')
 	end
-end
 
-function ActEditor:OnRemove()
-	self.action = nil
-	self.Tabs = nil
-end
-
-vgui.Register('UParActEditor', ActEditor, 'DFrame')
-ActEditor = nil
-
+end, 10)
 
 UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
 	local action = UPar.GetAction(actName)

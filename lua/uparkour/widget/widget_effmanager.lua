@@ -353,6 +353,9 @@ UPar.SeqHookAdd('UParEffVarEditorWidget', 'default', function(_, _, key, val, ed
 		numberWang.OnValueChanged = function(_, newVal)
 			editor:Update(key, newVal)
 		end
+		numberWang:SetInterval(0.5)
+		numberWang:SetDecimals(2)
+		numberWang:SetMinMax(-10000, 10000)
 
 		editor:AddItem(numberWang)
 

@@ -10,40 +10,46 @@ local action = UPAction:Register('test_lifecycle', {})
 action:InitConVars({
 	{
 		name = 'example_numslider',
+		label = '#upgui.dev.example_numslider',
 		default = '0',
 		widget = 'NumSlider',
 		min = 0, max = 1, decimals = 2,
-		help = true
+		help = '#upgui.dev.example_help',
 	},
 
 	{
 		name = 'example_color',
-		default = '0',
+		label = '#upgui.dev.example_color_editor',
+		default = '255 0 0 255',
 		widget = 'UParColorEditor'
 	},
 
 	{
 		name = 'example_ang',
-		default = '0',
+		label = '#upgui.dev.example_ang_editor',
+		default = '0.5 0.5 0.5',
 		widget = 'UParAngEditor',
 		min = -1, max = 1, decimals = 1, interval = 0.1,
 	},
 
 	{
 		name = 'example_vec',
-		default = '0',
+		label = '#upgui.dev.example_vec_editor',
+		default = '0 1 0',
 		widget = 'UParVecEditor',
 		min = -2, max = 2, decimals = 2, interval = 0.5,
 	},
 
 	{
 		name = 'example_keybinder',
+		label = '#upgui.dev.example_keybinder',
 		default = '[9, 1]',
 		widget = 'UParKeyBinder',
 	},
 
 	{
 		name = 'example_invisible',
+		label = '#upgui.dev.example_invisible',
 		default = '0',
 		widget = 'NumSlider',
 		invisible = true,
@@ -51,6 +57,7 @@ action:InitConVars({
 
 	{
 		name = 'example_admin',
+		label = '#upgui.dev.example_admin',
 		default = '0',
 		widget = 'NumSlider',
 		admin = true,

@@ -33,6 +33,8 @@ function AngEditor:Init()
 	self:SetInterval(0.5)
 	self:SetDecimals(2)
 	self:SetMinMax(-10000, 10000)
+
+	// self.UUID = 'AngEditor-' .. UPar.MiniUUID()
 end
 
 function AngEditor:SetValue(ang)
@@ -104,16 +106,52 @@ function AngEditor:SetFraction(frac)
 end
 
 function AngEditor:SetConVar(cvName)
-	local cvar = GetConVar(cvName)
+	self.OnChange = UPar.emptyfunc
 
+	if not isstring(cvName) then
+		self.cvName = nil
+		return
+	end
+
+	self.cvName = cvName
+	local cvar = GetConVar(cvName)
 	local ang = Angle(cvar and cvar:GetString() or '0 0 0')
 	self:SetValue(ang)
-	self.OnChange = function(self, newVal)
-		RunConsoleCommand(cvName, tostring(newVal))
+	self.OnChange = self.ChangeCVar
+end
+
+
+function AngEditor:Think()
+	-- cvars.AddChangeCallback 没法稳定触发
+	if CurTime() < (self.NEXT or 0) then 
+		return 
+	end
+
+	self.NEXT = CurTime() + 0.5
+
+	local cvar = isstring(self.cvName) and GetConVar(self.cvName)
+	if cvar then
+		self.OnChange = UPar.emptyfunc
+		self:SetValue(Angle(cvar:GetString()))
+		self.OnChange = self.ChangeCVar
 	end
 end
 
+
+function AngEditor:ChangeCVar(newVal)
+	if not isstring(self.cvName) then
+		return false
+	end
+
+	RunConsoleCommand(self.cvName, tostring(newVal))
+
+	return true
+end
+
 function AngEditor:OnRemove()
+	self.NEXT = nil
+	self.cvName = nil
+	// self.UUID = nil
 	self.inputPitch = nil
 	self.inputYaw = nil
 	self.inputRoll = nil

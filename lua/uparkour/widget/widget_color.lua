@@ -53,6 +53,8 @@ function ColorEditor:Init()
 	inputG:SetInterval(1)
 	inputB:SetInterval(1)
 	inputA:SetInterval(1)
+
+	// self.UUID = 'ColorEditor-' .. UPar.MiniUUID()
 end
 
 function ColorEditor:OnSizeChanged(newWidth, newHeight)
@@ -82,16 +84,6 @@ function ColorEditor:SetValue(color)
 	self.bindColor = color
 end
 
-
-function ColorEditor:SetConVar(cvName)
-	local cvar = GetConVar(cvName)
-	local color = string.ToColor(cvar and cvar:GetString() or '0 0 0 255')
-	self:SetValue(color)
-	self.OnChange = function(self, newVal)
-		RunConsoleCommand(cvName, tostring(newVal))
-	end
-end
-
 function ColorEditor:GetValue()
 	return IsColor(self.bindColor) and self.bindColor or Color(
 		self.inputR:GetValue(), 
@@ -101,7 +93,53 @@ function ColorEditor:GetValue()
 	)
 end
 
+function ColorEditor:SetConVar(cvName)
+	self.OnChange = UPar.emptyfunc
+
+	if not isstring(cvName) then
+		self.cvName = nil
+		return
+	end
+
+	self.cvName = cvName
+	local cvar = GetConVar(cvName)
+	local color = string.ToColor(cvar and cvar:GetString() or '0 0 0 255')
+	self:SetValue(color)
+	self.OnChange = self.ChangeCVar
+end
+
+
+
+function ColorEditor:Think()
+	-- cvars.AddChangeCallback 没法稳定触发
+	if CurTime() < (self.NEXT or 0) then 
+		return 
+	end
+
+	self.NEXT = CurTime() + 0.5
+
+	local cvar = isstring(self.cvName) and GetConVar(self.cvName)
+	if cvar then
+		self.OnChange = UPar.emptyfunc
+		self:SetValue(string.ToColor(cvar:GetString()))
+		self.OnChange = self.ChangeCVar
+	end
+end
+
+function ColorEditor:ChangeCVar(newVal)
+	if not isstring(self.cvName) then
+		return false
+	end
+
+	RunConsoleCommand(self.cvName, tostring(newVal))
+
+	return true
+end
+
 function ColorEditor:OnRemove()
+	self.NEXT = nil
+	self.cvName = nil
+	// self.UUID = nil
 	self.inputR = nil
 	self.inputG = nil
 	self.inputB = nil

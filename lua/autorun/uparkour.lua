@@ -22,7 +22,7 @@
 
 AddCSLuaFile()
 UPar = UPar or {}
-UPar.Version = '3.0.0 beta'
+UPar.Version = '3.0.0 alpha'
 
 UPar.emptyfunc = function() end
 UPar.truefunc = function() return true end
@@ -286,6 +286,13 @@ local function DeepInject(container, injector, cache)
     return container
 end
 
+local function generateRandHex()
+	return string.format('%x', math.random(0,15))
+end
+
+UPar.MiniUUID = function()
+    return string.gsub('xxxxxxxxxxxxxxxx', 'x', generateRandHex)
+end
 
 UPar.DeepClone = DeepClone
 UPar.DeepInject = DeepInject
