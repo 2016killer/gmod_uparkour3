@@ -8,34 +8,22 @@ local KeyBinder = {}
 
 function KeyBinder:Init()
     self.values = {}
-    self.pressedKeys = {}
     self:UpdateText()
 end
 
-function KeyBinder:DoClick()
-    if not self:IsVisible() or not self:IsEnabled() then return end
-    self:RequestFocus()
-    self:SetMouseInputEnabled(false)
-    self:SetKeyboardInputEnabled(true)
-end
-
 function KeyBinder:OnKeyCodePressed(keyCode)
-    table.insert(self.values, keyCode)
-    self:UpdateText2()
-
-    self.pressedKeys[keyCode] = true
 end
 
 function KeyBinder:OnKeyCodeReleased(keyCode)
-    self.pressedKeys[keyCode] = nil
+    table.insert(self.values, keyCode)
+    self:UpdateText2()
 
-    if table.IsEmpty(self.pressedKeys) then
+    if keyCode == KEY_ENTER or keyCode == KEY_PAD_ENTER then
         self:FocusPrevious()
     end
 end
 
 function KeyBinder:OnFocusChanged(gained)
-    print('fucking', gained)
     if gained then 
         self:SetEnabled(false)
         self.values = {}
@@ -92,13 +80,13 @@ function KeyBinder:UpdateText2()
     local text = {}
 
     if table.IsEmpty(self.values) then
-        text = '#upgui.widget.keyinput'
+        text = language.GetPhrase('upgui.widget.keyinput')
     else
         for i, v in ipairs(self.values) do
             text[i] = input.GetKeyName(v) or 'None'
         end
 
-        text = table.concat(text, ' + ') .. ' + ...'
+        text = table.concat(text, ' + ') .. ' + ..., ' .. language.GetPhrase('upgui.widget.keyinput.submit')
     end
 
     self:SetText(text)
@@ -120,17 +108,5 @@ end
 
 KeyBinder.OnChange = UPar.emptyfunc
 
-vgui.Register('UParKeyBinder', KeyBinder, 'DButton')
+vgui.Register('UParKeyBinder', KeyBinder, 'DTextEntry')
 KeyBinder = nil
-
-
-// if IsValid(frame) then frame:Remove() end
-// if IsValid(keybinder) then keybinder:Remove() end
-// frame = vgui.Create('DFrame')
-// frame:SetSize(200, 200)
-// frame:Center()
-// frame:MakePopup()
-// frame:SetSizable(true)
-
-// comkeybinder = vgui.Create('UParKeyBinder', frame)
-// comkeybinder:Dock(FILL)

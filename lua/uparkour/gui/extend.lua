@@ -7,8 +7,7 @@
 local function CreateMenu(panel)
 	panel:Clear()
 
-	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
-	panel:ControlHelp('#up.gmodlegs3_compat.help')
+	UPar.SeqHookRunAllSafe('UParExtendMenu', panel)
 
 	panel:Help('==========Version==========')
 	panel:ControlHelp(UPar.Version)

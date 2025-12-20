@@ -11,3 +11,8 @@ hook.Add('ShouldDisableLegs', 'upar.gmodlegs3', function()
 	
 	return VMLegs and VMLegs:IsActive()
 end)
+
+UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
+	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
+	panel:ControlHelp('#up.gmodlegs3_compat.help')
+end, 1)

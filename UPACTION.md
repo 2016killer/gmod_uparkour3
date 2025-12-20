@@ -89,7 +89,7 @@ true: 使用客户端预测
 ```note
 在初始化后会出现在Q菜单中
 组合键用空格隔开
-例: '33 83 65': KEY_W + KEY_LCONTROL + KEY_SPACE
+例: '[33, 83, 65]': KEY_W + KEY_LCONTROL + KEY_SPACE
 
 参数本身无作用，需要自行处理。
 ```

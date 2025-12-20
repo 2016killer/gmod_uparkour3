@@ -90,7 +90,7 @@ The parameter itself has no effect and needs to be handled manually.
 ```note
 Will appear in the Q menu after initialization.
 Separate key combinations with spaces.
-Example: '33 83 65': KEY_W + KEY_LCONTROL + KEY_SPACE
+Example: '[33, 83, 65]': KEY_W + KEY_LCONTROL + KEY_SPACE
 
 The parameter itself has no effect and needs to be handled manually.
 ```

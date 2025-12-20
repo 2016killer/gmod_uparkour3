@@ -30,6 +30,19 @@ UPar.SeqHookRemove(**string** eventName, **string** identifier)
 ```
 
 ## 已存在的钩子
+![client](./materials/upgui/client.jpg)
+**@名字:** **UParExtendMenu**   
+**@参数:** panel **DForm**
+```note
+在创建拓展菜单的时候调用
+```
+```lua
+UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
+	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
+	panel:ControlHelp('#up.gmodlegs3_compat.help')
+end, 1)
+```
+
 ![shared](./materials/upgui/shared.jpg)
 **@名字:** UParVersionCompat
 ```note

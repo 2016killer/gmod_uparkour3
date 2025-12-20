@@ -30,6 +30,19 @@ Removes the hook with the specified identifier.
 ```
 
 ## Existing Hooks
+![client](./materials/upgui/client.jpg)
+**@Name:** **UParExtendMenu**   
+**@Parameters:** panel **DForm**
+```note
+Called when creating the extension menu.
+```
+```lua
+UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
+	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
+	panel:ControlHelp('#up.gmodlegs3_compat.help')
+end, 1)
+```
+
 ![shared](./materials/upgui/shared.jpg)
 **@Name:** UParVersionCompat
 ```note
