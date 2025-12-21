@@ -81,14 +81,16 @@ if SERVER then
     util.AddNetworkString('UParCallClientAction')
 	util.AddNetworkString('UParStart')
 
-	local function Trigger(ply, actName, data, checkResult)
-        if not IsValid(ply) or not ply:IsPlayer() then
-            error('Invalid ply\n') 
+	local function Trigger(ply, actName, checkResult, ...)
+        if not IsValid(ply) then
+			print(string.format('Invalid ply "%s"', ply))
+			return
         end
 
 		local action = ActInstances[actName]
 		if not action then
-			error(string.format('act named %s is not found', actName))
+			print(string.format('act named "%s" is not found', actName))
+			return
 		end
 
 		if action.CV_Disabled and action.CV_Disabled:GetBool() then
@@ -106,7 +108,7 @@ if SERVER then
 			end
 		end
 
-		checkResult = checkResult or action:Check(ply, data)
+		checkResult = checkResult or action:Check(ply, ...)
 		if not istable(checkResult) then
 			return
 		else
@@ -203,7 +205,7 @@ if SERVER then
 		local actName = net.ReadString()
 		local checkResult = net.ReadTable()
 
-		Trigger(ply, actName, nil, checkResult)
+		Trigger(ply, actName, checkResult)
 	end)
 
 	hook.Add('SetupMove', 'upar.think', function(ply, mv, cmd)
@@ -249,9 +251,10 @@ if SERVER then
 	hook.Add('PlayerDeath', 'upar.clear', ForceEndAll)
 	hook.Add('PlayerSilentDeath', 'upar.clear', ForceEndAll)
 elseif CLIENT then
-	UPar.Trigger = function(ply, actName, data, checkResult)
-        if not IsValid(ply) or not ply:IsPlayer() then
-            error('Invalid ply\n') 
+	UPar.Trigger = function(ply, actName, checkResult, ...)
+        if not IsValid(ply) then
+			print(string.format('Invalid ply "%s"', ply))
+			return
         end
 
 		local action = ActInstances[actName]
@@ -264,7 +267,7 @@ elseif CLIENT then
 			return
 		end
 		
-		checkResult = checkResult or action:Check(ply, data)
+		checkResult = checkResult or action:Check(ply, ...)
 		if not istable(checkResult) then
 			return
 		end

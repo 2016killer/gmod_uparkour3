@@ -17,9 +17,9 @@ if CLIENT then
 	action:InitCVarKeybind('[0]')
 end
 
-function action:Check(ply, data)
+function action:Check(ply, ...)
 	print(string.format('====== Check, TrackId: %s ======', self.TrackId))
-	print('data:', data)
+	print('data:', ...)
 	return {arg1 = 1}
 end
 

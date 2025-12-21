@@ -16,12 +16,12 @@ UPar.SeqHookAdd('UParActSundryPanels_test_lifecycle', 'TriggerPanel', function(e
 
 	local run = panel:Button('#upgui.dev.run_track_0', '')
 	run.DoClick = function()
-		UPar.Trigger(LocalPlayer(), 'test_lifecycle', 'oh shit')
+		UPar.Trigger(LocalPlayer(), 'test_lifecycle', nil, 'oh shit', 'this is', 'track 0')
 	end
 	
 	local run_t1 = panel:Button('#upgui.dev.run_track_1', '')
 	run_t1.DoClick = function()
-		UPar.Trigger(LocalPlayer(), 'test_lifecycle_t1', 'oh good')
+		UPar.Trigger(LocalPlayer(), 'test_lifecycle_t1', nil, 'oh good', 'this is', 'track 1')
 	end
 
 	local interrupt = panel:Button('#upgui.dev.run_interrupt_0', '')
@@ -33,8 +33,6 @@ UPar.SeqHookAdd('UParActSundryPanels_test_lifecycle', 'TriggerPanel', function(e
 	killself.DoClick = function()
 		RunConsoleCommand('kill')
 	end
-
-
 
 	panel:Help('')
 	
