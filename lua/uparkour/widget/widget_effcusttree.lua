@@ -143,7 +143,8 @@ end
 
 function CustEffTree:DoRightClick(node)
 	local menu = DermaMenu()
-	menu:AddOption('删除', function()
+
+	local delOpt = menu:AddOption('#upgui.delete', function()
 		local actName = self.actName
 		local effName = node.effName
 
@@ -153,11 +154,73 @@ function CustEffTree:DoRightClick(node)
 			self:Refresh()
 		end
 	end)
-	menu:AddOption('复制', function()
-		
+	delOpt:SetIcon('icon16/delete.png')
+
+	local copyOpt = menu:AddOption('#upgui.copy', function()
+		self:Copy(node)
 	end)
+	copyOpt:SetIcon('icon16/application_cascade.png')
+
+
 	menu:Open()
 end
+
+function CustEffTree:Copy(node)
+	local effName = node.effName
+	local effect = self:InitNode(node)
+	if not istable(effect) or not effect.linkName then
+		notification.AddLegacy(string.format('copy failed, can not find custom effect named "%s"', effName), NOTIFY_ERROR, 5)
+		surface.PlaySound('Buttons.snd10')
+		return
+	end
+
+	local actName = effect.linkAct
+	local linkName = effect.linkName
+
+	Derma_StringRequest(
+		'#upgui.derma.filename',           
+		'',  
+		string.format('Copy-%s-%s', effName, os.time()),         
+		function(text)    
+			if string.find(text, '[\\/:*?"<>|]') then
+				error(string.format('Invalid name "%s" (contains invalid filename characters)', text))
+			end
+
+			text = string.lower(text)
+
+			local exist = true
+			for i = 0, 2 do
+				local suffix = i == 0 and '' or ('_' .. tostring(i))
+				local newFileName = string.format('%s%s', text, suffix)
+				if not self.EffNames[newFileName] then
+					text = newFileName
+					exist = false
+					break
+				end
+			end
+
+			if exist then
+				notification.AddLegacy(string.format('Custom Effect "%s" already exist', text), NOTIFY_ERROR, 5)
+				surface.PlaySound('Buttons.snd10')
+
+				return
+			end
+
+			local custName = text
+			local custom = UPar.CreateUserCustEff(actName, linkName, custName, true)
+			UPar.DeepInject(custom, effect)
+			UPar.InitCustomEffect(custom)
+			UPar.LRUSet(string.format('UI_CE_%s', custName), custom)
+
+			self.EffNames[custName] = 1
+			self:AddNode2(custName)
+		end,
+		nil,
+		'#upgui.derma.submit',                    
+		'#upgui.derma.cancel'
+	)
+end
+
 
 CustEffTree.OnHitNode = UPar.emptyfunc
 CustEffTree.OnPlay = UPar.emptyfunc

@@ -55,6 +55,15 @@ function EffectManager:Init2(actName)
 		if IsValid(self.div:GetRight()) then self.div:GetRight():Remove() end
 	end
 
+	effTree.DoRightClick = function(self2, node)
+		local menu = DermaMenu()
+		local effName = node.effName
+		menu:AddOption('#upgui.custom', function()
+			self:CreateCustomEffectByDerma(effName)
+		end)
+		menu:Open()
+	end
+
 	local oldOnSelectedChange_ = custTree.OnSelectedChange
 	custTree.OnSelectedChange = function(self2, node)
 		local effect = oldOnSelectedChange_(self2, node)
@@ -119,6 +128,7 @@ function EffectManager:CreateCustomEffectByDerma(effName)
 
 			local custom = UPar.CreateUserCustEff(actName, effName, custName, true)
 			UPar.InitCustomEffect(custom)
+			UPar.LRUSet(string.format('UI_CE_%s', custName), custom)
 
 			self.custTree.EffNames[custName] = 1
 			self.custTree:AddNode2(custName)
