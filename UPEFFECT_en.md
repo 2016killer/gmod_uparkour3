@@ -15,6 +15,7 @@
 # UPEffect Class
 ```note
 We should treat UPEffect as a static container and must not store any runtime results in it.
+It's structure should preferably be flat, which makes it easy for users to edit when creating custom effects.
 ```
 
 ## Optional Parameters  
