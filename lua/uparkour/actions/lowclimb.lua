@@ -57,7 +57,8 @@ action:InitConVars({
 		label = '#upgui.act.lc.speed',
 		default = '1 0.25 0.25',
 		widget = 'UParVecEditor',
-		min = 0, max = 2, decimals = 2
+		min = 0, max = 2, decimals = 2, interval = 0.1,
+		help = '#upgui.act.lc.speed.help'
 	}
 })
 
@@ -188,6 +189,56 @@ function action:Clear(ply, data, mv, cmd)
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
 		ply:SetMoveType(MOVETYPE_WALK)
 	end
+end
+
+if CLIENT then
+	UPar.SeqHookAdd('UParActCVarWidget_lowclimb', 'special.widget', function(cvCfg, panel)
+		if cvCfg.name == 'lc_blen' or cvCfg.name == 'lc_speed' or cvCfg.name == 'lc_min' or cvCfg.name == 'lc_max' then
+			local created = UPar.SeqHookRun('UParActCVarWidget', 'lowclimb', cvCfg, panel)
+			if not created then
+				return
+			end
+
+			local predi = panel:ControlHelp('')
+			predi.Think = function(self)
+				if CurTime() < (self.NextThinkTime or 0) then
+					return
+				end
+
+				self.NextThinkTime = CurTime() + 0.5
+				local value = nil
+				if cvCfg.name == 'lc_speed' then
+					value = action:GetSpeed(LocalPlayer(), unitzvec, unitzvec)
+					value = math.Round(value, 2)
+				elseif cvCfg.name == 'lc_min' or cvCfg.name == 'lc_max' then
+					local min, max = LocalPlayer():GetCollisionBounds()
+					local plyHeight = max[3] - min[3]
+					if cvCfg.name == 'lc_max' then
+						value = plyHeight * action.ConVars.lc_max:GetFloat()
+					else
+						value = plyHeight * action.ConVars.lc_min:GetFloat()
+					end
+					value = math.Round(value, 2)
+				elseif cvCfg.name == 'lc_blen' then
+					local min, max = LocalPlayer():GetCollisionBounds()
+					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
+					value = plyWidth * action.ConVars.lc_blen:GetFloat()
+					value = math.Round(value, 2)
+				end
+
+				self:SetText(string.format('%s: %s', 
+					language.GetPhrase('#upgui.predi'), 
+					value
+				))
+			end
+
+			predi.OnRemove = function(self)
+				self.NextThinkTime = nil
+			end
+
+			return true
+		end
+	end)
 end
 
 if SERVER then

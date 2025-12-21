@@ -52,7 +52,7 @@ Place code in the `version_compat` directory as much as possible. This hook is u
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParActCVarWidget** + **actName**  
 **@Parameters:** cvCfg **table**, panel **DForm**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**
 ```note
 This is local and only applies to the panel of the specified action.
 Can be used to customize the parameter editor for the action.
@@ -69,7 +69,7 @@ end)
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParActCVarWidget**   
 **@Parameters:** actName **string**, cvCfg **table**, panel **DForm**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**
 ```note
 This is global and takes effect when the local hook returns no value.
 Can be used to customize the parameter editor for actions.
@@ -112,7 +112,7 @@ The description panel is added internally using this hook.
 ![server](./materials/upgui/server.jpg)
 **@Name:** **UParActAllowInterrupt** + **actName**  
 **@Parameters:** ply **Player**, playingData **table**, interruptSource **string**  
-**@Returns:** allowInterrupt **bool**
+**@Returns:** allowInterrupt **bool** or **nil**
 ```note
 This is local.
 
@@ -130,7 +130,7 @@ end)
 ![server](./materials/upgui/server.jpg)
 **@Name:** **UParActAllowInterrupt**  
 **@Parameters:** playingName **string**, ply **Player**, playingData **table**, interruptSource **string**  
-**@Returns:** allowInterrupt **bool**
+**@Returns:** allowInterrupt **bool** or **nil**
 ```note
 This is global.
 
@@ -150,7 +150,7 @@ end)
 ![server](./materials/upgui/server.jpg)
 **@Name:** **UParActPreStartValidate** + **actName**  
 **@Parameters:** ply **Player**, checkResult **table**  
-**@Returns:** invalid **bool**
+**@Returns:** invalid **bool** or **nil**
 ```note
 This is local.
 
@@ -166,7 +166,7 @@ end)
 ![server](./materials/upgui/server.jpg)
 **@Name:** **UParActPreStartValidate**  
 **@Parameters:** actName **string**, ply **Player**, checkResult **table**  
-**@Returns:** invalid **bool**
+**@Returns:** invalid **bool** or **nil**
 ```note
 This is global.
 
@@ -285,7 +285,7 @@ end, 1)
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParEffVarEditorWidget** + **actName** + **effName**  
 **@Parameters:** key **string**, val **any**, editor **DForm**, keyColor **Color**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**
 ```note
 This is local.
 
@@ -312,14 +312,14 @@ end, 1)
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParEffVarEditorWidget**   
 **@Parameters:** actName **string**, effName **string**, key **string**, val **any**, editor **DForm**, keyColor **Color**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**
 
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParEffVarPreviewWidget** + **actName** + **effName**  
 **@Parameters:** key **string**, val **any**, editor **DForm**, keyColor **Color**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**
 
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParEffVarPreviewWidget**   
 **@Parameters:** actName **string**, effName **string**, key **string**, val **any**, editor **DForm**, keyColor **Color**  
-**@Returns:** created **bool**
+**@Returns:** created **bool** or **nil**

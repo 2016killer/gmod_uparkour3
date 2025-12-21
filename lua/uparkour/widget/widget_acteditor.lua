@@ -176,7 +176,7 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 	local cvWidget = cvCfg.widget or 'NumSlider'
 	
 	local label = cvCfg.label or UPar.GetConVarPhrase(cvName)
-	
+	local created = false
 	if cvWidget == 'NumSlider' then 
 		panel:NumSlider(
 			label, 
@@ -185,8 +185,10 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 			isnumber(cvCfg.max) and cvCfg.max or 1, 
 			isnumber(cvCfg.decimals) and cvCfg.decimals or 2
 		)
+		created = true
 	elseif cvWidget == 'CheckBox' then
 		panel:CheckBox(label, cvName)
+		created = true
 	elseif cvWidget == 'ComboBox' then
 		local comboBox = panel:ComboBox(label, cvName)
 
@@ -201,16 +203,20 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 				end
 			end
 		end
+		created = true
 	elseif cvWidget == 'TextEntry' then
 		panel:TextEntry(label, cvName)
+		created = true
 	elseif cvWidget == 'KeyBinder' then
 		panel:KeyBinder(label, cvName)
+		created = true
 	elseif cvWidget == 'UParColorEditor' then
 		local colorEditor = vgui.Create('UParColorEditor', panel)
 		colorEditor:SetConVar(cvName)
 
 		panel:Help(label)
 		panel:AddItem(colorEditor)
+		created = true
 	elseif cvWidget == 'UParAngEditor' then
 		local angEditor = vgui.Create('UParAngEditor', panel)
 		angEditor:SetMin(isnumber(cvCfg.min) and cvCfg.min or -10000)
@@ -221,6 +227,7 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 
 		panel:Help(label)
 		panel:AddItem(angEditor)
+		created = true
 	elseif cvWidget == 'UParVecEditor' then
 		local vecEditor = vgui.Create('UParVecEditor', panel)
 		vecEditor:SetMin(isnumber(cvCfg.min) and cvCfg.min or -10000)
@@ -231,12 +238,18 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 
 		panel:Help(label)
 		panel:AddItem(vecEditor)
+		created = true
 	elseif cvWidget == 'UParKeyBinder' then
 		local keyBinder = vgui.Create('UParKeyBinder', panel)
 		keyBinder:SetConVar(cvName)
 
 		panel:Help(label)
 		panel:AddItem(keyBinder)
+		created = true
+	end
+
+	if not created then 
+		return 
 	end
 
 	if isstring(cvHelp) then
@@ -245,6 +258,7 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 		panel:ControlHelp(UPar.GetConVarPhrase(cvName) .. '.help')
 	end
 
+	return true
 end, 10)
 
 UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)

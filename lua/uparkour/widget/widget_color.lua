@@ -120,9 +120,10 @@ function ColorEditor:Think()
 
 	local cvar = isstring(self.cvName) and GetConVar(self.cvName)
 	if cvar then
+		local oldChange = self.OnChange
 		self.OnChange = UPar.emptyfunc
 		self:SetValue(string.ToColor(cvar:GetString()))
-		self.OnChange = self.ChangeCVar
+		self.OnChange = oldChange
 	end
 end
 
