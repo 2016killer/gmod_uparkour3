@@ -2,8 +2,8 @@
 	作者:白狼
 	2025 12 20
 --]]
-local zeroVec = Vector()
-local zeroAng = Angle()
+local zerovec = UPar.zerovec
+local zeroang = UPar.zeroang
 
 local angVel = Vector()
 local angOff = Vector()
@@ -23,8 +23,8 @@ local function AngPunchIterator(dt, curTime)
 end
 
 UPar.AngPunch = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -37,8 +37,8 @@ UPar.AngPunch = function(vel, off, timeout)
 end
 
 UPar.SetAngPunch = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -71,8 +71,8 @@ local function VecPunchWorldIterator(dt, curTime)
 end
 
 UPar.VecPunchWorld = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -85,8 +85,8 @@ UPar.VecPunchWorld = function(vel, off, timeout)
 end
 
 UPar.SetVecPunchWorld = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -119,8 +119,8 @@ local function VecPunchIterator(dt, curTime)
 end
 
 UPar.VecPunch = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -133,8 +133,8 @@ UPar.VecPunch = function(vel, off, timeout)
 end
 
 UPar.SetVecPunch = function(vel, off, timeout)
-	off = off or zeroVec
-	vel = vel or zeroVec
+	off = off or zerovec
+	vel = vel or zerovec
 	timeout = timeout or 2
 	assert(isvector(off), 'off must be a vector.')
 	assert(isvector(vel), 'vel must be a vector.')
@@ -176,7 +176,6 @@ local function UPunchCalcViewModelView(wep, vm, oP, oA, p, a)
 end
 
 hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime)
-	print('UParIteratorPush', identity, endtime)
 	if identity == VEC_PUNCH_ITERATOR_ID then
 		hook.Add('CalcView', CALC_HOOK_KEY, UPunchCalcView)
 		return true
@@ -189,7 +188,6 @@ hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime)
 end)
 
 hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, reason)
-	print('UParIteratorPop', identity, endtime, reason)
 	if not UPar.IsIteratorExist(VEC_PUNCH_ITERATOR_ID)
 	and not UPar.IsIteratorExist(ANG_PUNCH_ITERATOR_ID)  
 	and not UPar.IsIteratorExist(VEC_PUNCH_WORLD_ITERATOR_ID)

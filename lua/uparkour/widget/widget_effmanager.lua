@@ -3,7 +3,7 @@
 	2025 12 17
 --]]
 
-local lightblue = Color(0, 170, 255)
+local lightblue = Color(0, 100, 230)
 -- ==================== 特效管理器 ===============
 local EffectManager = {}
 
@@ -286,7 +286,7 @@ EffectManager = nil
 
 
 UPar.SeqHookAdd('UParEffVarPreviewColor', 'default', function(_, _, key, val)
-	if key == 'AAADesc' then
+	if key == 'AAAACreat' or key == 'AAAContrib' or key == 'AAADesc' then
 		return lightblue
 	end
 end, 10)

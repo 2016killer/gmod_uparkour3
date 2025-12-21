@@ -272,9 +272,10 @@ UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
 
 	panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), action.AAAACreat or ''))
 	panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), action.AAAContrib or ''))
-	panel:Help('====================')
+	
 
 	if istable(action.ConVarsPreset) then
+		panel:Help('====================')
 		for pname, pdata in pairs(action.ConVarsPreset) do
 			local label = isstring(pdata.label) and pdata.label or pname
 			panel:Help(string.format('%s: %s', language.GetPhrase('#preset'), language.GetPhrase(label)))
@@ -285,21 +286,20 @@ UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
 		end
 	end
 
-	panel:Help('====================')
+	
 	local Effects = UPar.GetEffects(actName)
 
-	if not istable(Effects) then
-		return
-	end
-
-	for effName, effect in pairs(Effects) do
-		if not UPar.isupeffect(effect) then
-			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
-			continue
+	if istable(Effects) then
+		panel:Help('====================')
+		for effName, effect in pairs(Effects) do
+			if not UPar.isupeffect(effect) then
+				ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
+				continue
+			end
+			panel:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))
+			panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), effect.AAAACreat or ''))
+			panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), effect.AAAContrib or ''))	
+			panel:Help('')
 		end
-		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.effect'), effName))
-		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.creat'), effect.AAAACreat or ''))
-		panel:Help(string.format('%s: %s', language.GetPhrase('upgui.contrib'), effect.AAAContrib or ''))	
-		panel:Help('')
 	end
 end, 10)

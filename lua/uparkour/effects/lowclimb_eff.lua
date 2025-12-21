@@ -20,7 +20,7 @@ local effect = UPEffect:Register('lowclimb', 'default', {
 
 	AAAACreat = '白狼',
 	AAAContrib = 'datae (HandAnim)',
-	AAADesc = '默认的低爬动作特效',
+	AAADesc = '#default',
 })
 
 

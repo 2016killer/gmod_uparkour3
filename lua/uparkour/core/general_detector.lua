@@ -3,19 +3,15 @@
 	2025 11 1
 
 --]]
-
+local unitzvec = UPar.unitzvec
 local function XYNormal(v)
 	v = Vector(v)
 	v[3] = 0
 	v:Normalize()
 	return v
 end
-local unitzvec = Vector(0, 0, 1)
 
 UPar.XYNormal = XYNormal
-UPar.unitzvec = unitzvec
-
-
 
 UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, loscos)
 	if not IsValid(ply) or not ply:IsPlayer() then
@@ -111,9 +107,9 @@ UPar.IsStartSolid = function(ply, startpos)
 		maxs = pmaxs,
 	})
 	
-	// UPar.debugwireframebox(startpos, pmins, pmaxs, 3, 
-	// 	(spacecheck.StartSolid or spacecheck.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
-	// 	true)
+	UPar.debugwireframebox(startpos, pmins, pmaxs, 3, 
+		(spacecheck.StartSolid or spacecheck.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
+		true)
 
 	return spacecheck.StartSolid or spacecheck.Hit 
 end
@@ -223,24 +219,4 @@ UPar.GetFallDamageInfo = function(ply, fallspeed, ref)
 			return d	
 		end 
 	end
-end
-
-
-
-if CLIENT then
-	concommand.Add('test_is_startsolid', function(ply)
-		UPar.IsStartSolid(ply)
-	end)
-
-	concommand.Add('test_climb_detector', function(ply)
-		local landpos, height = UPar.ClimbDetector(ply)
-		print(landpos, height)
-	end)
-
-	concommand.Add('test_vault_detector', function(ply)
-		local landpos, height = UPar.ClimbDetector(ply)
-		if not landpos then return end
-		local vaultpos, vaultheight = UPar.VaultDetector(ply, nil, nil, landpos)
-		print(vaultpos, vaultheight)
-	end)
 end

@@ -32,6 +32,12 @@ UPar.emptyTable = setmetatable({}, {
         error('UPar.emptyTable is readonly table, can not write')
     end
 })
+UPar.zerovec = Vector(0, 0, 0)
+UPar.zeroang = Angle(0, 0, 0)
+UPar.unitxvec = Vector(1, 0, 0)
+UPar.unityvec = Vector(0, 1, 0)
+UPar.unitzvec = Vector(0, 0, 1)
+
 
 UPar.IsInstance = function(obj, class)
 	-- 仅对静态类有效

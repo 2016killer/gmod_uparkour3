@@ -7,9 +7,11 @@
 local ClimbDetector = UPar.ClimbDetector
 local IsStartSolid = UPar.IsStartSolid
 local SetMoveControl = UPar.SetMoveControl
+local unitzvec = UPar.unitzvec
 
 local action = UPAction:Register('lowclimb', {
 	AAAACreat = '白狼',
+	AAADesc = 'upgui.act.lowclimb.desc',
 	icon = 'upgui/uparkour.jpg',
 	label = '#upgui.act.lowclimb',
 	defaultDisabled = false,
@@ -52,6 +54,15 @@ action:InitConVars({
 		min = 0,
 		max = 0.85,
 		decimals = 2
+	},
+
+	{
+		name = 'dp_lc_speed',
+		default = '1 0.25 0.25',
+		widget = 'UParVecEditor',
+		min = 0,
+		max = 0.85,
+		decimals = 2
 	}
 })
 
@@ -70,8 +81,10 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 	local obsHeightMin = convars.dp_lc_min:GetFloat() * plyHeight
     local blen = convars.dp_lc_blen:GetFloat() * plyWidth
 
-	bmaxs[3] = obsHeightMax
-	bmins[3] = obsHeightMin
+	omaxs[3] = obsHeightMax
+	omins[3] = obsHeightMin
+
+	// print(obsHeightMax, obsHeightMin)
 
 	local pos, dirNorm, landpos, blockheight = ClimbDetector(
 		ply, 
@@ -88,6 +101,7 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
         return 
     end
 
+	// print(pos, dirNorm, landpos, blockheight)
 	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
 	local moveDis = (landpos - pos):Length()
 	local moveDir = (landpos - pos) / moveDis
@@ -103,7 +117,7 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 
 		starttime = CurTime(),
 
-		needduck = IsStartSolid(ply, landpos),
+		needduck = not IsStartSolid(ply, landpos),
 		duration = moveDuration
 	}
 end
@@ -154,29 +168,29 @@ function action:Think(ply, mv, cmd, data)
     local acc = (endspeed - startspeed) / duration
 
 	mv:SetOrigin(startpos + (0.5 * acc * dt * dt + startspeed * dt) * dir)
+	mv:SetVelocity(unitzvec)
 
 	return dt > duration
 end
 
 function action:Clear(ply, mv, cmd, data)
-	if CLIENT then 
+	if SERVER then
+	    if mv and IsStartSolid(ply) then
+			mv:SetOrigin(data.endpos)
+			mv:SetVelocity(unitzvec)
+		end
+	elseif CLIENT then 
 		SetMoveControl(ply, false, false, 0, 0)
-	end
+    end
 
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
 		ply:SetMoveType(MOVETYPE_WALK)
 	end
-
-	if SERVER then
-	    if mv and IsStartSolid(ply) then
-			mv:SetOrigin(data.endpos)
-		end
-    end
 end
 
 hook.Add('KeyPress', 'aaaaaaa', function(ply, key)
 	if key == IN_JUMP then 
-		// UPar.Trigger(ply, 'lowclimb')
+		UPar.Trigger(ply, 'lowclimb')
 	end
 end)
 
