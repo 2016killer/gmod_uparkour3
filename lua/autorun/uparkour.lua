@@ -25,9 +25,8 @@ UPar = UPar or {}
 UPar.Version = '3.0.0 alpha'
 
 UPar.emptyfunc = function() end
-UPar.truefunc = function() return true end
 UPar.tablefunc = function() return {} end
-UPar.anypass = setmetatable({}, {__index = UPar.truefunc})
+UPar.anypass = setmetatable({}, {__index = function() return true end})
 UPar.emptyTable = setmetatable({}, {
 	__index = UPar.emptyfunc,
     __newindex = function()
@@ -36,17 +35,25 @@ UPar.emptyTable = setmetatable({}, {
 })
 
 UPar.IsInstance = function(obj, class)
+	-- 仅对静态类有效
     if not istable(obj) or not istable(class) then
         return false
     end
 
-    local currentMeta = getmetatable(obj)
-    while istable(currentMeta) do
-        if currentMeta == class then
+	local cached = {[obj] = true}
+    local curMt = getmetatable(obj)
+
+    while istable(curMt) do
+		if cached[curMt] then
+			return false
+		end
+		cached[curMt] = true
+
+        if curMt.__index == class then
             return true
         end
 
-        currentMeta = getmetatable(currentMeta)
+        curMt = getmetatable(curMt.__index)
     end
 
     return false
@@ -102,7 +109,7 @@ end
 
 UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)
 	lifetime = lifetime or 1
-	color = color or Color(255,255,255)
+	color = color or Color(255, 255, 255)
 	ignoreZ = ignoreZ or false
 
 	local ref = mins + pos
@@ -119,6 +126,21 @@ UPar.debugwireframebox = function(pos, mins, maxs, lifetime, color, ignoreZ)
 			debugoverlay.Line(pos1, pos1 + axes[3], lifetime, color, ignoreZ)
 		end
 		axes[i], axes[3] = axes[3], axes[i]
+	end
+end
+
+UPar.printinputs = function(flag, ...)
+	local total = select('#', ...)
+	local inputs = {...}
+
+	for i = 1, total do
+		local v = inputs[i]
+		if istable(v) then
+			print(tostring(i)..':')
+			PrintTable(v)
+		else
+			print(string.format('%s: %s', i, v))
+		end
 	end
 end
 
