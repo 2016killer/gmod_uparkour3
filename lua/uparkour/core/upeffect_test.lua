@@ -3,6 +3,18 @@
 	2025 12 13
 --]]
 
+UPar.GenEffClear = function(self, ply)
+	if SERVER then
+		ply:SetNWString('UP_WOS', '')
+	elseif CLIENT then
+		local currentAnim = VManip:GetCurrentAnim()
+		if currentAnim and currentAnim == self.VManipAnim then
+			VManip:QuitHolding(currentAnim)
+		end
+	end
+end
+
+
 UPar.GetPlayerEffect = function(ply, actName, effName)
 	local actEffects = UPar.EffInstances[actName]
 	if not istable(actEffects) then

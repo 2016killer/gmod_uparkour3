@@ -22,7 +22,7 @@ local function AngPunchIterator(dt, curTime)
 	end
 end
 
-UPar.AngPunchEasy = function(off, vel, timeout)
+UPar.AngPunch = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
@@ -36,7 +36,7 @@ UPar.AngPunchEasy = function(off, vel, timeout)
 	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, timeout)
 end
 
-UPar.SetAngPunch = function(off, vel, timeout)
+UPar.SetAngPunch = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
@@ -70,7 +70,7 @@ local function VecPunchWorldIterator(dt, curTime)
 	end
 end
 
-UPar.VecPunchWorldEasy = function(off, vel, timeout)
+UPar.VecPunchWorld = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
@@ -84,7 +84,7 @@ UPar.VecPunchWorldEasy = function(off, vel, timeout)
 	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, timeout)
 end
 
-UPar.SetVecPunchWorld = function(off, vel, timeout)
+UPar.SetVecPunchWorld = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
@@ -118,7 +118,7 @@ local function VecPunchIterator(dt, curTime)
 	end
 end
 
-UPar.VecPunchEasy = function(off, vel, timeout)
+UPar.VecPunch = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
@@ -132,7 +132,7 @@ UPar.VecPunchEasy = function(off, vel, timeout)
 	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, timeout)
 end
 
-UPar.SetVecPunch = function(off, vel, timeout)
+UPar.SetVecPunch = function(vel, off, timeout)
 	off = off or zeroVec
 	vel = vel or zeroVec
 	timeout = timeout or 2
