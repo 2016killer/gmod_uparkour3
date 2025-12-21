@@ -4,7 +4,7 @@
 ]]--
 
 -- ==================== 低爬动作特效 ===============
-local effect = UPEffect:Register('lowclimb', 'default', {
+local effect = UPEffect:Register('uplowclimb', 'default', {
 	VManipAnim = 'vault',
 	VMLegsAnim = '',
 	WOSAnim = '',

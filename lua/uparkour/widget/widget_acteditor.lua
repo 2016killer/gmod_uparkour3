@@ -42,16 +42,16 @@ function ActEditor:Init2(actName)
 
 
 	local Tabs = vgui.Create('DPropertySheet', self)
-	local effectManager = vgui.Create('UParEffectManager', self)
+	Tabs:Dock(FILL)
 
 	self.Tabs = Tabs
 	self.action = action
 
-
-	Tabs:Dock(FILL)
-	Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
-
-	effectManager:Init2(actName)
+	if istable(UPar.GetEffects(actName)) and #UPar.GetEffects(actName) > 0 then
+		local effectManager = vgui.Create('UParEffectManager', self)
+		Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
+		effectManager:Init2(actName)
+	end
 
 	if istable(action.ConVarsWidget) then
 		local mainPanel = self:AddSheet('#upgui.options', 'icon16/wrench.png')
