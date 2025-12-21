@@ -15,7 +15,7 @@ end
 
 hook.Add('PopulateToolMenu', 'upar.menu.extend', function()
 	spawnmenu.AddToolMenuOption('Options', 
-		'UParkour', 
+		'UParkour 3', 
 		'upar.menu.extend', 
 		'#upgui.menu.extend', '', '', 
 		CreateMenu

@@ -69,7 +69,7 @@ end
 
 hook.Add('PopulateToolMenu', 'upar.menu.keybinder', function()
 	spawnmenu.AddToolMenuOption('Options', 
-		'UParkour', 
+		'UParkour 3', 
 		'upar.menu.keybinder', 
 		'#upgui.menu.keybinder', '', '', 
 		CreateMenu

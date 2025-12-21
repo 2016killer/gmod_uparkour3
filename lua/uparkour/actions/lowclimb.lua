@@ -88,8 +88,8 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 		dirNorm,
         omins,
 		omaxs,
+		blen,
 		0.5 * plyWidth,
-		ehlen,
 		loscos
 	)
 
@@ -153,27 +153,31 @@ end
 
 function action:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
-	local endpos = data.endpos
+	// local endpos = data.endpos
 	local startspeed = data.startspeed
-	local endspeed = data.endspeed
+	// local endspeed = data.endspeed
 	local duration = data.duration
 	local starttime = data.starttime
 	local dir = data.dir
+	local acc = data.acc or (data.endspeed - startspeed) / duration
 	
 	local dt = CurTime() - starttime
-    local acc = (endspeed - startspeed) / duration
+	local endflag = dt > duration
 
-	mv:SetOrigin(startpos + (0.5 * acc * dt * dt + startspeed * dt) * dir)
+	dt = math.Clamp(dt, 0, duration)
+	local curpos = startpos + (0.5 * acc * dt * dt + startspeed * dt) * dir
 
-	return dt > duration
+	data.curpos = curpos
+	mv:SetOrigin(curpos)
+
+	return endflag
 end
 
 function action:Clear(ply, data, mv, cmd)
 	if SERVER then
-	    if mv 
-		and istable(data) 
-		and isvector(data.endpos) 
-		and IsStartSolid(ply, ply:GetPos() + unitzvec, true) then
+	    if mv and istable(data) and isvector(data.curpos) and isvector(data.endpos)
+			and IsStartSolid(ply, data.curpos, true)
+		then
 			mv:SetOrigin(data.endpos)
 			mv:SetVelocity(unitzvec)
 		end
@@ -186,9 +190,10 @@ function action:Clear(ply, data, mv, cmd)
 	end
 end
 
-hook.Add('KeyPress', 'aaaaaaa', function(ply, key)
-	if key == IN_JUMP then 
-		UPar.Trigger(ply, 'lowclimb')
-	end
-end)
-
+if SERVER then
+	hook.Add('KeyPress', 'aaaaaaa', function(ply, key)
+		if key == IN_JUMP then 
+			UPar.Trigger(ply, 'lowclimb')
+		end
+	end)
+end
