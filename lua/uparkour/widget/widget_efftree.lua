@@ -22,6 +22,11 @@ function EffTree:Refresh()
 
 	local keys = {}
 	local Effects = UPar.GetEffects(self.actName)
+	
+	if not istable(Effects) then
+		return
+	end
+	
 	for k, v in pairs(Effects) do table.insert(keys, k) end
 	table.sort(keys)
 

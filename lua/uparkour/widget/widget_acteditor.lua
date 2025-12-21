@@ -119,6 +119,7 @@ function ActEditor:CreateConVarsPanel(panel)
 	local ctrl = vgui.Create('ControlPresets', panel)
 	ctrl:SetPreset(actName)
 	panel:AddItem(ctrl)
+	panel:SetLabel('#upgui.options')
 
 	local isAdmin = not LocalPlayer():IsAdmin()
 
@@ -147,11 +148,13 @@ function ActEditor:CreateConVarsPanel(panel)
 	
 	ctrl:AddOption('#preset.default', defaultPreset)
 
-	for pname, pdata in pairs(action.ConVarsPreset) do
-		local label = isstring(pdata.label) and pdata.label or pname
-		local values = pdata.values
+	if istable(action.ConVarsPreset) then 
+		for pname, pdata in pairs(action.ConVarsPreset) do
+			local label = isstring(pdata.label) and pdata.label or pname
+			local values = pdata.values
 
-		ctrl:AddOption(label, values)
+			ctrl:AddOption(label, values)
+		end
 	end
 
 	panel:Help('')
@@ -252,6 +255,7 @@ UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
 		return
 	end
 
+	local actName = action.Name
 	local mainPanel = editor:AddSheet('#upgui.desc', 'icon16/information.png', panel)
 	local scrollPanel = vgui.Create('DScrollPanel', mainPanel)
 	local panel = vgui.Create('DForm', scrollPanel)
@@ -282,7 +286,13 @@ UPar.SeqHookAdd('UParActSundryPanels', 'DescPanel', function(actName, editor)
 	end
 
 	panel:Help('====================')
-	for effName, effect in pairs(UPar.GetEffects(action.Name)) do
+	local Effects = UPar.GetEffects(actName)
+
+	if not istable(Effects) then
+		return
+	end
+
+	for effName, effect in pairs(Effects) do
 		if not UPar.isupeffect(effect) then
 			ErrorNoHaltWithStack(string.format('Invalid effect "%s" (not upeffect)', effect))
 			continue

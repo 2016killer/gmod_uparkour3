@@ -28,12 +28,13 @@ function effect:Clear(ply, checkResult)
 	surface.PlaySound('hl1/fvox/deactivated.wav')
 end
 
-local example = UPar.RegisterEffectEasy('test_lifecycle', 'default', 'example', {
+UPar.RegisterEffectEasy('test_lifecycle', 'default', 'example', {
 	AAAACreat = 'Miss DouBao',
 	AAADesc = '#upgui.dev.example',
 	label = '#upgui.dev.example'
 })
 
+UPEffect:Register('test_lifecycle_t1', 'default', effect, true)
 
 if CLIENT then
 	local red = Color(255, 0, 0)
@@ -45,7 +46,7 @@ if CLIENT then
 	end, 1)
 
 	UPar.SeqHookAdd('UParEffVarPreviewColor', 'example.yellow', function(actName, effName, key, val)
-		if actName == 'test_lifecycle' and key == 'rhythm_sound' then 
+		if key == 'rhythm_sound' then 
 			return yellow 
 		end
 	end, 1)
@@ -67,7 +68,7 @@ if CLIENT then
 	end, 1)
 
 	UPar.SeqHookAdd('UParEffVarEditorWidget', 'example.global', function(actName, effName, key, val, editor, keyColor)
-		if actName == 'test_lifecycle' and key == 'rhythm_sound' then
+		if key == 'rhythm_sound' then
 			local comboBox = editor:ComboBox(UPar.SnakeTranslate_2(key), '')
 
 			comboBox.OnSelect = function(self, index, value, data)

@@ -200,17 +200,3 @@ hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, reason)
 	end
 	
 end)
-
-concommand.Add('test_ang_punch', function()
-	UPar.AngPunchEasy(nil, Vector(1000, 0, 0), 2)
-end)
-
--- 测试本地向量冲击（视角向前偏移）
-concommand.Add('test_vec_punch', function()
-	UPar.VecPunchEasy(Vector(5, 0, 0), nil, 2)
-end)
-
--- 测试世界向量冲击（ViewModel 向上偏移）
-concommand.Add('test_world_punch', function()
-	UPar.VecPunchWorldEasy(nil, Vector(300, 0, 500), 2)
-end)

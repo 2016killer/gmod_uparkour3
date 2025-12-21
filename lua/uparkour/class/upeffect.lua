@@ -27,7 +27,7 @@ function UPEffect:Register(actName, name, initData, new)
 
     local cached = EffInstances[actName][name]
     local exist = istable(cached)
-    if exist then print(string.format('[UPEffect]: Warning: Effect "%s" already registered (overwritten)', name)) end
+    if exist then print(string.format('[UPEffect]: Warning: eff "%s" from act "%s" already registered (overwritten)', name, actName)) end
 
     new = new or not exist
 
@@ -44,10 +44,6 @@ function UPEffect:Register(actName, name, initData, new)
     end
 
 	self.Name = name
-
-	self.Start = self.Start or UPar.emptyfunc
-	self.Clear = self.Clear or UPar.emptyfunc
-	self.Rhythm = self.Rhythm or UPar.emptyfunc
 
     self.icon = CLIENT and self.icon or nil
     self.label = CLIENT and self.label or nil
@@ -67,7 +63,25 @@ function UPEffect:Register(actName, name, initData, new)
     return self
 end
 
+function UPEffect:Start(...)
+    UPar.printinputs('eff.Start is empty, args:', ...)
+end
 
+function UPEffect:Clear(...)
+    UPar.printinputs('eff.Clear is empty, args:', ...)
+end
 
+UPEffect.Rhythm = UPar.emptyfunc
+
+UPar.GetAllEffects = function() return EffInstances end
+UPar.GetEffects = function(actName) return EffInstances[actName] end
+UPar.GetEffect = function(actName, effName)
+	local actEffects = EffInstances[actName]
+	if not istable(actEffects) then
+		return nil
+	end
+
+    return actEffects[effName]
+end
 UPar.isupeffect = isupeffect
 

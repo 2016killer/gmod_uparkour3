@@ -3,31 +3,6 @@
 	2025 11 1
 --]]
 
-UPar.GetEffect = function(actName, effName)
-	local actEffects = UPar.EffInstances[actName]
-	if not istable(actEffects) then
-		return nil
-	end
-
-    return actEffects[effName]
-end
-
-UPar.GetEffects = function(actName)
-	if not isstring(actName) then
-		error(string.format('Invalid actName "%s" (not string)', actName))
-	end
-
-	local actEffects = UPar.EffInstances[actName]
-
-	if not istable(actEffects) then
-		actEffects = {}
-		UPar.EffInstances[actName] = actEffects
-	end
-		
-	return actEffects
-end
-
-
 UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 	assert(isstring(actName), string.format('actName "%s" is not string', actName))
 	assert(isstring(tarName), string.format('tarName "%s" is not string', tarName))
@@ -36,14 +11,23 @@ UPar.RegisterEffectEasy = function(actName, tarName, name, initData)
 	assert(istable(initData), string.format('initData "%s" is not table', initData))
 
 	local targetEffect = UPar.GetEffect(actName, tarName)
-	assert(targetEffect, string.format('can not find effect named "%s" from act "%s"', tarName, actName))
-	assert(UPar.isupeffect(targetEffect), string.format('effect named "%s" from act "%s" is not upeffect', tarName, actName))
 
-	local effect = UPar.DeepClone(targetEffect)
-	effect.Name = name
+	if not targetEffect then
+		print(string.format('can not find effect named "%s" from act "%s"', tarName, actName))
+		return
+	end
 
-	effect:Register(actName, name, initData)
-	
+	if not UPar.isupeffect(targetEffect) then
+		print(string.format('effect named "%s" from act "%s" is not upeffect', tarName, actName))
+		return
+	end
+
+	local effect = UPEffect:Register(
+		actName, 
+		name, 
+		table.Merge(UPar.DeepClone(targetEffect), initData)
+	)
+
 	return effect
 end
 

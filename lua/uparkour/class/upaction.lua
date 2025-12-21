@@ -48,11 +48,6 @@ function UPAction:Register(name, initData, new)
 
     self.Name = name
  
-    self.Check = self.Check or UPar.tablefunc
-    self.Start = self.Start or UPar.emptyfunc
-    self.Think = self.Think or UPar.tablefunc
-    self.Clear = self.Clear or UPar.emptyfunc
-
     self:InitCVarDisabled(self.defaultDisabled)
     self:InitCVarPredictionMode(self.defaultPredictionMode)
     if CLIENT then self:InitCVarKeybind(self.defaultKeybind) end
@@ -73,6 +68,24 @@ function UPAction:Register(name, initData, new)
     if new then hook.Run('UParRegisterAction', name, self) end
     
     return self
+end
+
+function UPAction:Check(...)
+    UPar.printinputs(string.format('act.Check is empty: "%s", TrackId: %s', self.Name, self.TrackId), ...)
+    return {argx = 1}
+end
+
+function UPAction:Start(...)
+    UPar.printinputs(string.format('act.Start is empty: "%s", TrackId: %s', self.Name, self.TrackId), ...)
+end
+
+function UPAction:Think(...)
+    UPar.printinputs(string.format('act.Think is empty: "%s", TrackId: %s', self.Name, self.TrackId), ...)
+    return true
+end
+
+function UPAction:Clear(...)
+    UPar.printinputs(string.format('act.Clear is empty: "%s", TrackId: %s', self.Name, self.TrackId), ...)
 end
 
 function UPAction:InitCVarDisabled(default)
