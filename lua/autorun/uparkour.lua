@@ -25,7 +25,6 @@ UPar = UPar or {}
 UPar.Version = '3.0.0 alpha'
 
 UPar.emptyfunc = function() end
-UPar.tablefunc = function() return {} end
 UPar.anypass = setmetatable({}, {__index = function() return true end})
 UPar.emptyTable = setmetatable({}, {
 	__index = UPar.emptyfunc,
@@ -133,14 +132,12 @@ UPar.printinputs = function(flag, ...)
 	local total = select('#', ...)
 	local inputs = {...}
 
+	print(string.format('==========%s==========', flag))
+	print('total', total)
 	for i = 1, total do
 		local v = inputs[i]
-		if istable(v) then
-			print(tostring(i)..':')
-			PrintTable(v)
-		else
-			print(string.format('%s: %s', i, v))
-		end
+		print(string.format('%s: %s', i, v))
+		if istable(v) then PrintTable(v) end
 	end
 end
 
