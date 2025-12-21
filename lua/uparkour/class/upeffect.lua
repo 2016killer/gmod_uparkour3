@@ -21,7 +21,6 @@ function UPEffect:Register(actName, name, initData, new)
     assert(isstring(name), string.format('Invalid name "%s" (not a string)', name))
     assert(not string.find(actName, '[\\/:*?"<>|]'), string.format('Invalid actName "%s" (contains invalid filename characters)', actName))
     assert(not string.find(name, '[\\/:*?"<>|]'), string.format('Invalid name "%s" (contains invalid filename characters)', name))
-    assert(istable(initData), string.format('Invalid initData "%s" (not a table)', initData))
 
     EffInstances[actName] = istable(EffInstances[actName]) and EffInstances[actName] or {}
 
@@ -39,8 +38,10 @@ function UPEffect:Register(actName, name, initData, new)
 
     EffInstances[actName][name] = self
 
-    for k, v in pairs(initData) do
-        self[k] = v
+    if istable(initData) then
+        for k, v in pairs(initData) do
+            self[k] = v
+        end
     end
 
 	self.Name = name
