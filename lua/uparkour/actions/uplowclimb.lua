@@ -15,7 +15,6 @@ local action = UPAction:Register('uplowclimb', {
 	icon = 'upgui/uparkour.jpg',
 	label = '#upgui.act.lowclimb',
 	defaultDisabled = false,
-	defaultPredictionMode = false,
 	defaultKeybind = '[33,79,65]'
 })
 
@@ -192,7 +191,7 @@ function action:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActCVarWidget_uplowclimb', 'special.widget', function(cvCfg, panel)
+	UPar.SeqHookAdd('UParActCVarWidget_uplowclimb', 'default', function(cvCfg, panel)
 		if cvCfg.name == 'lc_blen' or cvCfg.name == 'lc_speed' or cvCfg.name == 'lc_min' or cvCfg.name == 'lc_max' then
 			local created = UPar.SeqHookRun('UParActCVarWidget', 'uplowclimb', cvCfg, panel)
 			if not created then

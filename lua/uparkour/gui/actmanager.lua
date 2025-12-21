@@ -12,7 +12,6 @@ local function CreateMenu(panel)
 	local actManager = vgui.Create('UParEasyTree')
 	actManager:SetSize(200, 400)
 	actManager.OnDoubleClick = function(self, selNode)
-		local action = UPar.GetAction()
 		local actEditor = vgui.Create('UParActEditor')
 		actEditor:Init2(selNode.actName)
 	end
@@ -41,6 +40,19 @@ local function CreateMenu(panel)
 			
 			local node = self:AddNode(label, icon)
 			node.actName = v.Name
+
+
+			local editButton = vgui.Create('DButton', node)
+			editButton:SetSize(20, 18)
+			editButton:Dock(RIGHT)
+			
+			editButton:SetText('')
+			editButton:SetIcon('icon16/application_edit.png')
+			
+			editButton.DoClick = function()
+				local actEditor = vgui.Create('UParActEditor')
+				actEditor:Init2(node.actName)
+			end
 
 			if not isAdmin then 
 				continue 

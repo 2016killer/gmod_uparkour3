@@ -47,7 +47,7 @@ function ActEditor:Init2(actName)
 	self.Tabs = Tabs
 	self.action = action
 
-	if istable(UPar.GetEffects(actName)) and #UPar.GetEffects(actName) > 0 then
+	if istable(UPar.GetEffects(actName)) and not table.IsEmpty(UPar.GetEffects(actName)) then
 		local effectManager = vgui.Create('UParEffectManager', self)
 		Tabs:AddSheet('#upgui.effect', effectManager, 'icon16/user.png', false, false, '')
 		effectManager:Init2(actName)
