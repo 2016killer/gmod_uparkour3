@@ -216,7 +216,7 @@ if SERVER then
 				continue
 			end
 
-			local succ, err = pcall(action.Think, action, ply, mv, cmd, checkResult)
+			local succ, err = pcall(action.Think, action, ply, checkResult, mv, cmd)
 			if not succ then
 				ForceEnd(ply, trackId)
 				error(string.format('action named "%s" Think error: %s\n', actName, err))
@@ -307,13 +307,26 @@ elseif CLIENT then
 		end
 	end)
 
-	UPar.MoveControl = MoveControl
-	UPar.SetMoveControl = function(enable, clearMovement, removeKeys, addKeys)
+	local function SetMoveControl(enable, clearMovement, removeKeys, addKeys, timeout)
 		MoveControl.enable = enable
 		MoveControl.ClearMovement = clearMovement
 		MoveControl.RemoveKeys = isnumber(removeKeys) and removeKeys or 0
 		MoveControl.AddKeys = isnumber(addKeys) and addKeys or 0
+
+		if enable then
+			if isnumber(timeout) then
+				timer.Create('UParMoveControl', math.abs(timeout), 1, function()
+					print('MoveControl timeout')
+					SetMoveControl(false, false, 0, 0)
+				end)
+			end
+		else
+			timer.Remove('UParMoveControl')
+		end
 	end
+
+	UPar.MoveControl = MoveControl
+	UPar.SetMoveControl = SetMoveControl
 
     net.Receive('UParCallClientAction', function()
 		local ply = LocalPlayer()

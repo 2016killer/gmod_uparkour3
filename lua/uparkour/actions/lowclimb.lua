@@ -21,48 +21,43 @@ local action = UPAction:Register('lowclimb', {
 
 action:InitConVars({
 	{
-		name = 'dp_lc_move_ctrl',
-		default = '1',
-		widget = 'Checkbox',
-		help = true
+		name = 'los_cos',
+		default = '0.64',
+		invisible = true
 	},
 
 	{
-		name = 'dp_lc_blen',
+		name = 'lc_blen',
+		label = '#upgui.act.lc.blen',
 		default = '1.5',
 		widget = 'NumSlider',
-		min = 0,
-		max = 2,
-		decimals = 2,
-		help = true
+		min = 0, max = 2, decimals = 2,
+		help = '#upgui.act.lc.blen.help'
 	},
 
 	{
-		name = 'dp_lc_max',
+		name = 'lc_max',
+		label = '#upgui.act.lc.max',
 		default = '0.85',
 		widget = 'NumSlider',
-		min = 0,
-		max = 0.85,
-		decimals = 2,
-		help = true
+		min = 0, max = 0.85, decimals = 2,
+		help = '#upgui.act.lc.max.help'
 	},
 
 	{
-		name = 'dp_lc_min',
+		name = 'lc_min',
+		label = '#upgui.act.lc.min',
 		default = '0.5',
 		widget = 'NumSlider',
-		min = 0,
-		max = 0.85,
-		decimals = 2
+		min = 0, max = 0.85, decimals = 2
 	},
 
 	{
-		name = 'dp_lc_speed',
+		name = 'lc_speed',
+		label = '#upgui.act.lc.speed',
 		default = '1 0.25 0.25',
 		widget = 'UParVecEditor',
-		min = 0,
-		max = 0.85,
-		decimals = 2
+		min = 0, max = 2, decimals = 2
 	}
 })
 
@@ -77,14 +72,15 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 	local plyWidth = math.max(omaxs[1] - omins[1], omaxs[2] - omins[2])
 	local plyHeight = omaxs[3] - omins[3]
 	
-	local obsHeightMax = convars.dp_lc_max:GetFloat() * plyHeight
-	local obsHeightMin = convars.dp_lc_min:GetFloat() * plyHeight
-    local blen = convars.dp_lc_blen:GetFloat() * plyWidth
+	local obsHeightMax = convars.lc_max:GetFloat() * plyHeight
+	local obsHeightMin = convars.lc_min:GetFloat() * plyHeight
+    local blen = convars.lc_blen:GetFloat() * plyWidth
 
 	omaxs[3] = obsHeightMax
 	omins[3] = obsHeightMin
 
 	// print(obsHeightMax, obsHeightMin)
+	loscos = isnumber(loscos) and loscos or convars.los_cos:GetFloat()
 
 	local pos, dirNorm, landpos, blockheight = ClimbDetector(
 		ply, 
@@ -117,7 +113,7 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 
 		starttime = CurTime(),
 
-		needduck = not IsStartSolid(ply, landpos),
+		needduck = IsStartSolid(ply, landpos, false),
 		duration = moveDuration
 	}
 end
@@ -134,7 +130,7 @@ function action:GetSpeed(ply, dirNorm, refVel)
 	)
 	
 	return math.max(
-		Vector(self.ConVars.dp_lc_speed:GetString()):Dot(moveVector), 
+		Vector(self.ConVars.lc_speed:GetString()):Dot(moveVector), 
 		refSpeed,
 		10
 	), 0
@@ -142,12 +138,12 @@ end
 
 function action:Start(ply, data)
     if CLIENT then 
-		local moveCtrl = self.ConVars.dp_lc_move_ctrl:GetBool()
-		if moveCtrl then 
-			SetMoveControl(ply, true, true, 
-				data.needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
-				data.needduck and IN_DUCK or 0)
-		end
+		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
+		local needduck = data.needduck
+		SetMoveControl(true, true, 
+			needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
+			needduck and IN_DUCK or 0, 
+			timeout)
 	end
 	
 	if ply:GetMoveType() ~= MOVETYPE_NOCLIP then 
@@ -155,7 +151,7 @@ function action:Start(ply, data)
 	end
 end
 
-function action:Think(ply, mv, cmd, data)
+function action:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
 	local endpos = data.endpos
 	local startspeed = data.startspeed
@@ -168,19 +164,21 @@ function action:Think(ply, mv, cmd, data)
     local acc = (endspeed - startspeed) / duration
 
 	mv:SetOrigin(startpos + (0.5 * acc * dt * dt + startspeed * dt) * dir)
-	mv:SetVelocity(unitzvec)
 
 	return dt > duration
 end
 
-function action:Clear(ply, mv, cmd, data)
+function action:Clear(ply, data, mv, cmd)
 	if SERVER then
-	    if mv and IsStartSolid(ply) then
+	    if mv 
+		and istable(data) 
+		and isvector(data.endpos) 
+		and IsStartSolid(ply, ply:GetPos() + unitzvec, true) then
 			mv:SetOrigin(data.endpos)
 			mv:SetVelocity(unitzvec)
 		end
 	elseif CLIENT then 
-		SetMoveControl(ply, false, false, 0, 0)
+		SetMoveControl(false, false, 0, 0)
     end
 
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 

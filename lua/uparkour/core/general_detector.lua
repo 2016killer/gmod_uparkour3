@@ -44,7 +44,7 @@ UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, losc
 	end
 
 	-- 判断是否对准了障碍物
-	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dir) < loscos then 
+	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dirNorm) < loscos then 
 		return 
 	end
 
@@ -89,13 +89,19 @@ UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, losc
 	return pos, dirNorm, trace.HitPos, trace.HitPos[3] - pos[3]
 end
 
-UPar.IsStartSolid = function(ply, startpos)
+UPar.IsStartSolid = function(ply, startpos, cur)
 	if not IsValid(ply) or not ply:IsPlayer() then
 		print(string.format('Invalid ply "%s"', ply))
 		return
 	end
 
-	local pmins, pmaxs = ply:GetHull()
+	local pmins, pmaxs = nil
+	if cur then
+		pmins, pmaxs = ply:GetCollisionBounds()
+	else
+		pmins, pmaxs = ply:GetHull()
+	end
+
 	startpos = isvector(startpos) and startpos or ply:GetPos()
 
 	local spacecheck = util.TraceHull({

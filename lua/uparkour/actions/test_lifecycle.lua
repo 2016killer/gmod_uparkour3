@@ -31,7 +31,7 @@ function action:Start(ply, checkResult)
 	checkResult.rhythm = 0
 end
 
-function action:Think(ply, mv, cmd, checkResult)
+function action:Think(ply, checkResult, mv, cmd)
 	local curtime = CurTime()
 
 	if curtime > checkResult.endtime - 0.5 and checkResult.rhythm == 0 then
