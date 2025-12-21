@@ -286,7 +286,7 @@ EffectManager = nil
 
 
 UPar.SeqHookAdd('UParEffVarPreviewColor', 'default', function(_, _, key, val)
-	if key == 'AAAACreat' or key == 'AAAContrib' or key == 'AAADesc' then
+	if key == 'AAADesc' then
 		return lightblue
 	end
 end, 10)
