@@ -42,14 +42,6 @@ function action:Trigger()
 
 end
 
-if SERVER then
-	hook.Add('PlayerButtonDown', 'upar.act.ctrl', function(ply, button)
-		print(ply)
-		// print(input.GetKeyName(button))
-		print(button)
-	end)
-end
-
 if CLIENT then
 
 
