@@ -65,6 +65,7 @@ function UPAction:Register(name, initData, new)
     assert(isfunction(self.Start), string.format('Invalid field "Start" = "%s" (not a function)', self.Start))
     assert(isfunction(self.Think), string.format('Invalid field "Think" = "%s" (not a function)', self.Think))
     assert(isfunction(self.Clear), string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
+    assert(isfunction(self.OnValCltPredRes), string.format('Invalid field "OnValCltPredRes" = "%s" (not a function)', self.OnValCltPredRes))
 
     if new then hook.Run('UParRegisterAction', name, self) end
     
@@ -87,6 +88,10 @@ end
 
 function UPAction:Clear(...)
     UPar.printinputs(string.format('act.Clear is empty: "%s", TrackId: %s', self.Name, self.TrackId), ...)
+end
+
+function UPAction:OnValCltPredRes(...)
+    return true
 end
 
 function UPAction:InitCVarDisabled(default)

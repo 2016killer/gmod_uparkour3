@@ -205,6 +205,17 @@ if SERVER then
 		local actName = net.ReadString()
 		local checkResult = net.ReadTable()
 
+		local action = ActInstances[actName]
+		if not action then
+			print(string.format('act named "%s" is not found', actName))
+			return
+		end
+
+		if not action:OnValCltPredRes(ply, checkResult) then
+			print(string.format('act named "%s" OnValCltPredRes failed, %s', actName, ply))
+			return
+		end
+
 		Trigger(ply, actName, checkResult)
 	end)
 

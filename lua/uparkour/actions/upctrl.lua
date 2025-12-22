@@ -38,10 +38,21 @@ action:InitConVars({
 
 })
 
-function action:Check(ply, pos, dirNorm, loscos, refVel)
+function action:Trigger()
+
+end
+
+if SERVER then
+	hook.Add('PlayerButtonDown', 'upar.act.ctrl', function(ply, button)
+		print(ply)
+		// print(input.GetKeyName(button))
+		print(button)
+	end)
 end
 
 if CLIENT then
+
+
 	UPar.SeqHookAdd('UParActCVarWidget_upctrl', 'default', function(cvCfg, panel)
 		if cvCfg.name == 'los_cos' then
 			local created = UPar.SeqHookRun('UParActCVarWidget', 'upctrl', cvCfg, panel)

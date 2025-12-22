@@ -71,6 +71,29 @@
 在这里清理资源, 资源的载入和释放最好不要有上下文依赖，也就是任何情况都能载入和释放。
 ```
 
+![server](./materials/upgui/server.jpg)
+**bool** **UPAction**:OnValCltPredRes(**Player** ply, **table** checkResult)
+```note
+在客户端调用UPar.Trigger通过时会向服务器端发送数据, 服务器端可以在校验数据。
+一般情况用不上, 主要是防止客户端非法修改数据。
+```
+```lua
+-- 验证 checkResult.endpos 与 玩家的位置是否相差太远
+-- 限制速度不能为负数
+function moveAct:OnValCltPredRes(ply, checkResult)
+	if isvector(checkResult.endpos) then
+		if not isnumber(checkResult.speed) or (checkResult.endpos - ply:GetPos()):LengthSqr() > 1000 ^ 2 then
+			return false
+		end
+
+		checkResult.speed = math.max(checkResult.speed, 0)
+		
+		return true
+	else
+		return false
+	end
+end
+```
 
 ## 可用方法
 ![shared](./materials/upgui/shared.jpg)

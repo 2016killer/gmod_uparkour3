@@ -73,6 +73,32 @@ interruptSource is true for forced termination, and the interruption name for ot
 Clean up resources here. Resource loading and unloading should preferably have no context dependencies—i.e., they should be loadable and unloadable in any scenario.
 ```
 
+
+![server](./materials/upgui/server.jpg)
+**bool** **UPAction**:OnValCltPredRes(**Player** ply, **table** checkResult)
+```note
+When UPar.Trigger is called and validated on the client, data is sent to the server. 
+The server can validate the data here.
+Generally not required, mainly used to prevent illegal modification of data by the client.
+```
+```lua
+-- Verify if checkResult.endpos is too far from the player's position
+-- Restrict speed to non-negative values
+function moveAct:OnValCltPredRes(ply, checkResult)
+	if isvector(checkResult.endpos) then
+		if not isnumber(checkResult.speed) or (checkResult.endpos - ply:GetPos()):LengthSqr() > 1000 ^ 2 then
+			return false
+		end
+
+		checkResult.speed = math.max(checkResult.speed, 0)
+		
+		return true
+	else
+		return false
+	end
+end
+```
+
 ## Available Methods
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:InitCVarPredictionMode(**string** default)
