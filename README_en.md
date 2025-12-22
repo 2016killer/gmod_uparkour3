@@ -21,6 +21,8 @@ Sample code can be found in all Lua files containing the keyword "test".
 ### Consensus
 ```note
 For UPAction and UPEffect, we should treat them as static containers and must not store any runtime results in them.
+
+The lifecycle synchronization of UPAction and UPEffect is always one-time-only. Since the synchronized data is a table, developers can add custom markers and send it independently if multiple synchronizations are required.
 ```
 
 ### Data Security
