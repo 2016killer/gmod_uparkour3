@@ -3,7 +3,7 @@
 	2025 12 20
 ]]--
 
--- ==================== 总调度器 ===============
+-- ==================== 总控制 ===============
 local ClimbDetector = UPar.ClimbDetector
 local IsStartSolid = UPar.IsStartSolid
 local SetMoveControl = UPar.SetMoveControl

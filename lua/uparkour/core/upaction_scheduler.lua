@@ -82,7 +82,7 @@ if SERVER then
 	util.AddNetworkString('UParStart')
 
 	local function Trigger(ply, actName, checkResult, ...)
-        if not IsValid(ply) then
+        if not IsValid(ply) or not ply:IsPlayer() then
 			print(string.format('Invalid ply "%s"', ply))
 			return
         end
@@ -263,7 +263,7 @@ if SERVER then
 	hook.Add('PlayerSilentDeath', 'upar.clear', ForceEndAll)
 elseif CLIENT then
 	UPar.Trigger = function(ply, actName, checkResult, ...)
-        if not IsValid(ply) then
+        if not IsValid(ply) or not ply:IsPlayer() then
 			print(string.format('Invalid ply "%s"', ply))
 			return
         end
