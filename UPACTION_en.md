@@ -79,7 +79,7 @@ Clean up resources here. Resource loading and unloading should preferably have n
 ```note
 Will appear in the Q menu after initialization.
 
-false: Use server-side prediction
+false: Use server-side calculation
 true: Use client-side prediction
 
 The parameter itself has no effect and needs to be handled manually.
