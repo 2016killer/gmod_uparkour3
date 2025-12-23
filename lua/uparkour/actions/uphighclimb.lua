@@ -10,11 +10,11 @@ local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 
-local action = UPAction:Register('uplowclimb', {
+local action = UPAction:Register('uphighclimb', {
 	AAAACreat = '白狼',
-	AAADesc = '#uplowclimb.desc',
+	AAADesc = '#uphighclimb.desc',
 	icon = 'upgui/uparkour.jpg',
-	label = '#uplowclimb',
+	label = '#uphighclimb',
 	defaultDisabled = false,
 	defaultKeybind = '[33,79,65]'
 })
@@ -27,30 +27,30 @@ action:InitConVars({
 	},
 
 	{
-		name = 'uplc_blen',
-		default = '1.5',
+		name = 'uphc_blen',
+		default = '0.5',
 		widget = 'NumSlider',
 		min = 0, max = 2, decimals = 2,
 		help = true
 	},
 
 	{
-		name = 'uplc_max',
-		default = '0.85',
+		name = 'uphc_max',
+		default = '1.3',
 		widget = 'NumSlider',
-		min = 0, max = 0.85, decimals = 2,
+		min = 0.86, max = 2, decimals = 2,
 		help = true
 	},
 
 	{
-		name = 'uplc_min',
-		default = '0.5',
+		name = 'uphc_min',
+		default = '0.86',
 		widget = 'NumSlider',
-		min = 0, max = 0.85, decimals = 2
+		min = 0.86, max = 2, decimals = 2,
 	},
 
 	{
-		name = 'uplc_speed',
+		name = 'uphc_speed',
 		default = '1 0.25 0.25',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
@@ -69,9 +69,9 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 	local plyWidth = math.max(omaxs[1] - omins[1], omaxs[2] - omins[2])
 	local plyHeight = omaxs[3] - omins[3]
 	
-	local obsHeightMax = convars.uplc_max:GetFloat() * plyHeight
-	local obsHeightMin = convars.uplc_min:GetFloat() * plyHeight
-    local blen = convars.uplc_blen:GetFloat() * plyWidth
+	local obsHeightMax = convars.uphc_max:GetFloat() * plyHeight
+	local obsHeightMin = convars.uphc_min:GetFloat() * plyHeight
+    local blen = convars.uphc_blen:GetFloat() * plyWidth
 
 	omaxs[3] = obsHeightMax
 	omins[3] = obsHeightMin
@@ -125,7 +125,7 @@ function action:GetSpeed(ply, dirNorm, refVel)
 	)
 	
 	return math.max(
-		Vector(self.ConVars.uplc_speed:GetString()):Dot(moveVector), 
+		Vector(self.ConVars.uphc_speed:GetString()):Dot(moveVector), 
 		refSpeed,
 		10
 	), 0
@@ -156,7 +156,7 @@ function action:Think(ply, data, mv, cmd)
 
 
 	local speed_max = math.abs(math.max(startspeed, endspeed))
-	local dt = CurTime() - starttime
+	local dt = CurTime() - starttime - 0.1
 	local result = Hermite3(dt / duration, startspeed / speed_max, endspeed / speed_max)
 	local endflag = dt > duration or result >= 1
 
@@ -166,6 +166,7 @@ function action:Think(ply, data, mv, cmd)
 
 	return endflag
 end
+
 
 function action:Clear(ply, data, mv, cmd)
 	if CLIENT then 
@@ -182,9 +183,9 @@ if CLIENT then
 		UPar.Trigger(LocalPlayer(), self.Name)
 	end
 
-	UPar.SeqHookAdd('UParActCVarWidget_uplowclimb', 'default', function(cvCfg, panel)
-		if cvCfg.name == 'uplc_blen' or cvCfg.name == 'uplc_speed' or cvCfg.name == 'uplc_min' or cvCfg.name == 'uplc_max' then
-			local created = UPar.SeqHookRun('UParActCVarWidget', 'uplowclimb', cvCfg, panel)
+	UPar.SeqHookAdd('UParActCVarWidget_uphighclimb', 'default', function(cvCfg, panel)
+		if cvCfg.name == 'uphc_blen' or cvCfg.name == 'uphc_speed' or cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then
+			local created = UPar.SeqHookRun('UParActCVarWidget', 'uphighclimb', cvCfg, panel)
 			if not created then
 				return
 			end
@@ -197,22 +198,22 @@ if CLIENT then
 
 				self.NextThinkTime = CurTime() + 0.5
 				local value = nil
-				if cvCfg.name == 'uplc_speed' then
+				if cvCfg.name == 'uphc_speed' then
 					value = action:GetSpeed(LocalPlayer(), unitzvec, unitzvec)
 					value = math.Round(value, 2)
-				elseif cvCfg.name == 'uplc_min' or cvCfg.name == 'uplc_max' then
+				elseif cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
-					if cvCfg.name == 'uplc_max' then
-						value = plyHeight * action.ConVars.uplc_max:GetFloat()
+					if cvCfg.name == 'uphc_max' then
+						value = plyHeight * action.ConVars.uphc_max:GetFloat()
 					else
-						value = plyHeight * action.ConVars.uplc_min:GetFloat()
+						value = plyHeight * action.ConVars.uphc_min:GetFloat()
 					end
 					value = math.Round(value, 2)
-				elseif cvCfg.name == 'uplc_blen' then
+				elseif cvCfg.name == 'uphc_blen' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
-					value = plyWidth * action.ConVars.uplc_blen:GetFloat()
+					value = plyWidth * action.ConVars.uphc_blen:GetFloat()
 					value = math.Round(value, 2)
 				end
 

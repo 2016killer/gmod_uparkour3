@@ -226,3 +226,17 @@ UPar.GetFallDamageInfo = function(ply, fallspeed, ref)
 		end 
 	end
 end
+
+UPar.Hermite3 = function(t_norm, m0, m1)
+    local t = math.Clamp(t_norm, 0, 1)
+    local t2 = t * t
+    local t3 = t2 * t
+
+    local h10 = t3 - 2 * t2 + t
+    local h01 = -2 * t3 + 3 * t2
+    local h11 = t3 - t2
+
+    local result = m0 * h10 + h01 + m1 * h11
+
+    return math.Clamp(result, 0, 1)
+end
