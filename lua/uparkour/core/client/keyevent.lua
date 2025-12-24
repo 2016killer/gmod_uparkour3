@@ -3,10 +3,21 @@
 	2025 12 22
 --]]
 
-UPar.ActKeyPress = UPar.ActKeyPress or {}
+UPar.ActKeyPress = {}
+UPar.ACT_KEY_EVENT_FLAGS = {
+    UNHANDLED = 0,
+    HANDLED = 1,
+    SKIPPED = 2
+}
+
+
+local FLAGS_UNHANDLED = UPar.ACT_KEY_EVENT_FLAGS.UNHANDLED
+local FLAGS_HANDLED = UPar.ACT_KEY_EVENT_FLAGS.HANDLED
+local FLAGS_SKIPPED = UPar.ACT_KEY_EVENT_FLAGS.SKIPPED
 
 local ActKeyPress = UPar.ActKeyPress
 local ActInstances = UPar.ActInstances
+local SeqHookRunAllSafe = UPar.SeqHookRunAllSafe
 
 local nextThinkTime = 0
 local interval = GetConVar('up_act_keydt') and GetConVar('up_act_keydt'):GetFloat() or 0.03
@@ -23,6 +34,8 @@ hook.Add('Think', 'upar.key.event', function()
     end
     nextThinkTime = curTime + interval
 
+    local PressedActs = {}
+    local ReleasedActs = {}
     for actName, act in pairs(ActInstances) do
         local keybind = act:GetKeybind()
         if istable(keybind) then
@@ -36,15 +49,21 @@ hook.Add('Think', 'upar.key.event', function()
             end
 
             if pressAll and not ActKeyPress[actName] then
-                local success, err = pcall(act.OnKeyPress, act)
-                if not success then ErrorNoHaltWithStack(err) end
+                PressedActs[actName] = FLAGS_UNHANDLED
             elseif not pressAll and ActKeyPress[actName] then
-                local success, err = pcall(act.OnKeyRelease, act)
-                if not success then ErrorNoHaltWithStack(err) end
+                ReleasedActs[actName] = FLAGS_UNHANDLED
             end
 
             ActKeyPress[actName] = pressAll
         end
+    end
+
+    if not table.IsEmpty(PressedActs) then
+        SeqHookRunAllSafe('UParActKeyPress', PressedActs)
+    end
+
+    if not table.IsEmpty(ReleasedActs) then
+        SeqHookRunAllSafe('UParActKeyRelease', ReleasedActs)
     end
 end)
 
