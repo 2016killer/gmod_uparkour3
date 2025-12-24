@@ -147,7 +147,7 @@ UPar.SeqHookAdd('UParActAllowInterrupt', 'example.interrupt', function(playingNa
 end)
 ```
 
-![server](./materials/upgui/server.jpg)
+![shared](./materials/upgui/shared.jpg)
 **@Name:** **UParActPreStartValidate** + **actName**  
 **@Parameters:** ply **Player**, checkResult **table**  
 **@Returns:** invalid **bool** or **nil**
@@ -163,7 +163,7 @@ UPar.SeqHookAdd('UParActPreStartValidate_test_lifecycle', 'example.prestart.vali
 end)
 ```
 
-![server](./materials/upgui/server.jpg)
+![shared](./materials/upgui/shared.jpg)
 **@Name:** **UParActPreStartValidate**  
 **@Parameters:** actName **string**, ply **Player**, checkResult **table**  
 **@Returns:** invalid **bool** or **nil**

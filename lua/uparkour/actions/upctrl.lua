@@ -11,18 +11,12 @@ local unitzvec = UPar.unitzvec
 
 local controller = UPAction:Register('upctrl', {
 	AAAACreat = '白狼',
-	AAADesc = 'upctrl.desc',
+	AAADesc = '#upctrl.desc',
 	icon = 'upgui/uparkour.jpg',
 	label = '#upctrl',
 	defaultDisabled = false,
 	defaultPredictionMode = false
 })
-
-local actLowclimb = UPAction:Register('uplowclimb', {})
-local actHighclimb = UPAction:Register('uphighclimb', {})
-local actVault = UPAction:Register('upvault', {})
-local actVaultDL = UPAction:Register('upvaultdl', {})
-local actVaultDH = UPAction:Register('upvaultdh', {})
 
 controller:InitConVars({
 	{

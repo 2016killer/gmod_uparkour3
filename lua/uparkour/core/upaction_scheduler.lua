@@ -77,6 +77,45 @@ UPar.ActStart = ActStart
 UPar.ActClear = ActClear
 UPar.ActEffRhythmChange = ActEffRhythmChange
 
+UPar.CallAct = function(actName, methodName, ...)
+    local action = ActInstances[actName]
+    if not action then
+		print(string.format('not found act named "%s"', actName))
+		return
+    end
+
+    local method = action[methodName]
+    if not isfunction(method) then
+		print(string.format('not found method "%s" in act "%s"', methodName, actName))
+		return
+    end
+
+	return method(action, ...)
+end
+
+UPar.CallEff = function(actName, effName, methodName, ...)
+    local effects = EffInstances[actName]
+    if not effects then
+		print(string.format('not found effs in act "%s"', actName))
+		return
+    end
+
+    local effect = effects[effName]
+    if not effect then
+		print(string.format('not found eff "%s" in act "%s"', effName, actName))
+		return
+    end
+
+    local method = effect[methodName]
+    if not isfunction(method) then
+		print(string.format('not found method "%s" in eff "%s" of act "%s"', methodName, effName, actName))
+		return
+    end
+
+	return method(effects[effName], ...)
+end
+
+
 if SERVER then
     util.AddNetworkString('UParCallClientAction')
 	util.AddNetworkString('UParStart')
@@ -89,7 +128,7 @@ if SERVER then
 
 		local action = ActInstances[actName]
 		if not action then
-			print(string.format('act named "%s" is not found', actName))
+			print(string.format('not found act named "%s"', actName))
 			return
 		end
 
@@ -207,7 +246,7 @@ if SERVER then
 
 		local action = ActInstances[actName]
 		if not action then
-			print(string.format('act named "%s" is not found', actName))
+			print(string.format('not found act named "%s"', actName))
 			return
 		end
 
@@ -270,7 +309,7 @@ elseif CLIENT then
 
 		local action = ActInstances[actName]
 		if not action then
-			print(string.format('act named "%s" is not found', actName))
+			print(string.format('not found act named "%s"', actName))
 			return
 		end
 
@@ -281,6 +320,11 @@ elseif CLIENT then
 		checkResult = checkResult or action:Check(ply, ...)
 		if not istable(checkResult) then
 			return
+		else
+			if SeqHookRun('UParActPreStartValidate_' .. actName, ply, checkResult) 
+			or SeqHookRun('UParActPreStartValidate', actName, ply, checkResult) then
+				return
+			end
 		end
 
 		net.Start('UParStart')

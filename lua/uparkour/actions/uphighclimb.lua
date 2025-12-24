@@ -10,7 +10,7 @@ local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 
-local action = UPAction:Register('uphighclimb', {
+local uphighclimb = UPAction:Register('uphighclimb', {
 	AAAACreat = '白狼',
 	AAADesc = '#uphighclimb.desc',
 	icon = 'upgui/uparkour.jpg',
@@ -19,7 +19,7 @@ local action = UPAction:Register('uphighclimb', {
 	defaultKeybind = '[33,79,65]'
 })
 
-action:InitConVars({
+uphighclimb:InitConVars({
 	{
 		name = 'upctrl_los_cos',
 		default = '0.64',
@@ -58,7 +58,7 @@ action:InitConVars({
 	}
 })
 
-function action:Check(ply, pos, dirNorm, loscos, refVel)
+function uphighclimb:Check(ply, pos, dirNorm, loscos, refVel)
 	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
 		return
 	end
@@ -96,6 +96,12 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 
 	// print(pos, dirNorm, landpos, blockheight)
 	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
+
+	if endspeed + startspeed <= 0 then 
+		print('[UPar]: Warning: endspeed + startspeed <= 0')
+		return
+	end
+
 	local moveDis = (landpos - pos):Length()
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
 	
@@ -113,7 +119,7 @@ function action:Check(ply, pos, dirNorm, loscos, refVel)
 	}
 end
 
-function action:GetSpeed(ply, dirNorm, refVel)
+function uphighclimb:GetSpeed(ply, dirNorm, refVel)
 	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
 	
@@ -131,7 +137,7 @@ function action:GetSpeed(ply, dirNorm, refVel)
 	), 0
 end
 
-function action:Start(ply, data)
+function uphighclimb:Start(ply, data)
     if CLIENT then 
 		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
 		local needduck = data.needduck
@@ -146,7 +152,7 @@ function action:Start(ply, data)
 	end
 end
 
-function action:Think(ply, data, mv, cmd)
+function uphighclimb:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
 	local endpos = data.endpos
 	local startspeed = data.startspeed
@@ -168,7 +174,7 @@ function action:Think(ply, data, mv, cmd)
 end
 
 
-function action:Clear(ply, data, mv, cmd)
+function uphighclimb:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
     end
@@ -179,7 +185,7 @@ function action:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	function action:OnKeyPress()
+	function uphighclimb:OnKeyPress()
 		UPar.Trigger(LocalPlayer(), self.Name)
 	end
 
@@ -199,21 +205,21 @@ if CLIENT then
 				self.NextThinkTime = CurTime() + 0.5
 				local value = nil
 				if cvCfg.name == 'uphc_speed' then
-					value = action:GetSpeed(LocalPlayer(), unitzvec, unitzvec)
+					value = uphighclimb:GetSpeed(LocalPlayer(), unitzvec, unitzvec)
 					value = math.Round(value, 2)
 				elseif cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
 					if cvCfg.name == 'uphc_max' then
-						value = plyHeight * action.ConVars.uphc_max:GetFloat()
+						value = plyHeight * uphighclimb.ConVars.uphc_max:GetFloat()
 					else
-						value = plyHeight * action.ConVars.uphc_min:GetFloat()
+						value = plyHeight * uphighclimb.ConVars.uphc_min:GetFloat()
 					end
 					value = math.Round(value, 2)
 				elseif cvCfg.name == 'uphc_blen' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
-					value = plyWidth * action.ConVars.uphc_blen:GetFloat()
+					value = plyWidth * uphighclimb.ConVars.uphc_blen:GetFloat()
 					value = math.Round(value, 2)
 				end
 

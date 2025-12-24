@@ -36,9 +36,11 @@ hook.Add('Think', 'upar.key.event', function()
             end
 
             if pressAll and not ActKeyPress[actName] then
-                act:OnKeyPress()
+                local success, err = pcall(act.OnKeyPress, act)
+                if not success then ErrorNoHaltWithStack(err) end
             elseif not pressAll and ActKeyPress[actName] then
-                act:OnKeyRelease()
+                local success, err = pcall(act.OnKeyRelease, act)
+                if not success then ErrorNoHaltWithStack(err) end
             end
 
             ActKeyPress[actName] = pressAll
