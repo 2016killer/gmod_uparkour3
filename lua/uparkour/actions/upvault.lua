@@ -10,7 +10,6 @@ local IsStartSolid = UPar.IsStartSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
-local CallAct = UPar.CallAct
 
 
 local upvault = UPAction:Register('upvault', {
@@ -58,10 +57,12 @@ upvault:InitConVars({
 	}
 })
 
-function upvault:Check(ply, pos, dirNorm, loscos, refVel)
+function upvault:Check(ply, pos, dirNorm, refVel, landpos)
 	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
 		return
 	end
+
+	print(pos, dirNorm, refVel, landpos)
 
 	local convars = self.ConVars
 
@@ -72,15 +73,8 @@ function upvault:Check(ply, pos, dirNorm, loscos, refVel)
     local hlen = convars.upvt_hlen:GetFloat() * plyWidth
     local vlen = convars.upvt_vlen:GetFloat() * plyHeight
 
-	if not landpos or not blockheight then 
-		loscos = isnumber(loscos) and loscos or convars.upctrl_los_cos:GetFloat()
-
-		local data = CallAct('uplowclimb', 'Check', ply, pos, dirNorm, loscos, refVel)
-		pos, dirNorm, landpos, blockheight = data.startpos, data.dirNorm, data.landpos, data.blockheight
-		print(pos, dirNorm, landpos, blockheight)
-	end
 	
-	local vaultpos, vaultheight = VaultDetector(ply, pos, dirNorm, landpos, hlen, vlen)
+	local pos, dirNorm, vaultpos, vaultheight = VaultDetector(ply, pos, dirNorm, landpos, hlen, vlen)
 
 	if not vaultpos then
 		return 
@@ -93,9 +87,9 @@ function upvault:Check(ply, pos, dirNorm, loscos, refVel)
 		return
 	end
 
-	local moveDis = (vaultpos - startpos):Length()
+	local moveDis = (vaultpos - pos):Length()
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
-
+	print(startspeed, endspeed, moveDis)
 	return {
 		startpos = pos,
 		endpos = vaultpos,
@@ -105,7 +99,10 @@ function upvault:Check(ply, pos, dirNorm, loscos, refVel)
 
 		starttime = CurTime(),
 
-		duration = moveDuration
+		duration = moveDuration,
+
+		dirNorm = dirNorm,
+		blockheight = blockheight
 	}
 
 end
@@ -121,7 +118,7 @@ function upvault:GetSpeed(ply, dirNorm, refVel)
 		ply:GetWalkSpeed()
 	)
 	
-	return startspeed, math.max(
+	return math.max(startspeed, 0), math.max(
 		Vector(self.ConVars.upvt_speed:GetString()):Dot(moveVector), 
 		startspeed,
 		10
@@ -166,6 +163,10 @@ end
 function upvault:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
+	elseif SERVER then
+		if mv and istable(data) and isnumber(data.endspeed) and isvector(data.dirNorm) then
+			mv:SetVelocity(data.endspeed * data.dirNorm)
+		end
     end
 
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
@@ -174,7 +175,18 @@ function upvault:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	function upvault:OnKeyPress()
-		UPar.Trigger(LocalPlayer(), self.Name)
-	end
+	UPar.SeqHookAdd('UParActKeyPress', 'test_upvault', function(pressActs)
+		if pressActs['upvault'] then 
+			local checkResult = UPar.CallAct('uplowclimb', 'Check', LocalPlayer())
+			if not checkResult then 
+				return
+			end
+			UPar.Trigger(LocalPlayer(), 'upvault', nil,
+				checkResult.startpos,
+				checkResult.dirNorm,
+				nil,
+				checkResult.endpos
+			)
+		end
+	end)
 end

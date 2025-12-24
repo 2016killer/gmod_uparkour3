@@ -13,26 +13,26 @@ end
 
 UPar.XYNormal = XYNormal
 
-UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, loscos)
+UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
+	-- 获取障碍位置
+
 	if not IsValid(ply) or not ply:IsPlayer() then
 		print(string.format('Invalid ply "%s"', ply))
 		return
 	end
 
-	pos = (isvector(pos) and pos or ply:GetPos()) + unitzvec
-	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
+	pos = isvector(pos) and pos or ply:GetPos()
+	dir = isvector(dir) and dir or XYNormal(ply:EyeAngles():Forward()) * 48
 	omins = isvector(omins) and omins or Vector(-16, -16, 32)
 	omaxs = isvector(omaxs) and omaxs or Vector(16, 16, 54)
-	olen = isnumber(olen) and olen or 48
-	
-	-- 主要是为了检查是否对准了障碍物和阻碍
+
 	local obsTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
 		start = pos,
-		endpos = pos + dirNorm * olen,
+		endpos = pos + dir,
 		mins = omins,
-		maxs = omaxs,
+		maxs = omaxs
 	})
 
 	UPar.debugwireframebox(obsTrace.HitPos, omins, omaxs, 3, 
@@ -43,25 +43,42 @@ UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, losc
 		return
 	end
 
-	-- 判断是否对准了障碍物
-	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dirNorm) < loscos then 
+	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dir:GetNormalized()) < loscos then 
 		return 
 	end
 
 	if SERVER and IsValid(obsTrace.Entity) and obsTrace.Entity:IsPlayerHolding() then
 		return
 	end
-	
+
+	obsTrace.mins = omins
+	obsTrace.maxs = omaxs
+	obsTrace.loscos = loscos
+
+	return obsTrace
+end
+
+UPar.ClimbDetector = function(ply, obsTrace, ehlen)
+	if not IsValid(ply) or not ply:IsPlayer() then
+		print(string.format('Invalid ply "%s"', ply))
+		return
+	end
+
+	local pos = obsTrace.StartPos
+	local obsPos = obsTrace.HitPos
+	local maxh = obsTrace.maxs[3]
+	local minh = obsTrace.mins[3]
+	local dirNorm = obsTrace.Normal
 	ehlen = isnumber(ehlen) and ehlen or 16
 
 	-- 确保落脚点有足够空间, 所以检测蹲碰撞盒
-	local evlen = omaxs[3] - omins[3]
+	local evlen = maxh - minh
 	local dmins, dmaxs = ply:GetHullDuck()
 
-	local startpos = obsTrace.HitPos + Vector(0, 0, omaxs[3]) + dirNorm * ehlen
+	local startpos = obsPos + Vector(0, 0, maxh) + dirNorm * ehlen
 	local endpos = startpos - Vector(0, 0, evlen)
 
-	local trace = util.TraceHull({
+	local climbTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
 		start = startpos,
@@ -70,23 +87,25 @@ UPar.ClimbDetector = function(ply, pos, dirNorm, omins, omaxs, olen, ehlen, losc
 		maxs = dmaxs,
 	})
 
-	UPar.debugwireframebox(trace.StartPos, dmins, dmaxs, 3, Color(0, 255, 255), true)
+	UPar.debugwireframebox(climbTrace.StartPos, dmins, dmaxs, 3, Color(0, 255, 255), true)
 
 	-- 确保不在滑坡上且在障碍物上
-	if not trace.Hit or trace.HitNormal[3] < 0.707 then
+	if not climbTrace.Hit or climbTrace.HitNormal[3] < 0.707 then
 		return
 	end
 
 	-- 检测落脚点是否有足够空间
 	-- OK, 预留1的单位高度防止极端情况
-	if trace.StartSolid or trace.Fraction * evlen < 1 then
+	if climbTrace.StartSolid or climbTrace.Fraction * evlen < 1 then
 		return
 	end
 
-	UPar.debugwireframebox(trace.HitPos, dmins, dmaxs, 3, nil, true)
+	UPar.debugwireframebox(climbTrace.HitPos, dmins, dmaxs, 3, nil, true)
 	
-	trace.HitPos[3] = trace.HitPos[3] + 1
-	return pos, dirNorm, trace.HitPos, trace.HitPos[3] - pos[3]
+	climbTrace.mins = dmins
+	climbTrace.maxs = dmaxs
+
+	return climbTrace
 end
 
 UPar.IsStartSolid = function(ply, startpos, cur)
@@ -120,20 +139,20 @@ UPar.IsStartSolid = function(ply, startpos, cur)
 	return spacecheck.StartSolid or spacecheck.Hit 
 end
 
+UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
+	if not IsValid(ply) or not ply:IsPlayer() then
+		print(string.format('Invalid ply "%s"', ply))
+		return
+	end
 
-UPar.VaultDetector = function(ply, pos, dirNorm, landpos, hlen, vlen)
-	-- 通用翻越检查, 在 ClimbDetector 后面
-	-- 主要检测障碍物的镜像面是否符合条件
+	local pos = obsTrace.StartPos
+	local dirNorm = obsTrace.Normal
+	local landpos = climbTrace.HitPos
 
-	-- 不需要检查是否在斜坡上
-
-	-- 假设蹲伏不会改变玩家宽度
-	pos = (isvector(pos) and pos or ply:GetPos()) + unitzvec
-	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
 	hlen = isnumber(hlen) and hlen or 48
 	vlen = isnumber(vlen) and vlen or 54
 
-	local dmins, dmaxs = ply:GetHullDuck()
+	local dmins, dmaxs = climbTrace.mins, climbTrace.maxs
 	local plyWidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])
 
 	-- 简单检测一下是否会被阻挡
@@ -191,7 +210,8 @@ UPar.VaultDetector = function(ply, pos, dirNorm, landpos, hlen, vlen)
 	local pmins, pmaxs = ply:GetHull()
 	startpos = vtrace.HitPos + unitzvec
 	endpos = startpos - maxVaultWidthVec
-	local htrace = util.TraceHull({
+
+	local vaultTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
 		start = startpos,
@@ -200,16 +220,13 @@ UPar.VaultDetector = function(ply, pos, dirNorm, landpos, hlen, vlen)
 		maxs = pmaxs,
 	})
 
-	if htrace.StartSolid or not htrace.Hit then
+	if vaultTrace.StartSolid or not vaultTrace.Hit then
 		return
 	end
 
-	UPar.debugwireframebox(htrace.HitPos, dmins, dmaxs, 3, nil, true)
+	UPar.debugwireframebox(vaultTrace.HitPos, dmins, dmaxs, 3, nil, true)
 
-	local vaultpos = htrace.HitPos + dirNorm * math.min(2, htrace.Fraction * maxVaultWidth)
-	local vaultheight = vaultpos[3] - pos[3]
-
-	return pos, dirNorm, vaultpos, vaultheight
+	return vaultTrace
 end
 
 UPar.GetFallDamageInfo = function(ply, fallspeed, ref)

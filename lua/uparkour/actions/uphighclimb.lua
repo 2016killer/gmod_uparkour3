@@ -115,7 +115,10 @@ function uphighclimb:Check(ply, pos, dirNorm, loscos, refVel)
 		starttime = CurTime(),
 
 		needduck = IsStartSolid(ply, landpos, false),
-		duration = moveDuration
+		duration = moveDuration,
+
+		dirNorm = dirNorm,
+		blockheight = blockheight
 	}
 end
 
@@ -185,9 +188,11 @@ function uphighclimb:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	function uphighclimb:OnKeyPress()
-		UPar.Trigger(LocalPlayer(), self.Name)
-	end
+	UPar.SeqHookAdd('UParActKeyPress', 'test_uphighclimb', function(pressActs)
+		if pressActs['uphighclimb'] then 
+			UPar.Trigger(LocalPlayer(), 'uphighclimb')
+		end
+	end)
 
 	UPar.SeqHookAdd('UParActCVarWidget_uphighclimb', 'default', function(cvCfg, panel)
 		if cvCfg.name == 'uphc_blen' or cvCfg.name == 'uphc_speed' or cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then

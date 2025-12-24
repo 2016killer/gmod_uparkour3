@@ -58,8 +58,7 @@ function UPAction:Register(name, initData, new)
     self.AAAACreat = CLIENT and self.AAAACreat or nil
     self.AAADesc = CLIENT and self.AAADesc or nil
     self.AAAContrib = CLIENT and self.AAAContrib or nil
-    self.OnKeyPress = CLIENT and self.OnKeyPress or nil
-    self.OnKeyRelease = CLIENT and self.OnKeyRelease or nil
+
     self.TrackId = self.TrackId or 0
     
     assert(isfunction(self.Check), string.format('Invalid field "Check" = "%s" (not a function)', self.Check))
@@ -67,8 +66,6 @@ function UPAction:Register(name, initData, new)
     assert(isfunction(self.Think), string.format('Invalid field "Think" = "%s" (not a function)', self.Think))
     assert(isfunction(self.Clear), string.format('Invalid field "Clear" = "%s" (not a function)', self.Clear))
     assert(isfunction(self.OnValCltPredRes), string.format('Invalid field "OnValCltPredRes" = "%s" (not a function)', self.OnValCltPredRes))
-    assert(SERVER or isfunction(self.OnKeyPress), string.format('Invalid field "OnKeyPress" = "%s" (not a function)', self.OnKeyPress))
-    assert(SERVER or isfunction(self.OnKeyRelease), string.format('Invalid field "OnKeyRelease" = "%s" (not a function)', self.OnKeyRelease))
 
     if new then hook.Run('UParRegisterAction', name, self) end
     
@@ -95,11 +92,6 @@ end
 
 function UPAction:OnValCltPredRes(...)
     return true
-end
-
-if CLIENT then
-    UPAction.OnKeyPress = UPar.emptyfunc
-    UPAction.OnKeyRelease = UPar.emptyfunc
 end
 
 function UPAction:InitCVarDisabled(default)
