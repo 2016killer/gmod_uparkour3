@@ -39,12 +39,10 @@ hook.Add('Think', 'upar.key.event', function()
     for actName, act in pairs(ActInstances) do
         local keybind = act:GetKeybind()
         if istable(keybind) then
-            local pressAll = true
-            for _, keycode in ipairs(keybind) do
-                if not isnumber(keycode) then
-                    continue
-                end
+            local pressAll = #keybind > 0
 
+            for _, keycode in ipairs(keybind) do
+                if not isnumber(keycode) then continue end
                 pressAll = pressAll and (input.IsKeyDown(keycode) or input.IsMouseDown(keycode))
             end
 
