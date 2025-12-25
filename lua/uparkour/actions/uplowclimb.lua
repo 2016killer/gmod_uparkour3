@@ -101,7 +101,7 @@ function uplowclimb:Check(ply, pos, dirNorm, refVel)
         return 
     end
 
-	local landpos = climbTrace.HitPos
+	local landpos = climbTrace.HitPos + unitzvec
 	local moveDis = (landpos - pos):Length()
 	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
@@ -209,21 +209,21 @@ if CLIENT then
 				self.NextThinkTime = CurTime() + 0.5
 				local value = nil
 				if cvCfg.name == 'uplc_speed' then
-					value = uplowclimb:GetSpeed(LocalPlayer(), unitzvec, unitzvec)
+					value = UPar.CallAct('uplowclimb', 'GetSpeed', LocalPlayer(), unitzvec, unitzvec)
 					value = math.Round(value, 2)
 				elseif cvCfg.name == 'uplc_min' or cvCfg.name == 'uplc_max' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
-					if cvCfg.name == 'uplc_max' then
-						value = plyHeight * uplowclimb.ConVars.uplc_max:GetFloat()
-					else
-						value = plyHeight * uplowclimb.ConVars.uplc_min:GetFloat()
-					end
+					local cvar = UPar.GetActKeyValue('uplowclimb', 'ConVars')[cvCfg.name]
+			
+					value = plyHeight * cvar:GetFloat()
 					value = math.Round(value, 2)
 				elseif cvCfg.name == 'uplc_blen' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
-					value = plyWidth * uplowclimb.ConVars.uplc_blen:GetFloat()
+					local cvar = UPar.GetActKeyValue('uplowclimb', 'ConVars')[cvCfg.name]
+
+					value = plyWidth * cvar:GetFloat()
 					value = math.Round(value, 2)
 				end
 

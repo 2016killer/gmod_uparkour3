@@ -207,7 +207,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 		return
 	end
 
-	UPar.debugwireframebox(vaultTrace.HitPos, dmins, dmaxs, 3, nil, true)
+	UPar.debugwireframebox(vaultTrace.HitPos, pmins, pmaxs, 3, nil, true)
 
 	vaultTrace.leftdis = vaultTrace.Fraction * maxVaultWidth
 

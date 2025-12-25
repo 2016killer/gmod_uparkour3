@@ -25,19 +25,9 @@ local upvault = UPAction:Register('upvault', {
 
 upvault:InitConVars({
 	{
-		name = 'upctrl_los_cos',
-		default = '0.64',
-		invisible = true
-	},
-
-	{
 		name = 'upvt_max',
-		default = '0.5',
-		widget = 'NumSlider',
-		min = 0.25,
-		max = 0.6,
-		decimals = 2,
-		help = true,
+		default = '0.6',
+		invisible = true
 	},
 
 
@@ -76,9 +66,8 @@ function upvault:Check(ply, obsTrace, climbTrace)
 
 	local convars = self.ConVars
 
-	local omins, omaxs = ply:GetHull()
-	local plyWidth = math.max(omaxs[1] - omins[1], omaxs[2] - omins[2])
-	local plyHeight = omaxs[3] - omins[3]
+	local pmins, pmaxs = ply:GetHull()
+	local plyHeight = pmaxs[3] - pmins[3]
 
 	if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvt_max:GetFloat() * plyHeight then
 		return
