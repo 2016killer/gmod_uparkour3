@@ -4,6 +4,8 @@
 ]]--
 
 -- ==================== 低爬 ===============
+local XYNormal = UPar.XYNormal
+local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local IsStartSolid = UPar.IsStartSolid
 local SetMoveControl = UPar.SetMoveControl
@@ -58,10 +60,19 @@ uplowclimb:InitConVars({
 	}
 })
 
-function uplowclimb:Check(ply, pos, dirNorm, loscos, refVel)
+function uplowclimb:Check(ply, pos, dirNorm, refVel)
+	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+		print('[uplowclimb]: Warning: Invalid player')
+		return
+	end
+
 	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
 		return
 	end
+
+	pos = isvector(pos) and pos or ply:GetPos()
+	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
+	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 
 	local convars = self.ConVars
 
@@ -71,39 +82,34 @@ function uplowclimb:Check(ply, pos, dirNorm, loscos, refVel)
 	
 	local obsHeightMax = convars.uplc_max:GetFloat() * plyHeight
 	local obsHeightMin = convars.uplc_min:GetFloat() * plyHeight
-    local blen = convars.uplc_blen:GetFloat() * plyWidth
 
 	omaxs[3] = obsHeightMax
 	omins[3] = obsHeightMin
 
-	// print(obsHeightMax, obsHeightMin)
-	loscos = isnumber(loscos) and loscos or convars.upctrl_los_cos:GetFloat()
+	local obsTrace = ObsDetector(ply, pos, 
+		dirNorm * convars.uplc_blen:GetFloat() * plyWidth, 
+		omins, omaxs, 
+		convars.upctrl_los_cos:GetFloat())
 
-	local pos, dirNorm, landpos, blockheight = ClimbDetector(
-		ply, 
-		pos,
-		dirNorm,
-        omins,
-		omaxs,
-		blen,
-		0.5 * plyWidth,
-		loscos
-	)
-
-    if not landpos then 
-        return 
-    end
-
-	// print(pos, dirNorm, landpos, blockheight)
-	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
-
-	if endspeed + startspeed <= 0 then 
-		print('[UPar]: Warning: endspeed + startspeed <= 0')
+	if not obsTrace then 
 		return
 	end
 
+	local climbTrace = ClimbDetector(ply, obsTrace, 0.5 * plyWidth)
+
+    if not climbTrace then 
+        return 
+    end
+
+	local landpos = climbTrace.HitPos
 	local moveDis = (landpos - pos):Length()
+	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
+
+	if moveDuration <= 0 then 
+		print('[uplowclimb]: Warning: moveDuration <= 0')
+		return
+	end
 	
 	return {
 		startpos = pos,
@@ -115,17 +121,11 @@ function uplowclimb:Check(ply, pos, dirNorm, loscos, refVel)
 		starttime = CurTime(),
 
 		needduck = IsStartSolid(ply, landpos, false),
-		duration = moveDuration,
-
-		dirNorm = dirNorm,
-		blockheight = blockheight
-	}
+		duration = moveDuration
+	}, obsTrace, climbTrace
 end
 
 function uplowclimb:GetSpeed(ply, dirNorm, refVel)
-	refVel = isvector(refVel) and refVel or ply:GetVelocity()
-	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
-	
 	local refSpeed = (dirNorm + unitzvec):Dot(refVel)
 	local moveVector = Vector(
 		ply:GetJumpPower(), 

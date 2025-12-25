@@ -15,16 +15,10 @@ UPar.XYNormal = XYNormal
 
 UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 	-- 获取障碍位置
-
-	if not IsValid(ply) or not ply:IsPlayer() then
-		print(string.format('Invalid ply "%s"', ply))
-		return
-	end
-
-	pos = isvector(pos) and pos or ply:GetPos()
-	dir = isvector(dir) and dir or XYNormal(ply:EyeAngles():Forward()) * 48
-	omins = isvector(omins) and omins or Vector(-16, -16, 32)
-	omaxs = isvector(omaxs) and omaxs or Vector(16, 16, 54)
+	-- pos 检测位置
+	-- dir 检测方向
+	-- omins, omaxs 碰撞盒
+	-- loscos 视线余弦值
 
 	local obsTrace = util.TraceHull({
 		filter = ply, 
@@ -59,17 +53,14 @@ UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 end
 
 UPar.ClimbDetector = function(ply, obsTrace, ehlen)
-	if not IsValid(ply) or not ply:IsPlayer() then
-		print(string.format('Invalid ply "%s"', ply))
-		return
-	end
+	-- obsTrace 障碍检测结果
+	-- ehlen 落脚点距离
 
 	local pos = obsTrace.StartPos
 	local obsPos = obsTrace.HitPos
 	local maxh = obsTrace.maxs[3]
 	local minh = obsTrace.mins[3]
 	local dirNorm = obsTrace.Normal
-	ehlen = isnumber(ehlen) and ehlen or 16
 
 	-- 确保落脚点有足够空间, 所以检测蹲碰撞盒
 	local evlen = maxh - minh
@@ -109,11 +100,6 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 end
 
 UPar.IsStartSolid = function(ply, startpos, cur)
-	if not IsValid(ply) or not ply:IsPlayer() then
-		print(string.format('Invalid ply "%s"', ply))
-		return
-	end
-
 	local pmins, pmaxs = nil
 	if cur then
 		pmins, pmaxs = ply:GetCollisionBounds()
@@ -140,17 +126,14 @@ UPar.IsStartSolid = function(ply, startpos, cur)
 end
 
 UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
-	if not IsValid(ply) or not ply:IsPlayer() then
-		print(string.format('Invalid ply "%s"', ply))
-		return
-	end
+	-- obsTrace 障碍检测结果
+	-- climbTrace 攀爬检测结果
+	-- hlen 水平检测距离
+	-- vlen 垂直检测距离
 
 	local pos = obsTrace.StartPos
 	local dirNorm = obsTrace.Normal
 	local landpos = climbTrace.HitPos
-
-	hlen = isnumber(hlen) and hlen or 48
-	vlen = isnumber(vlen) and vlen or 54
 
 	local dmins, dmaxs = climbTrace.mins, climbTrace.maxs
 	local plyWidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])

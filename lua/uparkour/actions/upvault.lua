@@ -3,7 +3,9 @@
 	2025 12 20
 ]]--
 
--- ==================== 低爬 ===============
+-- ==================== 翻越 ===============
+local XYNormal = UPar.XYNormal
+local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local VaultDetector = UPar.VaultDetector
 local IsStartSolid = UPar.IsStartSolid
@@ -61,8 +63,6 @@ function upvault:Check(ply, pos, dirNorm, refVel, landpos)
 	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
 		return
 	end
-
-	print(pos, dirNorm, refVel, landpos)
 
 	local convars = self.ConVars
 
