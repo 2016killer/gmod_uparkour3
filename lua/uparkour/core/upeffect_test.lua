@@ -3,13 +3,22 @@
 	2025 12 13
 --]]
 
-UPar.GenEffClear = function(self, ply)
+UPar.GenEffClear = function(self, ply, _, interruptSource)
 	if SERVER then
 		ply:SetNWString('UP_WOS', '')
 	elseif CLIENT then
 		local currentAnim = VManip:GetCurrentAnim()
 		if currentAnim and currentAnim == self.VManipAnim then
-			VManip:QuitHolding(currentAnim)
+			if interruptSource then
+				VManip:Remove()
+			else
+				VManip:QuitHolding(currentAnim)
+			end
+		end
+
+		local currentLegsAnim = VMLegs:GetCurrentAnim()
+		if interruptSource and currentLegsAnim and currentLegsAnim == self.VMLegsAnim then
+			VMLegs:Remove()
 		end
 	end
 end

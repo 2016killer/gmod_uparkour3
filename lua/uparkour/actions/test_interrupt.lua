@@ -6,7 +6,11 @@
 -- ==================== 测试其他面板 ===============
 if not GetConVar('developer') or not GetConVar('developer'):GetBool() then return end
 
-UPAction:Register('test_interrupt', {invisible = true})
+local action = UPAction:Register('test_interrupt', {invisible = true})
+action.Check = function() return {} end
+action.Start = UPar.emptyfunc
+action.Think = function() return true end
+action.Clear = UPar.emptyfunc
 
 if SERVER then 
 	UPar.SeqHookAdd('UParActAllowInterrupt_test_lifecycle', 'example.interrupt', function(ply, playingData, interruptSource)

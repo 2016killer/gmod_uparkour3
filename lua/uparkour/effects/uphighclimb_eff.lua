@@ -19,8 +19,8 @@ local effect = UPEffect:Register('uphighclimb', 'default', {
 	punch_ang_first = Angle(-20, 5, 0),
 	punch_ang_second = Angle(20, 0, 0),
 	
-	AAAContributor = '白狼',
-	AAADescription = '默认的高爬动作特效',
+	AAAACreat = '白狼',
+	AAADesc = '#default',
 })
 
 function effect:start_first(ply)

@@ -95,6 +95,7 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 	
 	climbTrace.mins = dmins
 	climbTrace.maxs = dmaxs
+	climbTrace.leftdis = climbTrace.Fraction * evlen
 
 	return climbTrace
 end
@@ -125,11 +126,10 @@ UPar.IsStartSolid = function(ply, startpos, cur)
 	return spacecheck.StartSolid or spacecheck.Hit 
 end
 
-UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
+UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	-- obsTrace 障碍检测结果
 	-- climbTrace 攀爬检测结果
-	-- hlen 水平检测距离
-	-- vlen 垂直检测距离
+	-- ehlen 水平距离
 
 	local pos = obsTrace.StartPos
 	local dirNorm = obsTrace.Normal
@@ -139,7 +139,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
 	local plyWidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])
 
 	-- 简单检测一下是否会被阻挡
-	local linelen = hlen + 0.707 * plyWidth
+	local linelen = ehlen + 0.707 * plyWidth
 	local line = dirNorm * linelen
 	
 	local simpletrace1 = util.QuickTrace(landpos + Vector(0, 0, dmaxs[3]), line, ply)
@@ -168,12 +168,12 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
 		)
 		maxVaultWidthVec = dirNorm * maxVaultWidth
 	else
-		maxVaultWidth = hlen
+		maxVaultWidth = ehlen
 		maxVaultWidthVec = dirNorm * maxVaultWidth
 	end
  
 	local startpos = landpos + maxVaultWidthVec
-	local endpos = startpos - Vector(0, 0, vlen)
+	local endpos = startpos - Vector(0, 0, landpos[3] - pos[3])
 
 	local vtrace = util.TraceHull({
 		filter = ply, 
@@ -208,6 +208,8 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, hlen, vlen)
 	end
 
 	UPar.debugwireframebox(vaultTrace.HitPos, dmins, dmaxs, 3, nil, true)
+
+	vaultTrace.leftdis = vaultTrace.Fraction * maxVaultWidth
 
 	return vaultTrace
 end

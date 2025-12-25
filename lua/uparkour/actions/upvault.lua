@@ -31,21 +31,22 @@ upvault:InitConVars({
 	},
 
 	{
-		name = 'upvt_hlen',
-		default = '2',
-		widget = 'NumSlider',
-		min = 0,
-		max = 5,
-		decimals = 2,
-		help = true,
-	},
-
-	{
-		name = 'upvt_vlen',
+		name = 'upvt_max',
 		default = '0.5',
 		widget = 'NumSlider',
 		min = 0.25,
 		max = 0.6,
+		decimals = 2,
+		help = true,
+	},
+
+
+	{
+		name = 'upvt_ehlen',
+		default = '2',
+		widget = 'NumSlider',
+		min = 0,
+		max = 5,
 		decimals = 2,
 		help = true,
 	},
@@ -59,7 +60,16 @@ upvault:InitConVars({
 	}
 })
 
-function upvault:Check(ply, pos, dirNorm, refVel, landpos)
+function upvault:Check(ply, obsTrace, climbTrace)
+	if not obsTrace or not climbTrace then
+		return
+	end
+
+	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+		print('[upvault]: Warning: Invalid player')
+		return
+	end
+
 	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
 		return
 	end
@@ -70,26 +80,29 @@ function upvault:Check(ply, pos, dirNorm, refVel, landpos)
 	local plyWidth = math.max(omaxs[1] - omins[1], omaxs[2] - omins[2])
 	local plyHeight = omaxs[3] - omins[3]
 
-    local hlen = convars.upvt_hlen:GetFloat() * plyWidth
-    local vlen = convars.upvt_vlen:GetFloat() * plyHeight
-
-	
-	local pos, dirNorm, vaultpos, vaultheight = VaultDetector(ply, pos, dirNorm, landpos, hlen, vlen)
-
-	if not vaultpos then
-		return 
-	end
-
-	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
-
-	if endspeed + startspeed <= 0 then 
-		print('[UPar]: Warning: endspeed + startspeed <= 0')
+	if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvt_max:GetFloat() * plyHeight then
 		return
 	end
 
+    local ehlen = convars.upvt_ehlen:GetFloat() * plyHeight
+	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen)
+
+	if not vaultTrace then
+		return 
+	end
+
+	local dirNorm = obsTrace.Normal
+	local pos = obsTrace.StartPos
+	local vaultpos = vaultTrace.HitPos + math.min(2, vaultTrace.leftdis) * dirNorm
 	local moveDis = (vaultpos - pos):Length()
+	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
-	print(startspeed, endspeed, moveDis)
+
+	if moveDuration <= 0 then 
+		print('[uplowclimb]: Warning: moveDuration <= 0')
+		return
+	end
+
 	return {
 		startpos = pos,
 		endpos = vaultpos,
@@ -100,11 +113,8 @@ function upvault:Check(ply, pos, dirNorm, refVel, landpos)
 		starttime = CurTime(),
 
 		duration = moveDuration,
-
 		dirNorm = dirNorm,
-		blockheight = blockheight
-	}
-
+	}, vaultTrace
 end
 
 function upvault:GetSpeed(ply, dirNorm, refVel)
@@ -177,16 +187,8 @@ end
 if CLIENT then
 	UPar.SeqHookAdd('UParActKeyPress', 'test_upvault', function(pressActs)
 		if pressActs['upvault'] then 
-			local checkResult = UPar.CallAct('uplowclimb', 'Check', LocalPlayer())
-			if not checkResult then 
-				return
-			end
-			UPar.Trigger(LocalPlayer(), 'upvault', nil,
-				checkResult.startpos,
-				checkResult.dirNorm,
-				nil,
-				checkResult.endpos
-			)
+			local _, obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Check', LocalPlayer())
+			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
 		end
 	end)
 end
