@@ -196,12 +196,6 @@ function uplowclimb:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActKeyPress', 'test_uplowclimb', function(pressActs)
-		if pressActs['uplowclimb'] then 
-			UPar.Trigger(LocalPlayer(), 'uplowclimb')
-		end
-	end)
-
 	UPar.SeqHookAdd('UParActCVarWidget_uplowclimb', 'default', function(cvCfg, panel)
 		local cvName = cvCfg.name
 		if cvName == 'uplc_blen' 

@@ -20,6 +20,16 @@ local controller = UPAction:Register('upctrl', {
 
 controller:InitConVars({
 	{
+		name = 'upctrl_vault_th',
+		default = '0.6',
+		widget = 'NumSlider',
+		min = 0,
+		max = 5,
+		decimals = 2,
+		help = true,
+	},
+
+	{
 		name = 'upctrl_los_cos',
 		default = '0.64',
 		widget = 'NumSlider',
@@ -36,6 +46,29 @@ controller:InitConVars({
 })
 
 if CLIENT then
+	UPKeyboard.Register('test_uplowclimb', '[]')
+	UPar.SeqHookAdd('UParKeyPress', 'test_uplowclimb', function(flags)
+		if flags['test_uplowclimb'] then 
+			UPar.Trigger(LocalPlayer(), 'uplowclimb')
+		end
+	end)
+
+	UPKeyboard.Register('test_uphighclimb', '{}')
+	UPar.SeqHookAdd('UParKeyPress', 'test_uphighclimb', function(flags)
+		if flags['test_uphighclimb'] then 
+			UPar.Trigger(LocalPlayer(), 'uphighclimb')
+		end
+	end)
+
+	UPKeyboard.Register('test_upvault', '[]')
+	UPar.SeqHookAdd('UParKeyPress', 'test_upvault', function(flags)
+		if flags['test_upvault'] then 
+			local obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Detector', LocalPlayer())
+			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
+		end
+	end)
+
+
 	UPar.SeqHookAdd('UParActCVarWidget_upctrl', 'default', function(cvCfg, panel)
 		if cvCfg.name == 'upctrl_los_cos' then
 			local created = UPar.SeqHookRun('UParActCVarWidget', 'upctrl', cvCfg, panel)

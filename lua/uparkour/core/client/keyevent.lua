@@ -24,7 +24,7 @@ local SeqHookRunAllSafe = UPar.SeqHookRunAllSafe
 local nextThinkTime = 0
 local interval = 0.03
 
-local function Register(flag, label, default)
+UPKeyboard.Register = function(flag, default, label)
     assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
     assert(not string.find(flag, '[\\/:*?"<>|]'), string.format('Invalid flag "%s" (contains invalid filename characters)', flag))
 
@@ -39,13 +39,16 @@ local function Register(flag, label, default)
     hook.Run('UParRegisterKey', flag, label, default)
 end
 
-local function GetKeys(flag)
+UPKeyboard.GetKeys = function(flag)
+    assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
     if not KeySet[flag] then return nil end
     local keys = util.JSONToTable(KeySet[flag]:GetString())
     return istable(keys) and keys or nil
 end
 
-local function SetKeys(flag, keys)
+UPKeyboard.SetKeys = function(flag, keys)
+    assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
+
     local val = nil
     if isstring(keys) then
         val = keys
@@ -56,7 +59,7 @@ local function SetKeys(flag, keys)
         return
     end
 
-    if not KeySet[flag] then Register(flag, flag, val) end
+    if not KeySet[flag] then Register(flag, val, flag) end
 
     KeySet[flag]:SetString(val)
 end
@@ -68,6 +71,10 @@ hook.Add('Think', 'upar.key.event', function()
         return
     end
     nextThinkTime = curTime + interval
+
+    if vgui.GetKeyboardFocus() then 
+        return 
+    end
 
     local PressedSet = {}
     local ReleasedSet = {}

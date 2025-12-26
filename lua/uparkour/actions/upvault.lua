@@ -25,16 +25,6 @@ local upvault = UPAction:Register('upvault', {
 
 upvault:InitConVars({
 	{
-		name = 'upvt_max',
-		default = '0.6',
-		widget = 'NumSlider',
-		min = 0,
-		max = 5,
-		decimals = 2,
-		help = true,
-	},
-
-	{
 		name = 'upvt_ehlen',
 		default = '2',
 		widget = 'NumSlider',
@@ -104,7 +94,7 @@ function upvault:GetMoveData(ply, obsTrace, vaultTrace, refVel)
 	}
 end
 
-function upvault:Check(ply, obsTrace, climbTrace)
+function upvault:Check(ply, obsTrace, climbTrace, refVel)
 	if not obsTrace or not climbTrace then
 		return
 	end
@@ -124,26 +114,7 @@ function upvault:Check(ply, obsTrace, climbTrace)
 		return 
 	end
 
-	// if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvt_max:GetFloat() * plyHeight then
-	return self:GetMoveData(ply, obsTrace, vaultTrace)
-	// else
-	// 	return {
-	// 		vault = vaultMoveData
-	// 	}, vaultTrace
-	// end  
-
-	// local vaultMoveData = {
-	// 	startpos = pos,
-	// 	endpos = vaultpos,
-
-	// 	startspeed = startspeed,
-	// 	endspeed = endspeed,
-
-	// 	starttime = CurTime(),
-
-	// 	duration = moveDuration,
-	// 	dirNorm = dirNorm,
-	// }
+	return self:GetMoveData(ply, obsTrace, vaultTrace, refVel)
 end
 
 function upvault:Start(ply, data)
@@ -196,10 +167,5 @@ function upvault:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActKeyPress', 'test_upvault', function(pressActs)
-		if pressActs['upvault'] then 
-			local obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Detector', LocalPlayer())
-			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
-		end
-	end)
+
 end
