@@ -8,7 +8,7 @@ local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local VaultDetector = UPar.VaultDetector
-local IsStartSolid = UPar.IsStartSolid
+local IsPlyStartSolid = UPar.IsPlyStartSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
@@ -25,7 +25,17 @@ local upvaultdl = UPAction:Register('upvaultdl', {
 
 upvaultdl:InitConVars({
 	{
-		name = 'upvt_ehlen',
+		name = 'upvtdl_max',
+		default = '0.6',
+		widget = 'NumSlider',
+		min = 0,
+		max = 5,
+		decimals = 2,
+		help = true,
+	},
+
+	{
+		name = 'upvtdl_ehlen',
 		default = '2',
 		widget = 'NumSlider',
 		min = 0,
@@ -35,15 +45,17 @@ upvaultdl:InitConVars({
 	},
 
 	{
-		name = 'upvt_speed',
+		name = 'upvtdl_speed',
 		default = '1 1 1',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
 		help = true
 	}
 })
+ 
+function upvaultdl:Check(ply, obsTrace, climbTrace, climbMoveData)
+	-- 为了加速检测, 这里需要复用 uplowclimb 的检测结果, 所以 upvaultdl 是无法独立检测的
 
-function upvaultdl:Check(ply, obsTrace, climbTrace)
 	if not obsTrace or not climbTrace then
 		return
 	end
@@ -60,9 +72,10 @@ function upvaultdl:Check(ply, obsTrace, climbTrace)
 	local convars = self.ConVars
 
 	local pmins, pmaxs = ply:GetHull()
+	local plyWidth = math.max(pmaxs[1] - pmins[1], pmaxs[2] - pmins[2])
 	local plyHeight = pmaxs[3] - pmins[3]
 
-    local ehlen = convars.upvt_ehlen:GetFloat() * plyHeight
+    local ehlen = convars.upvtdl_ehlen:GetFloat() * plyWidth
 	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen)
 
 	if not vaultTrace then
@@ -81,7 +94,7 @@ function upvaultdl:Check(ply, obsTrace, climbTrace)
 		return
 	end
 
-	return {
+	local vaultMoveData = {
 		startpos = pos,
 		endpos = vaultpos,
 
@@ -92,7 +105,19 @@ function upvaultdl:Check(ply, obsTrace, climbTrace)
 
 		duration = moveDuration,
 		dirNorm = dirNorm,
-	}, vaultTrace
+	}
+
+
+	if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvtdl_max:GetFloat() * plyHeight then
+		return {
+			climb = climbMoveData,
+			vault = vaultMoveData,
+		}, vaultTrace
+	else
+		return {
+			vault = vaultMoveData
+		}, vaultTrace
+	end
 end
 
 function upvaultdl:GetSpeed(ply, dirNorm, refVel)
@@ -107,7 +132,7 @@ function upvaultdl:GetSpeed(ply, dirNorm, refVel)
 	)
 	
 	return math.max(startspeed, 0), math.max(
-		Vector(self.ConVars.upvt_speed:GetString()):Dot(moveVector), 
+		Vector(self.ConVars.upvtdl_speed:GetString()):Dot(moveVector), 
 		startspeed,
 		10
 	)

@@ -100,7 +100,7 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 	return climbTrace
 end
 
-UPar.IsStartSolid = function(ply, startpos, cur)
+UPar.IsPlyStartSolid = function(ply, startpos, cur)
 	local pmins, pmaxs = nil
 	if cur then
 		pmins, pmaxs = ply:GetCollisionBounds()

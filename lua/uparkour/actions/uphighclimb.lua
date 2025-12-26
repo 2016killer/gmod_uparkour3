@@ -7,7 +7,7 @@
 local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
-local IsStartSolid = UPar.IsStartSolid
+local IsPlyStartSolid = UPar.IsPlyStartSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
@@ -110,7 +110,7 @@ function uphighclimb:Check(ply, pos, dirNorm, refVel)
 		print('[uphighclimb]: Warning: moveDuration <= 0')
 		return
 	end
-	
+
 	return {
 		startpos = pos,
 		endpos = landpos,
@@ -120,7 +120,7 @@ function uphighclimb:Check(ply, pos, dirNorm, refVel)
 
 		starttime = CurTime(),
 
-		needduck = IsStartSolid(ply, landpos, false),
+		needduck = IsPlyStartSolid(ply, landpos, false),
 		duration = moveDuration
 	}, obsTrace, climbTrace
 end

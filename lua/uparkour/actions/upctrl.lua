@@ -5,7 +5,7 @@
 
 -- ==================== 总控制 ===============
 local ClimbDetector = UPar.ClimbDetector
-local IsStartSolid = UPar.IsStartSolid
+local IsPlyStartSolid = UPar.IsPlyStartSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 
