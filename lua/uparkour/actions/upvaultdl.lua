@@ -14,23 +14,16 @@ local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 
 
-local upvault = UPAction:Register('upvault', {
+local upvaultdl = UPAction:Register('upvaultdl', {
 	AAAACreat = '白狼',
-	AAADesc = '#upvault.desc',
+	AAADesc = '#upvaultdl.desc',
 	icon = 'upgui/uparkour.jpg',
-	label = '#upvault',
+	label = '#upvaultdl',
 	defaultDisabled = false,
 	defaultKeybind = '[33,79,65]'
 })
 
-upvault:InitConVars({
-	{
-		name = 'upvt_max',
-		default = '0.6',
-		invisible = true
-	},
-
-
+upvaultdl:InitConVars({
 	{
 		name = 'upvt_ehlen',
 		default = '2',
@@ -50,13 +43,13 @@ upvault:InitConVars({
 	}
 })
 
-function upvault:Check(ply, obsTrace, climbTrace)
+function upvaultdl:Check(ply, obsTrace, climbTrace)
 	if not obsTrace or not climbTrace then
 		return
 	end
 
 	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
-		print('[upvault]: Warning: Invalid player')
+		print('[upvaultdl]: Warning: Invalid player')
 		return
 	end
 
@@ -68,10 +61,6 @@ function upvault:Check(ply, obsTrace, climbTrace)
 
 	local pmins, pmaxs = ply:GetHull()
 	local plyHeight = pmaxs[3] - pmins[3]
-
-	if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvt_max:GetFloat() * plyHeight then
-		return
-	end
 
     local ehlen = convars.upvt_ehlen:GetFloat() * plyHeight
 	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen)
@@ -106,7 +95,7 @@ function upvault:Check(ply, obsTrace, climbTrace)
 	}, vaultTrace
 end
 
-function upvault:GetSpeed(ply, dirNorm, refVel)
+function upvaultdl:GetSpeed(ply, dirNorm, refVel)
 	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
 	
@@ -124,7 +113,7 @@ function upvault:GetSpeed(ply, dirNorm, refVel)
 	)
 end
 
-function upvault:Start(ply, data)
+function upvaultdl:Start(ply, data)
     if CLIENT then 
 		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
 		local needduck = false
@@ -139,7 +128,7 @@ function upvault:Start(ply, data)
 	end
 end
 
-function upvault:Think(ply, data, mv, cmd)
+function upvaultdl:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
 	local endpos = data.endpos
 	local startspeed = data.startspeed
@@ -159,7 +148,7 @@ function upvault:Think(ply, data, mv, cmd)
 	return endflag
 end
 
-function upvault:Clear(ply, data, mv, cmd)
+function upvaultdl:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
@@ -174,10 +163,10 @@ function upvault:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActKeyPress', 'test_upvault', function(pressActs)
-		if pressActs['upvault'] then 
+	UPar.SeqHookAdd('UParActKeyPress', 'test_upvaultdl', function(pressActs)
+		if pressActs['upvaultdl'] then 
 			local _, obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Check', LocalPlayer())
-			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
+			UPar.Trigger(LocalPlayer(), 'upvaultdl', nil, obsTrace, climbTrace)
 		end
 	end)
 end
