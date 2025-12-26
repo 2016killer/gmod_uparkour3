@@ -69,7 +69,7 @@ function upvault:GetMoveData(ply, obsTrace, vaultTrace, refVel)
 
 	local dirNorm = obsTrace.Normal
 	local startpos = obsTrace.StartPos
-	local endpos = vaultTrace.HitPos
+	local endpos = vaultTrace.HitPos + unitzvec
 	local moveDis = (endpos - startpos):Length()
 
 	local startspeed = math.max(10, obsTrace.Normal:Dot(refVel))

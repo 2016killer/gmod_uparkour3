@@ -1,15 +1,21 @@
 --[[
 	作者:白狼
-	2025 11 1
+	2025 12 26
 
 --]]
 local unitzvec = UPar.unitzvec
+
 local function XYNormal(v)
 	v = Vector(v)
 	v[3] = 0
 	v:Normalize()
 	return v
 end
+
+local SAFE_OFFSET_H = 2
+local SAFE_OFFSET_V = 1
+local LANDSLID_ZNORM = 0.707
+local CONT_OBS_MAXH_DELTA = math.Clamp(0.7, 0, 1)
 
 UPar.XYNormal = XYNormal
 
@@ -33,7 +39,7 @@ UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 		(obsTrace.StartSolid or obsTrace.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
 		true)
 
-	if obsTrace.StartSolid or not obsTrace.Hit or obsTrace.HitNormal[3] >= 0.707 then
+	if obsTrace.StartSolid or not obsTrace.Hit or obsTrace.HitNormal[3] >= LANDSLID_ZNORM then
 		return
 	end
 
@@ -84,13 +90,13 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 	UPar.debugwireframebox(climbTrace.StartPos, dmins, dmaxs, 3, Color(0, 255, 255), true)
 
 	-- 确保不在滑坡上且在障碍物上
-	if not climbTrace.Hit or climbTrace.HitNormal[3] < 0.707 then
+	if not climbTrace.Hit or climbTrace.HitNormal[3] < LANDSLID_ZNORM then
 		return
 	end
 
 	-- 检测落脚点是否有足够空间
 	-- OK, 预留1的单位高度防止极端情况
-	if climbTrace.StartSolid or climbTrace.Fraction * evlen < 1 then
+	if climbTrace.StartSolid or climbTrace.Fraction * evlen < SAFE_OFFSET_V then
 		return
 	end
 
@@ -132,6 +138,9 @@ UPar.IsPlyStartSolid = function(ply, startpos, cur)
 end
 
 UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
+	-- 实际上是做一次镜像 obs 检测 + 垂直定位
+	-- 障碍最大的高度变化为 CONT_OBS_MAXH_DELTA, 超过则不视为障碍的一部分
+
 	local dirNorm = obsTrace.Normal
 	local landpos = climbTrace.HitPos
 
@@ -170,7 +179,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	end
  
 	local oimins, oimaxs = Vector(obsTrace.mins), Vector(obsTrace.maxs)
-	oimins[3] = oimaxs[3] * 0.3
+	oimins[3] = oimaxs[3] * (1 - CONT_OBS_MAXH_DELTA)
  
 	local obsImgTrace = util.TraceHull({
 		filter = ply, 
@@ -194,22 +203,25 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	local vaultTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
-		start = obsImgTrace.HitPos + Vector(0, 0, obsTrace.mins[3]) + dirNorm * math.min(2, usedImg),
-		endpos = obsImgTrace.HitPos + dirNorm * math.min(2, usedImg),
+		start = obsImgTrace.HitPos + Vector(0, 0, oimins[3]) + dirNorm * math.min(SAFE_OFFSET_H, usedImg),
+		endpos = obsImgTrace.HitPos + dirNorm * math.min(SAFE_OFFSET_H, usedImg),
 		mins = pmins,
 		maxs = pmaxs,
 	})
 
-	if vaultTrace.StartSolid then
+	local usedVault = vaultTrace.Fraction * oimins[3]
+
+	if vaultTrace.StartSolid or usedVault < SAFE_OFFSET_V then
 		return
 	end
 
+	UPar.debugwireframebox(vaultTrace.StartPos, pmins, pmaxs, 3, Color(0, 0, 0), true)
 	UPar.debugwireframebox(vaultTrace.HitPos, pmins, pmaxs, 3, nil, true)
 
 	table.Merge(vaultTrace, {
 		mins = pmins,
 		maxs = pmaxs,
-		used = vaultTrace.Fraction * obsTrace.mins[3]
+		used = usedVault
 	})
 
 	table.Merge(obsImgTrace, {
