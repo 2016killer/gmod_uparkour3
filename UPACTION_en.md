@@ -111,16 +111,6 @@ true: Use client-side prediction
 The parameter itself has no effect and needs to be handled manually.
 ```
 
-![client](./materials/upgui/client.jpg)
-**UPAction**:InitCVarKeybind(**string** default)
-```note
-Will appear in the Q menu after initialization.
-Separate key combinations with spaces.
-Example: '[33, 83, 65]': KEY_W + KEY_LCONTROL + KEY_SPACE
-
-The parameter itself has no effect and needs to be handled manually.
-```
-
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:InitConVars(**table** config)
 ```lua

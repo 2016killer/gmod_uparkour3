@@ -11,12 +11,6 @@ local action = UPAction:Register('test_lifecycle', {
 	AAADesc = '#upgui.dev.test.desc'
 })
 
-action:InitCVarDisabled('0')
-action:InitCVarPredictionMode('0')
-if CLIENT then
-	action:InitCVarKeybind('[0]')
-end
-
 function action:Check(ply, ...)
 	print(string.format('====== Check, TrackId: %s ======', self.TrackId))
 	print('data:', ...)

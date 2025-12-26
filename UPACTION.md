@@ -107,18 +107,6 @@ true: 使用客户端预测
 参数本身无作用，需要自行处理。
 ```
 
-![client](./materials/upgui/client.jpg)
-**UPAction**:InitCVarKeybind(**string** default)
-```note
-在初始化后会出现在Q菜单中
-组合键用空格隔开
-例: '[33, 83, 65]': KEY_W + KEY_LCONTROL + KEY_SPACE
-
-参数本身无作用，需要自行处理。
-```
-
-
-
 ![shared](./materials/upgui/shared.jpg)
 **UPAction**:InitConVars(**table** config)
 ```lua

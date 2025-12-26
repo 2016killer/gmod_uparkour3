@@ -51,7 +51,6 @@ function UPAction:Register(name, initData, new)
  
     self:InitCVarDisabled(self.defaultDisabled)
     self:InitCVarPredictionMode(self.defaultPredictionMode)
-    if CLIENT then self:InitCVarKeybind(self.defaultKeybind) end
 
     self.icon = CLIENT and self.icon or nil
     self.label = CLIENT and self.label or nil
@@ -158,48 +157,6 @@ function UPAction:SetPredictionMode(predictionMode)
         self.CV_PredictionMode:SetBool(!!predictionMode)
     elseif CLIENT then
         RunConsoleCommand(self.CV_PredictionMode:GetName(), (!!predictionMode) and '1' or '0')
-    end
-end
-
-if CLIENT then
-    function UPAction:InitCVarKeybind(default)
-        local cvName = sanitizeConVarName(self.Name) .. '_keybind'
-        
-        if self.CV_Keybind and self.CV_Keybind:GetName() ~= cvName then 
-            self.CV_Keybind = nil
-        end
-        
-        if default == nil then 
-            return 
-        end
-
-        local cvar = CreateClientConVar(cvName, tostring(default), true, false, '')
-        self.CV_Keybind = cvar
-    end
-
-    function UPAction:GetKeybind()
-        if not self.CV_Keybind then return nil end
-        local keybind = self.CV_Keybind:GetString()
-        local keys = util.JSONToTable(keybind)
-        return istable(keys) and keys or {}
-    end
-
-    function UPAction:SetKeybind(keys) 
-        if not self.CV_Keybind then 
-            print(string.format('[UPAction]: Warning: Action "%s" has no CV_Keybind', self.Name))
-            return 
-        end
-
-        local val = nil
-        if isstring(keys) then
-            val = keys
-        elseif istable(keys) and table.IsSequential(keys) then
-            val = util.TableToJSON(keys) or '[0]'
-        else
-            error(string.format('Invalid keys "%s" (not a string or sequential table)', keys))
-        end
-
-        self.CV_Keybind:SetString(val)
     end
 end
 
