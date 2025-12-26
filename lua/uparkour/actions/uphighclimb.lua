@@ -60,20 +60,9 @@ uphighclimb:InitConVars({
 	}
 })
 
-function uphighclimb:Check(ply, pos, dirNorm, refVel)
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
-		print('[uphighclimb]: Warning: Invalid player')
-		return
-	end
-
-	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
-		return
-	end
-
+function uphighclimb:Detector(ply, pos, dirNorm)
 	pos = isvector(pos) and pos or ply:GetPos()
 	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
-	refVel = isvector(refVel) and refVel or ply:GetVelocity()
-
 	local convars = self.ConVars
 
 	local omins, omaxs = ply:GetCollisionBounds()
@@ -101,43 +90,63 @@ function uphighclimb:Check(ply, pos, dirNorm, refVel)
         return 
     end
 
-	local landpos = climbTrace.HitPos + unitzvec
-	local moveDis = (landpos - pos):Length()
-	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
-	local moveDuration = moveDis * 2 / (startspeed + endspeed)
+	return obsTrace, climbTrace
+end
+
+function uphighclimb:GetMoveData(ply, obsTrace, climbTrace, refVel)
+	refVel = isvector(refVel) and refVel or ply:GetVelocity()
+	
+	local startpos = obsTrace.StartPos
+	local endpos = climbTrace.HitPos + unitzvec
+	local moveDis = (endpos - startpos):Length()
+
+	local moveVec = ply:KeyDown(IN_SPEED)  
+		and Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
+		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
+
+	local startspeed = math.max(
+		Vector(self.ConVars.uphc_speed:GetString()):Dot(moveVec), 
+		(obsTrace.Normal + unitzvec):Dot(refVel),
+		10
+	)
+
+	local moveDuration = moveDis * 2 / startspeed
 
 	if moveDuration <= 0 then 
 		print('[uphighclimb]: Warning: moveDuration <= 0')
 		return
 	end
-
+	
 	return {
-		startpos = pos,
-		endpos = landpos,
+		startpos = startpos,
+		endpos = endpos,
 
 		startspeed = startspeed,
-		endspeed = endspeed,
+		endspeed = 0,
 
 		starttime = CurTime(),
 
-		needduck = IsPlyStartSolid(ply, landpos, false),
+		needduck = IsPlyStartSolid(ply, endpos, false),
 		duration = moveDuration
-	}, obsTrace, climbTrace
+	}
 end
 
-function uphighclimb:GetSpeed(ply, dirNorm, refVel)
-	local refSpeed = (dirNorm + unitzvec):Dot(refVel)
-	local moveVector = Vector(
-		ply:GetJumpPower(), 
-		ply:KeyDown(IN_SPEED) and ply:GetRunSpeed() or 0, 
-		ply:GetWalkSpeed()
-	)
-	
-	return math.max(
-		Vector(self.ConVars.uphc_speed:GetString()):Dot(moveVector), 
-		refSpeed,
-		10
-	), 0
+function uphighclimb:Check(ply, pos, dirNorm, refVel)
+	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+		print('[uphighclimb]: Warning: Invalid player')
+		return
+	end
+
+	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
+		return
+	end
+
+	local obsTrace, climbTrace = self:Detector(ply, pos, dirNorm)
+	if not obsTrace or not climbTrace then 
+		return
+	end
+
+	return self:GetMoveData(ply, obsTrace, climbTrace, refVel)
 end
 
 function uphighclimb:Start(ply, data)
@@ -195,37 +204,43 @@ if CLIENT then
 	end)
 
 	UPar.SeqHookAdd('UParActCVarWidget_uphighclimb', 'default', function(cvCfg, panel)
-		if cvCfg.name == 'uphc_blen' or cvCfg.name == 'uphc_speed' or cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then
+		local cvName = cvCfg.name
+		if cvName == 'uphc_blen' 
+		or cvName == 'uphc_speed' 
+		or cvName == 'uphc_min' 
+		or cvName == 'uphc_max' then
 			local created = UPar.SeqHookRun('UParActCVarWidget', 'uphighclimb', cvCfg, panel)
 			if not created then
 				return
 			end
 
 			local predi = panel:ControlHelp('')
+			predi.NEXT = 0
 			predi.Think = function(self)
-				if CurTime() < (self.NextThinkTime or 0) then
-					return
-				end
+				if CurTime() < self.NEXT then return end
 
-				self.NextThinkTime = CurTime() + 0.5
+				self.NEXT = CurTime() + 0.5
+
 				local value = nil
-				if cvCfg.name == 'uphc_speed' then
-					value = UPar.CallAct('uphighclimb', 'GetSpeed', LocalPlayer(), unitzvec, unitzvec)
-					value = math.Round(value, 2)
-				elseif cvCfg.name == 'uphc_min' or cvCfg.name == 'uphc_max' then
+				local cvar = UPar.GetActKeyValue('uphighclimb', 'ConVars')[cvCfg.name]
+				if cvName == 'uphc_speed' then
+					local ply = LocalPlayer()
+					local cvarVal = Vector(cvar:GetString())
+					local moveVec = Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
+					local moveVec2 = Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
+				
+					value = string.format('%s, %s', 
+						math.Round(cvarVal:Dot(moveVec), 2),
+						math.Round(cvarVal:Dot(moveVec2), 2)
+					)
+				elseif cvName == 'uphc_min' or cvName == 'uphc_max' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
-					local cvar = UPar.GetActKeyValue('uphighclimb', 'ConVars')[cvCfg.name]
-			
-					value = plyHeight * cvar:GetFloat()
-					value = math.Round(value, 2)
+					value = math.Round(plyHeight * cvar:GetFloat(), 2)
 				elseif cvCfg.name == 'uphc_blen' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
-					local cvar = UPar.GetActKeyValue('uphighclimb', 'ConVars')[cvCfg.name]
-					
-					value = plyWidth * cvar:GetFloat()
-					value = math.Round(value, 2)
+					value = math.Round(plyWidth * cvar:GetFloat(), 2)
 				end
 
 				self:SetText(string.format('%s: %s', 
@@ -234,9 +249,7 @@ if CLIENT then
 				))
 			end
 
-			predi.OnRemove = function(self)
-				self.NextThinkTime = nil
-			end
+			predi.OnRemove = function(self) self.NEXT = nil end
 
 			return true
 		end
