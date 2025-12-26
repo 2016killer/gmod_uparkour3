@@ -4,7 +4,7 @@
 ]]--
 
 -- ====================  翻越动作特效 ===============
-local effect = UPEffect:Register('upvaultdl', 'default', {
+local effect = UPEffect:Register('upvault', 'default', {
 	VManipAnim = 'vault',
 	VMLegsAnim = 'dp_lazy_BaiLang',
 	WOSAnim = '',

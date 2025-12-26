@@ -26,7 +26,7 @@ function ThinkingLabel:OnRemove()
 	self.INTERVAL = nil
 end
 
-self.Update = UPar.emptyfunc
+ThinkingLabel.Update = UPar.emptyfunc
 
 vgui.Register('UParThinkingLabel', ThinkingLabel, 'DLabel')
 ThinkingLabel = nil

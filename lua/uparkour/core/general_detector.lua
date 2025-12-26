@@ -45,9 +45,12 @@ UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 		return
 	end
 
-	obsTrace.mins = omins
-	obsTrace.maxs = omaxs
-	obsTrace.loscos = loscos
+	table.Merge(obsTrace, {
+		mins = omins,
+		maxs = omaxs,
+		used = dir:Dot(obsTrace.Normal) * obsTrace.Fraction,
+		loscos = loscos,
+	})
 
 	return obsTrace
 end
@@ -93,9 +96,11 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 
 	UPar.debugwireframebox(climbTrace.HitPos, dmins, dmaxs, 3, nil, true)
 	
-	climbTrace.mins = dmins
-	climbTrace.maxs = dmaxs
-	climbTrace.leftdis = climbTrace.Fraction * evlen
+	table.Merge(climbTrace, {
+		mins = dmins,
+		maxs = dmaxs,
+		used = climbTrace.Fraction * evlen
+	})
 
 	return climbTrace
 end
@@ -127,19 +132,14 @@ UPar.IsPlyStartSolid = function(ply, startpos, cur)
 end
 
 UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
-	-- obsTrace 障碍检测结果
-	-- climbTrace 攀爬检测结果
-	-- ehlen 水平距离
-
-	local pos = obsTrace.StartPos
 	local dirNorm = obsTrace.Normal
 	local landpos = climbTrace.HitPos
 
 	local dmins, dmaxs = climbTrace.mins, climbTrace.maxs
-	local plyWidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])
+	local dwidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])
 
 	-- 简单检测一下是否会被阻挡
-	local linelen = ehlen + 0.707 * plyWidth
+	local linelen = ehlen + 0.707 * dwidth
 	local line = dirNorm * linelen
 	
 	local simpletrace1 = util.QuickTrace(landpos + Vector(0, 0, dmaxs[3]), line, ply)
@@ -162,56 +162,63 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	-- 更新水平检测范围
 	local maxVaultWidth, maxVaultWidthVec
 	if simpletrace1.Hit or simpletrace2.Hit then
-		maxVaultWidth = math.max(
-			0, 
-			linelen * math.min(simpletrace1.Fraction, simpletrace2.Fraction) - plyWidth * 0.707
-		)
+		maxVaultWidth = math.max(0, linelen * math.min(simpletrace1.Fraction, simpletrace2.Fraction) - dwidth * 0.707)
 		maxVaultWidthVec = dirNorm * maxVaultWidth
 	else
 		maxVaultWidth = ehlen
 		maxVaultWidthVec = dirNorm * maxVaultWidth
 	end
  
-	local startpos = landpos + maxVaultWidthVec
-	local endpos = startpos - Vector(0, 0, landpos[3] - pos[3])
-
-	local vtrace = util.TraceHull({
+	local oimins, oimaxs = Vector(obsTrace.mins), Vector(obsTrace.maxs)
+	oimins[3] = oimaxs[3] * 0.3
+ 
+	local obsImgTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
-		start = startpos,
-		endpos = endpos,
-		mins = dmins,
-		maxs = dmaxs,
+		start = obsTrace.HitPos + maxVaultWidthVec,
+		endpos = obsTrace.HitPos,
+		mins = oimins,
+		maxs = oimaxs
 	})
 
-	UPar.debugwireframebox(vtrace.HitPos, dmins, dmaxs, 3, Color(255, 0, 255), true)
+	UPar.debugwireframebox(obsImgTrace.StartPos, oimins, oimaxs, 3, Color(0, 255, 0), true)
+	UPar.debugwireframebox(obsImgTrace.HitPos, oimins, oimaxs, 3, Color(255, 0, 255), true)
 
-	if vtrace.StartSolid then
+	if obsImgTrace.StartSolid or not obsImgTrace.Hit then
 		return
 	end
 
+	local usedImg = obsImgTrace.Fraction * maxVaultWidth
 	local pmins, pmaxs = ply:GetHull()
-	startpos = vtrace.HitPos + unitzvec
-	endpos = startpos - maxVaultWidthVec
 
 	local vaultTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
-		start = startpos,
-		endpos = endpos,
+		start = obsImgTrace.HitPos + Vector(0, 0, obsTrace.mins[3]) + dirNorm * math.min(2, usedImg),
+		endpos = obsImgTrace.HitPos + dirNorm * math.min(2, usedImg),
 		mins = pmins,
 		maxs = pmaxs,
 	})
 
-	if vaultTrace.StartSolid or not vaultTrace.Hit then
+	if vaultTrace.StartSolid then
 		return
 	end
 
 	UPar.debugwireframebox(vaultTrace.HitPos, pmins, pmaxs, 3, nil, true)
 
-	vaultTrace.leftdis = vaultTrace.Fraction * maxVaultWidth
+	table.Merge(vaultTrace, {
+		mins = pmins,
+		maxs = pmaxs,
+		used = vaultTrace.Fraction * obsTrace.mins[3]
+	})
 
-	return vaultTrace
+	table.Merge(obsImgTrace, {
+		mins = oimins,
+		maxs = oimaxs,
+		used = usedImg
+	})
+
+	return vaultTrace, obsImgTrace
 end
 
 UPar.GetFallDamageInfo = function(ply, fallspeed, ref)

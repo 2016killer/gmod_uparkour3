@@ -3,7 +3,7 @@
 	2025 12 20
 ]]--
 
--- ==================== 低爬 ===============
+-- ==================== 高爬 ===============
 local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector

@@ -14,18 +14,18 @@ local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 
 
-local upvaultdl = UPAction:Register('upvaultdl', {
+local upvault = UPAction:Register('upvault', {
 	AAAACreat = '白狼',
-	AAADesc = '#upvaultdl.desc',
+	AAADesc = '#upvault.desc',
 	icon = 'upgui/uparkour.jpg',
-	label = '#upvaultdl',
+	label = '#upvault',
 	defaultDisabled = false,
 	defaultKeybind = '[33,79,65]'
 })
 
-upvaultdl:InitConVars({
+upvault:InitConVars({
 	{
-		name = 'upvtdl_max',
+		name = 'upvt_max',
 		default = '0.6',
 		widget = 'NumSlider',
 		min = 0,
@@ -35,7 +35,7 @@ upvaultdl:InitConVars({
 	},
 
 	{
-		name = 'upvtdl_ehlen',
+		name = 'upvt_ehlen',
 		default = '2',
 		widget = 'NumSlider',
 		min = 0,
@@ -45,48 +45,44 @@ upvaultdl:InitConVars({
 	},
 
 	{
-		name = 'upvtdl_speed',
+		name = 'upvt_speed',
 		default = '1 1 1',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
 		help = true
 	}
 })
- 
-function upvaultdl:Check(ply, obsTrace, climbTrace, climbMoveData)
-	-- 为了加速检测, 这里需要复用 uplowclimb 的检测结果, 所以 upvaultdl 是无法独立检测的
 
-	if not obsTrace or not climbTrace then
-		return
-	end
+-- 为了加速检测, 这里需要复用 uplowclimb 的检测缓存, 所以 upvault 是无法独立检测的
+function upvault:Detector(ply, obsTrace, climbTrace)
+	local mins, maxs = climbTrace.mins, climbTrace.maxs
+	local plyWidth = math.max(maxs[1] - mins[1], maxs[2] - mins[2])
 
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
-		print('[upvaultdl]: Warning: Invalid player')
-		return
-	end
-
-	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
-		return
-	end
-
-	local convars = self.ConVars
-
-	local pmins, pmaxs = ply:GetHull()
-	local plyWidth = math.max(pmaxs[1] - pmins[1], pmaxs[2] - pmins[2])
-	local plyHeight = pmaxs[3] - pmins[3]
-
-    local ehlen = convars.upvtdl_ehlen:GetFloat() * plyWidth
+    local ehlen = self.ConVars.upvt_ehlen:GetFloat() * plyWidth
 	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen)
 
-	if not vaultTrace then
-		return 
-	end
+	return vaultTrace
+end
+
+function upvault:GetMoveData(ply, obsTrace, vaultTrace, refVel)
+	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 
 	local dirNorm = obsTrace.Normal
-	local pos = obsTrace.StartPos
-	local vaultpos = vaultTrace.HitPos + math.min(2, vaultTrace.leftdis) * dirNorm
-	local moveDis = (vaultpos - pos):Length()
-	local startspeed, endspeed = self:GetSpeed(ply, dirNorm, refVel)
+	local startpos = obsTrace.StartPos
+	local endpos = vaultTrace.HitPos
+	local moveDis = (endpos - startpos):Length()
+
+	local startspeed = math.max(10, obsTrace.Normal:Dot(refVel))
+
+	local moveVec = ply:KeyDown(IN_SPEED)  
+		and Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
+		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
+
+	local endspeed = math.max(
+		Vector(self.ConVars.upvt_speed:GetString()):Dot(moveVec), 
+		startspeed
+	)
+
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
 
 	if moveDuration <= 0 then 
@@ -94,9 +90,9 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, climbMoveData)
 		return
 	end
 
-	local vaultMoveData = {
-		startpos = pos,
-		endpos = vaultpos,
+	return {
+		startpos = startpos,
+		endpos = endpos,
 
 		startspeed = startspeed,
 		endspeed = endspeed,
@@ -106,39 +102,51 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, climbMoveData)
 		duration = moveDuration,
 		dirNorm = dirNorm,
 	}
+end
 
-
-	if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvtdl_max:GetFloat() * plyHeight then
-		return {
-			climb = climbMoveData,
-			vault = vaultMoveData,
-		}, vaultTrace
-	else
-		return {
-			vault = vaultMoveData
-		}, vaultTrace
+function upvault:Check(ply, obsTrace, climbTrace)
+	if not obsTrace or not climbTrace then
+		return
 	end
+
+	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+		print('[upvault]: Warning: Invalid player')
+		return
+	end
+
+	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
+		return
+	end
+
+	local vaultTrace = self:Detector(ply, obsTrace, climbTrace)
+
+	if not vaultTrace then
+		return 
+	end
+
+	// if climbTrace.HitPos[3] - obsTrace.StartPos[3] > convars.upvt_max:GetFloat() * plyHeight then
+	return self:GetMoveData(ply, obsTrace, vaultTrace)
+	// else
+	// 	return {
+	// 		vault = vaultMoveData
+	// 	}, vaultTrace
+	// end  
+
+	// local vaultMoveData = {
+	// 	startpos = pos,
+	// 	endpos = vaultpos,
+
+	// 	startspeed = startspeed,
+	// 	endspeed = endspeed,
+
+	// 	starttime = CurTime(),
+
+	// 	duration = moveDuration,
+	// 	dirNorm = dirNorm,
+	// }
 end
 
-function upvaultdl:GetSpeed(ply, dirNorm, refVel)
-	refVel = isvector(refVel) and refVel or ply:GetVelocity()
-	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
-	
-	local startspeed = dirNorm:Dot(refVel)
-	local moveVector = Vector(
-		ply:GetJumpPower(), 
-		ply:KeyDown(IN_SPEED) and ply:GetRunSpeed() or 0, 
-		ply:GetWalkSpeed()
-	)
-	
-	return math.max(startspeed, 0), math.max(
-		Vector(self.ConVars.upvtdl_speed:GetString()):Dot(moveVector), 
-		startspeed,
-		10
-	)
-end
-
-function upvaultdl:Start(ply, data)
+function upvault:Start(ply, data)
     if CLIENT then 
 		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
 		local needduck = false
@@ -153,7 +161,7 @@ function upvaultdl:Start(ply, data)
 	end
 end
 
-function upvaultdl:Think(ply, data, mv, cmd)
+function upvault:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
 	local endpos = data.endpos
 	local startspeed = data.startspeed
@@ -173,7 +181,7 @@ function upvaultdl:Think(ply, data, mv, cmd)
 	return endflag
 end
 
-function upvaultdl:Clear(ply, data, mv, cmd)
+function upvault:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
@@ -188,10 +196,10 @@ function upvaultdl:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActKeyPress', 'test_upvaultdl', function(pressActs)
-		if pressActs['upvaultdl'] then 
-			local _, obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Check', LocalPlayer())
-			UPar.Trigger(LocalPlayer(), 'upvaultdl', nil, obsTrace, climbTrace)
+	UPar.SeqHookAdd('UParActKeyPress', 'test_upvault', function(pressActs)
+		if pressActs['upvault'] then 
+			local obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Detector', LocalPlayer())
+			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
 		end
 	end)
 end
