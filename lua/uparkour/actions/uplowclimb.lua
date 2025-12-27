@@ -28,15 +28,15 @@ uplowclimb:InitConVars({
 	},
 
 	{
-		name = 'uplc_blen',
-		default = '1.5',
+		name = 'uplc_ohlenf',
+		default = '0.67',
 		widget = 'NumSlider',
 		min = 0, max = 2, decimals = 2,
 		help = true
 	},
 
 	{
-		name = 'uplc_max',
+		name = 'uplc_maxhf',
 		default = '0.85',
 		widget = 'NumSlider',
 		min = 0, max = 0.85, decimals = 2,
@@ -44,14 +44,14 @@ uplowclimb:InitConVars({
 	},
 
 	{
-		name = 'uplc_min',
+		name = 'uplc_minhf',
 		default = '0.5',
 		widget = 'NumSlider',
 		min = 0, max = 0.85, decimals = 2
 	},
 
 	{
-		name = 'uplc_speed',
+		name = 'uplc_speedf',
 		default = '1 0.25 0.25',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
@@ -61,29 +61,22 @@ uplowclimb:InitConVars({
 
 function uplowclimb:Detector(ply, pos, dirNorm)
 	pos = isvector(pos) and pos or ply:GetPos()
-	dirNorm = isvector(dirNorm) and dirNorm:GetNormalized() or XYNormal(ply:EyeAngles():Forward())
+	dirNorm = isvector(dirNorm) and dirNorm or ply:EyeAngles():Forward()
 	local convars = self.ConVars
 
-	local omins, omaxs = ply:GetCollisionBounds()
-	local plyWidth = math.max(omaxs[1] - omins[1], omaxs[2] - omins[2])
-	local plyHeight = omaxs[3] - omins[3]
-	
-	local obsHeightMax = convars.uplc_max:GetFloat() * plyHeight
-	local obsHeightMin = convars.uplc_min:GetFloat() * plyHeight
-
-	omaxs[3] = obsHeightMax
-	omins[3] = obsHeightMin
-
 	local obsTrace = ObsDetector(ply, pos, 
-		dirNorm * convars.uplc_blen:GetFloat() * plyWidth, 
-		omins, omaxs, 
-		convars.upctrl_los_cos:GetFloat())
+		dirNorm,
+		convars.uplc_ohlenf:GetFloat(), 
+		convars.uplc_minhf:GetFloat(),
+		convars.uplc_maxhf:GetFloat(),
+		convars.upctrl_los_cos:GetFloat()
+	)
 
 	if not obsTrace then 
 		return
 	end
 
-	local climbTrace = ClimbDetector(ply, obsTrace, 0.5 * plyWidth)
+	local climbTrace = ClimbDetector(ply, obsTrace, 0.25)
 
     if not climbTrace then 
         return 
@@ -104,7 +97,7 @@ function uplowclimb:GetMoveData(ply, obsTrace, climbTrace, refVel)
 		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 
 	local startspeed = math.max(
-		Vector(self.ConVars.uplc_speed:GetString()):Dot(moveVec), 
+		Vector(self.ConVars.uplc_speedf:GetString()):Dot(moveVec), 
 		(obsTrace.Normal + unitzvec):Dot(refVel),
 		10
 	)
@@ -197,10 +190,10 @@ end
 if CLIENT then
 	UPar.SeqHookAdd('UParActCVarWidget_uplowclimb', 'default', function(cvCfg, panel)
 		local cvName = cvCfg.name
-		if cvName == 'uplc_blen' 
-		or cvName == 'uplc_speed' 
-		or cvName == 'uplc_min' 
-		or cvName == 'uplc_max' then
+		if cvName == 'uplc_ohlenf' 
+		or cvName == 'uplc_speedf' 
+		or cvName == 'uplc_minhf' 
+		or cvName == 'uplc_maxhf' then
 			local created = UPar.SeqHookRun('UParActCVarWidget', 'uplowclimb', cvCfg, panel)
 			if not created then
 				return
@@ -215,24 +208,20 @@ if CLIENT then
 
 				local value = nil
 				local cvar = UPar.GetActKeyValue('uplowclimb', 'ConVars')[cvCfg.name]
-				if cvName == 'uplc_speed' then
+				if cvName == 'uplc_speedf' then
 					local ply = LocalPlayer()
 					local cvarVal = Vector(cvar:GetString())
 					local moveVec = Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 					local moveVec2 = Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
 				
-					value = string.format('%s, %s', 
+					value = string.format('%s ~ 0,    %s ~ 0', 
 						math.Round(cvarVal:Dot(moveVec), 2),
 						math.Round(cvarVal:Dot(moveVec2), 2)
 					)
-				elseif cvName == 'uplc_min' or cvName == 'uplc_max' then
+				elseif cvName == 'uplc_minhf' or cvName == 'uplc_maxhf' or cvName == 'uplc_ohlenf' then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
 					value = math.Round(plyHeight * cvar:GetFloat(), 2)
-				elseif cvCfg.name == 'uplc_blen' then
-					local min, max = LocalPlayer():GetCollisionBounds()
-					local plyWidth = math.max(max[1] - min[1], max[2] - min[2])
-					value = math.Round(plyWidth * cvar:GetFloat(), 2)
 				end
 
 				self:SetText(string.format('%s: %s', 

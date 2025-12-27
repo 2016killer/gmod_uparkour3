@@ -2,6 +2,7 @@
 	作者:白狼
 	2025 12 26
 
+	通用障碍检测, 作为略微底层的函数, 不对输入类型进行检查, 仅对关键边界进行检查
 --]]
 local unitzvec = UPar.unitzvec
 
@@ -19,23 +20,38 @@ local CONT_OBS_MAXH_DELTA = math.Clamp(0.7, 0, 1)
 
 UPar.XYNormal = XYNormal
 
-UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
+UPar.ObsDetector = function(ply, pos, dirNorm, ohlenFrac, minhFrac, maxhFrac, loscos)
 	-- 获取障碍位置
 	-- pos 检测位置
-	-- dir 检测方向
-	-- omins, omaxs 碰撞盒
+	-- dirNorm 检测路径方向 (单位)
+	-- minhFrac, maxhFrac 碰撞盒高度 比例 (玩家高度)
 	-- loscos 视线余弦值
+
+	if maxhFrac < minhFrac then
+		print('[ObsDetector]: Warning: maxhFrac < minhFrac')
+		return
+	end
+
+	dirNorm = XYNormal(dirNorm)
+
+	local mins, maxs = ply:GetCollisionBounds()
+	local plyWidth = math.max(maxs[1] - mins[1], maxs[2] - mins[2])
+	local plyHeight = maxs[3] - mins[3]
+	local ohlen = math.abs(ohlenFrac * plyHeight)
+
+	maxs[3] = maxhFrac * plyHeight
+	mins[3] = minhFrac * plyHeight
 
 	local obsTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
 		start = pos,
-		endpos = pos + dir,
-		mins = omins,
-		maxs = omaxs
+		endpos = pos + dirNorm * ohlen,
+		mins = mins,
+		maxs = maxs
 	})
 
-	UPar.debugwireframebox(obsTrace.HitPos, omins, omaxs, 3, 
+	UPar.debugwireframebox(obsTrace.HitPos, mins, maxs, 3, 
 		(obsTrace.StartSolid or obsTrace.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
 		true)
 
@@ -43,7 +59,7 @@ UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 		return
 	end
 
-	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dir:GetNormalized()) < loscos then 
+	if isnumber(loscos) and XYNormal(-obsTrace.HitNormal):Dot(dirNorm) < loscos then 
 		return 
 	end
 
@@ -52,30 +68,35 @@ UPar.ObsDetector = function(ply, pos, dir, omins, omaxs, loscos)
 	end
 
 	table.Merge(obsTrace, {
-		mins = omins,
-		maxs = omaxs,
-		used = dir:Dot(obsTrace.Normal) * obsTrace.Fraction,
+		mins = mins,
+		maxs = maxs,
+		// used = dir:Dot(obsTrace.Normal) * obsTrace.Fraction,
+		used = obsTrace.Fraction * ohlen,
 		loscos = loscos,
+		plyw = plyWidth,
+		plyh = plyHeight,
+		Normal = dirNorm,
 	})
 
 	return obsTrace
 end
 
-UPar.ClimbDetector = function(ply, obsTrace, ehlen)
+UPar.ClimbDetector = function(ply, obsTrace, ehlenFrac)
 	-- obsTrace 障碍检测结果
-	-- ehlen 落脚点距离
+	-- ehlenFrac 水平检测路径距离 比例 (玩家高度)
 
 	local pos = obsTrace.StartPos
 	local obsPos = obsTrace.HitPos
 	local maxh = obsTrace.maxs[3]
 	local minh = obsTrace.mins[3]
 	local dirNorm = obsTrace.Normal
+	local plyHeight = obsTrace.plyh
 
 	-- 确保落脚点有足够空间, 所以检测蹲碰撞盒
 	local evlen = maxh - minh
 	local dmins, dmaxs = ply:GetHullDuck()
 
-	local startpos = obsPos + Vector(0, 0, maxh) + dirNorm * ehlen
+	local startpos = obsPos + Vector(0, 0, maxh) + math.abs(ehlenFrac * plyHeight) * dirNorm
 	local endpos = startpos - Vector(0, 0, evlen)
 
 	local climbTrace = util.TraceHull({
@@ -87,7 +108,8 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 		maxs = dmaxs,
 	})
 
-	UPar.debugwireframebox(climbTrace.StartPos, dmins, dmaxs, 3, Color(0, 255, 255), true)
+	UPar.debugwireframebox(climbTrace.StartPos, dmins, dmaxs, 3, nil, true)
+	UPar.debugwireframebox(climbTrace.HitPos, dmins, dmaxs, 3, Color(0, 255, 255), true)
 
 	-- 确保不在滑坡上且在障碍物上
 	if not climbTrace.Hit or climbTrace.HitNormal[3] < LANDSLID_ZNORM then
@@ -96,22 +118,22 @@ UPar.ClimbDetector = function(ply, obsTrace, ehlen)
 
 	-- 检测落脚点是否有足够空间
 	-- OK, 预留1的单位高度防止极端情况
-	if climbTrace.StartSolid or climbTrace.Fraction * evlen < SAFE_OFFSET_V then
+	local used = climbTrace.Fraction * evlen
+
+	if climbTrace.StartSolid or used < SAFE_OFFSET_V then
 		return
 	end
 
-	UPar.debugwireframebox(climbTrace.HitPos, dmins, dmaxs, 3, nil, true)
-	
 	table.Merge(climbTrace, {
 		mins = dmins,
 		maxs = dmaxs,
-		used = climbTrace.Fraction * evlen
+		used = used
 	})
 
 	return climbTrace
 end
 
-UPar.IsPlyStartSolid = function(ply, startpos, cur)
+UPar.IsInSolid = function(ply, startpos, cur)
 	local pmins, pmaxs = nil
 	if cur then
 		pmins, pmaxs = ply:GetCollisionBounds()
@@ -121,7 +143,7 @@ UPar.IsPlyStartSolid = function(ply, startpos, cur)
 
 	startpos = isvector(startpos) and startpos or ply:GetPos()
 
-	local spacecheck = util.TraceHull({
+	local solidTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
 		start = startpos,
@@ -131,24 +153,30 @@ UPar.IsPlyStartSolid = function(ply, startpos, cur)
 	})
 	
 	UPar.debugwireframebox(startpos, pmins, pmaxs, 3, 
-		(spacecheck.StartSolid or spacecheck.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
+		(solidTrace.StartSolid or solidTrace.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
 		true)
 
-	return spacecheck.StartSolid or spacecheck.Hit 
+	return solidTrace.StartSolid or solidTrace.Hit 
 end
 
-UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
+UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlenFrac, evlenFrac)
+	-- obsTrace 障碍检测结果
+	-- climbTrace 攀爬检测结果
+	-- ehlenFrac 水平检测路径距离 比例 (玩家高度)
+	-- evlenFrac 垂直检测路径距离 比例 (玩家高度)
+	
 	-- 实际上是做一次镜像 obs 检测 + 垂直定位
 	-- 障碍最大的高度变化为 CONT_OBS_MAXH_DELTA, 超过则不视为障碍的一部分
-
+	local plyHeight = obsTrace.plyh
+	local plyWidth = obsTrace.plyw
 	local dirNorm = obsTrace.Normal
 	local landpos = climbTrace.HitPos
-
 	local dmins, dmaxs = climbTrace.mins, climbTrace.maxs
-	local dwidth = math.max(dmaxs[1] - dmins[1], dmaxs[2] - dmins[2])
 
-	-- 简单检测一下是否会被阻挡
-	local linelen = ehlen + 0.707 * dwidth
+	-- 简单检测一下是否会被阻挡 0.707 = 2^0.5 * 0.5
+	local ehlen = ehlenFrac * plyHeight
+
+	local linelen = ehlen + 0.707 * plyWidth
 	local line = dirNorm * linelen
 	
 	local simpletrace1 = util.QuickTrace(landpos + Vector(0, 0, dmaxs[3]), line, ply)
@@ -171,7 +199,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	-- 更新水平检测范围
 	local maxVaultWidth, maxVaultWidthVec
 	if simpletrace1.Hit or simpletrace2.Hit then
-		maxVaultWidth = math.max(0, linelen * math.min(simpletrace1.Fraction, simpletrace2.Fraction) - dwidth * 0.707)
+		maxVaultWidth = math.max(0, linelen * math.min(simpletrace1.Fraction, simpletrace2.Fraction) - plyWidth * 0.707)
 		maxVaultWidthVec = dirNorm * maxVaultWidth
 	else
 		maxVaultWidth = ehlen
@@ -198,29 +226,33 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlen)
 	end
 
 	local usedImg = obsImgTrace.Fraction * maxVaultWidth
-	local pmins, pmaxs = ply:GetHull()
+
+	local evlen = evlenFrac * plyHeight
+	local startpos = obsImgTrace.HitPos + dirNorm * math.min(SAFE_OFFSET_H, usedImg)
+	startpos[3] = landpos[3]
+	local endpos = startpos - Vector(0, 0, evlen)
 
 	local vaultTrace = util.TraceHull({
 		filter = ply, 
 		mask = MASK_PLAYERSOLID,
-		start = obsImgTrace.HitPos + Vector(0, 0, oimins[3]) + dirNorm * math.min(SAFE_OFFSET_H, usedImg),
-		endpos = obsImgTrace.HitPos + dirNorm * math.min(SAFE_OFFSET_H, usedImg),
-		mins = pmins,
-		maxs = pmaxs,
+		start = startpos,
+		endpos = endpos,
+		mins = dmins,
+		maxs = dmaxs,
 	})
 
-	local usedVault = vaultTrace.Fraction * oimins[3]
+	local usedVault = vaultTrace.Fraction * evlen
 
 	if vaultTrace.StartSolid or usedVault < SAFE_OFFSET_V then
 		return
 	end
 
-	UPar.debugwireframebox(vaultTrace.StartPos, pmins, pmaxs, 3, Color(0, 0, 0), true)
-	UPar.debugwireframebox(vaultTrace.HitPos, pmins, pmaxs, 3, nil, true)
+	UPar.debugwireframebox(vaultTrace.StartPos, dmins, dmaxs, 3, Color(0, 0, 0), true)
+	UPar.debugwireframebox(vaultTrace.HitPos, dmins, dmaxs, 3, nil, true)
 
 	table.Merge(vaultTrace, {
-		mins = pmins,
-		maxs = pmaxs,
+		mins = Vector(dmins),
+		maxs = Vector(dmaxs),
 		used = usedVault
 	})
 
