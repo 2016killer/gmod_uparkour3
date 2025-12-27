@@ -304,3 +304,42 @@ UPar.UniformAccelInterpPos = function(t, startpos, endpos, startspeed, endspeed)
 	local result = Hermite3(t, startspeed / speed_max, endspeed / speed_max)
 	return LerpVector(result, startpos, endpos), result
 end
+
+
+UPar.GetUniformAccelMoveData = function(startpos, endpos, startspeed, endspeed)
+	-- 可以直接作为 upaciton 的 movedata 使用
+	local dirNorm = (endpos - startpos):GetNormalized()
+	local dis = (endpos - startpos):Dot(dirNorm)
+	local duration = dis * 2 / (startspeed + endspeed)
+	if duration <= 0 then 
+		print('[UniformAccelInterpVaildate]: Warning: duration <= 0')
+		return
+	end
+
+	return {
+		startpos = startpos,
+		endpos = endpos,
+		startspeed = startspeed,
+		endspeed = endspeed,
+		duration = duration,
+		starttime = CurTime()
+	}
+end
+
+
+UPar.UniformAccelMoveThink = function(_, ply, data, mv, cmd)
+	local startpos = data.startpos
+	local endpos = data.endpos
+	local startspeed = data.startspeed
+	local endspeed = data.endspeed
+	local duration = data.duration
+
+	local dt = CurTime() - data.starttime
+	local speed_max = math.abs(math.max(startspeed, endspeed, 0.001))
+	local result = Hermite3(dt / duration, startspeed / speed_max, endspeed / speed_max)
+	local endflag = dt > duration or result >= 1
+
+	mv:SetOrigin(endflag and endpos or LerpVector(result, startpos, endpos))
+
+	return endflag
+end

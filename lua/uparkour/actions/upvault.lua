@@ -27,7 +27,7 @@ function upvault:Think(ply, data, mv, cmd)
 	local duration = data.duration
 	local starttime = data.starttime
 
-	local speed_max = math.abs(math.max(startspeed, endspeed))
+	local speed_max = math.abs(math.max(startspeed, endspeed, 0.001))
 	local dt = CurTime() - starttime
 	local result = Hermite3(dt / duration, startspeed / speed_max, endspeed / speed_max)
 	local endflag = dt > duration or result >= 1

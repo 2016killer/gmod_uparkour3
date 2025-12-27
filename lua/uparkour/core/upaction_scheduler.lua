@@ -16,9 +16,9 @@ local END_FLAG = 5
 local BIT_COUNT = 4
 local MAX_ACT_EVENT = 20
 
-local function GetPlayerUsingEffect(ply, actName)
+local function GetPlyUsingEffect(ply, actName)
 	if actName == nil then
-		print(string.format('[UPar]: Warning: GetPlayerUsingEffect: actName is nil'))
+		print(string.format('[UPar]: Warning: GetPlyUsingEffect: actName is nil'))
 		return nil
 	end
 
@@ -35,7 +35,7 @@ local function ActStart(ply, action, checkResult)
 	local actName = action.Name
 	action:Start(ply, checkResult)
 
-	local effect = GetPlayerUsingEffect(ply, actName)
+	local effect = GetPlyUsingEffect(ply, actName)
 	if effect then effect:Start(ply, checkResult) end
 
 	SeqHookRun('UParActStartOut_' .. actName, ply, checkResult, action.TrackId)
@@ -46,7 +46,7 @@ local function ActClear(ply, playing, playingData, mv, cmd, interruptSource)
 	local playingName = playing.Name
 	playing:Clear(ply, playingData, mv, cmd, interruptSource)
 
-	local effect = GetPlayerUsingEffect(ply, playingName)
+	local effect = GetPlyUsingEffect(ply, playingName)
 	if effect then effect:Clear(ply, playingData, interruptSource) end
 
 	SeqHookRun('UParActClearOut_' .. playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
@@ -64,14 +64,14 @@ local function ActEffRhythmChange(ply, action, customData)
 		net.Send(ply)
 	end
 
-	local effect = GetPlayerUsingEffect(ply, actName)
+	local effect = GetPlyUsingEffect(ply, actName)
 	if effect then effect:Rhythm(ply, customData) end
 
 	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
 	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
 end
 
-UPar.GetPlayerUsingEffect = GetPlayerUsingEffect
+UPar.GetPlyUsingEffect = GetPlyUsingEffect
 
 UPar.ActStart = ActStart
 UPar.ActClear = ActClear
@@ -122,7 +122,7 @@ UPar.CallEff = function(actName, effName, methodName, ...)
 		return
     end
 
-	return method(effects[effName], ...)
+	return method(effect, ...)
 end
 
 UPar.GetEffKeyValue = function(actName, effName, key)
@@ -135,6 +135,32 @@ UPar.GetEffKeyValue = function(actName, effName, key)
     local effect = effects[effName]
     if not effect then
 		print(string.format('not found eff "%s" in act "%s"', effName, actName))
+		return
+    end
+
+	return effect[key]
+end
+
+UPar.CallPlyUsingEff = function(actName, methodName, ply, ...)
+    local effect = GetPlyUsingEffect(ply, actName)
+    if not effect then
+		print(string.format('not found eff "%s" in act "%s" for ply "%s"', effName, actName, ply))
+		return
+    end
+
+    local method = effect[methodName]
+    if not isfunction(method) then
+		print(string.format('not found method "%s" in eff "%s" of act "%s"', methodName, effName, actName))
+		return
+    end
+
+	return method(effect, ...)
+end
+
+UPar.GetPlyUsingEffKeyValue = function(actName, key, ply)
+    local effect = GetPlyUsingEffect(ply, actName)
+    if not effect then
+		print(string.format('not found eff "%s" in act "%s" for ply "%s"', effName, actName, ply))
 		return
     end
 

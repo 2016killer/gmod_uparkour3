@@ -30,6 +30,16 @@ controller:InitConVars({
 	},
 
 	{
+		name = 'upctrl_vtd_thr',
+		default = '0.25',
+		widget = 'NumSlider',
+		min = 0,
+		max = 5,
+		decimals = 2,
+		help = true,
+	},
+
+	{
 		name = 'upctrl_los_cos',
 		default = '0.64',
 		widget = 'NumSlider',

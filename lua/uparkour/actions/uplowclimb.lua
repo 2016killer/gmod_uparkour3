@@ -90,15 +90,16 @@ function uplowclimb:GetMoveData(ply, obsTrace, climbTrace, refVel)
 	
 	local startpos = obsTrace.StartPos
 	local endpos = climbTrace.HitPos + unitzvec
-	local moveDis = (endpos - startpos):Length()
+	local moveDir = (endpos - startpos):GetNormalized()
+	local moveDis = (endpos - startpos):Dot(moveDir)
 
 	local moveVec = ply:KeyDown(IN_SPEED)  
 		and Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
 		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 
 	local startspeed = math.max(
-		Vector(self.ConVars.uplc_speedf:GetString()):Dot(moveVec), 
-		(obsTrace.Normal + unitzvec):Dot(refVel),
+		math.abs(Vector(self.ConVars.uplc_speedf:GetString()):Dot(moveVec)), 
+		(moveDir):Dot(refVel),
 		10
 	)
 
@@ -156,26 +157,7 @@ function uplowclimb:Start(ply, data)
 	end
 end
 
-function uplowclimb:Think(ply, data, mv, cmd)
-	local startpos = data.startpos
-	local endpos = data.endpos
-	local startspeed = data.startspeed
-	local endspeed = data.endspeed
-	local duration = data.duration
-	local starttime = data.starttime
-
-
-	local speed_max = math.abs(math.max(startspeed, endspeed))
-	local dt = CurTime() - starttime
-	local result = Hermite3(dt / duration, startspeed / speed_max, endspeed / speed_max)
-	local endflag = dt > duration or result >= 1
-
-	local curpos = endflag and endpos or LerpVector(result, startpos, endpos)
-
-	mv:SetOrigin(curpos)
-
-	return endflag
-end
+uplowclimb.Think = UPar.UniformAccelMoveThink
 
 function uplowclimb:Clear(ply, data, mv, cmd)
 	if CLIENT then 

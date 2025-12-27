@@ -32,6 +32,12 @@ upvaultdl:InitConVars({
 	},
 
 	{
+		name = 'upctrl_vtd_thr',
+		default = '0.25',
+		invisible = true
+	},
+
+	{
 		name = 'upvtdl_ehlen',
 		default = '1',
 		widget = 'NumSlider',
@@ -52,15 +58,14 @@ upvaultdl:InitConVars({
 
 function upvaultdl:Detector(ply, obsTrace, climbTrace)
 	local convars = self.ConVars
-	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, 
+
+	return VaultDetector(ply, obsTrace, climbTrace, 
 		convars.upvtdl_ehlen:GetFloat(), 
 		convars.upctrl_vt_evlen:GetFloat()
 	)
-
-	return vaultTrace
 end
 
-function upvaultdl:GetMoveData(ply, obsTrace, vaultTrace, refVel)
+function upvaultdl:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
 	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 
 	local dirNorm = obsTrace.Normal
@@ -96,9 +101,38 @@ function upvaultdl:GetMoveData(ply, obsTrace, vaultTrace, refVel)
 		starttime = CurTime(),
 
 		duration = moveDuration,
-		dirNorm = dirNorm,
+		endvel = dirNorm * endspeed,
 	}
 end
+
+function upvaultdl:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
+	local vaultMoveData = self:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
+	
+	if not vaultMoveData then
+		return
+	end
+
+	local threshold = obsTrace.plyh * self.ConVars.upctrl_vtd_thr:GetFloat()
+	if vaultMoveData.endpos[3] - vaultMoveData.startpos[3] < threshold then
+		return {{}, vaultMoveData, rhythm = 2}
+	else
+		-- 二段翻越
+		local climbMoveData = CallAct('uplowclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
+		climbMoveData.endpos[3] = vaultMoveData.endpos[3]
+		climbMoveData.endspeed = climbMoveData.startspeed * 0.3
+		climbMoveData.duration = (climbMoveData.startpos - climbMoveData.endpos):Length() * 2 / 
+		(climbMoveData.startspeed + climbMoveData.endspeed)
+		
+
+		vaultMoveData.startpos = climbMoveData.endpos
+		vaultMoveData.startspeed = climbMoveData.endspeed
+		vaultMoveData.duration = (vaultMoveData.startpos - vaultMoveData.endpos):Length() * 2 / 
+		(vaultMoveData.startspeed + vaultMoveData.endspeed)
+
+		return {climbMoveData, vaultMoveData, rhythm = 1}
+	end
+end
+
 
 function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
 	if not obsTrace or not climbTrace then
@@ -119,19 +153,7 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
 		return
 	end
 
-	local vaultMoveData = self:GetMoveData(ply, obsTrace, vaultTrace, refVel)
-
-	print(vaultMoveData.endpos[3] - vaultMoveData.startpos[3])
-	if vaultMoveData.endpos[3] - vaultMoveData.startpos[3] < 18 then
-		return {{}, vaultMoveData, rhythm = 2}
-	else
-		local climbMoveData = CallAct('uplowclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
-		climbMoveData.endpos[3] = vaultMoveData.endpos[3]
-		vaultMoveData.startpos = climbMoveData.endpos
-		vaultMoveData.startspeed = 0
-
-		return {climbMoveData, vaultMoveData, rhythm = 1}
-	end
+	return self:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
 end
 
 function upvaultdl:Start(ply, data)
@@ -157,6 +179,7 @@ function upvaultdl:Think(ply, data, mv, cmd)
 		if isClimbEnd then 
 			data.rhythm = 2
 			data[2].starttime = CurTime()
+			UPar.ActEffRhythmChange(ply, self, data)
 		end
 	elseif data.rhythm == 2 then
 		return CallAct('upvault', 'Think', ply, data[2], mv, cmd)
@@ -167,9 +190,8 @@ function upvaultdl:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
-		if mv and istable(data) and istable(data[2])
-		and isnumber(data[2].endspeed) and isvector(data[2].dirNorm) then
-			mv:SetVelocity(data[2].endspeed * data[2].dirNorm)
+		if mv and istable(data) and istable(data[2]) and isvector(data[2].endvel) then
+			mv:SetVelocity(data[2].endvel)
 		end
     end
 
