@@ -4,11 +4,7 @@
 ]]--
 
 -- ==================== 翻越 ===============
-local XYNormal = UPar.XYNormal
-local ObsDetector = UPar.ObsDetector
-local ClimbDetector = UPar.ClimbDetector
-local VaultDetector = UPar.VaultDetector
-local IsPlyStartSolid = UPar.IsPlyStartSolid
+-- 实际上这个动作并不会被控制器触发, 它的作用仅仅是特效容器以及实现移动计算
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
@@ -18,104 +14,10 @@ local upvault = UPAction:Register('upvault', {
 	AAAACreat = '白狼',
 	AAADesc = '#upvault.desc',
 	icon = 'upgui/uparkour.jpg',
-	label = '#upvault',
-	defaultDisabled = false,
-	defaultKeybind = '[33,79,65]'
+	label = '#upvault'
 })
 
-upvault:InitConVars({
-	{
-		name = 'upvt_ehlen',
-		default = '2',
-		widget = 'NumSlider',
-		min = 0,
-		max = 5,
-		decimals = 2,
-		help = true,
-	},
-
-	{
-		name = 'upvt_speed',
-		default = '1 1 1',
-		widget = 'UParVecEditor',
-		min = 0, max = 2, decimals = 2, interval = 0.1,
-		help = true
-	}
-})
-
--- 为了加速检测, 这里需要复用 uplowclimb 的检测缓存, 所以 upvault 是无法独立检测的
-function upvault:Detector(ply, obsTrace, climbTrace)
-	local mins, maxs = climbTrace.mins, climbTrace.maxs
-	local plyWidth = math.max(maxs[1] - mins[1], maxs[2] - mins[2])
-
-    local ehlen = self.ConVars.upvt_ehlen:GetFloat() * plyWidth
-	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen)
-
-	return vaultTrace
-end
-
-function upvault:GetMoveData(ply, obsTrace, vaultTrace, refVel)
-	refVel = isvector(refVel) and refVel or ply:GetVelocity()
-
-	local dirNorm = obsTrace.Normal
-	local startpos = obsTrace.StartPos
-	local endpos = vaultTrace.HitPos + unitzvec
-	local moveDis = (endpos - startpos):Length()
-
-	local startspeed = math.max(10, obsTrace.Normal:Dot(refVel))
-
-	local moveVec = ply:KeyDown(IN_SPEED)  
-		and Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
-		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
-
-	local endspeed = math.max(
-		Vector(self.ConVars.upvt_speed:GetString()):Dot(moveVec), 
-		startspeed
-	)
-
-	local moveDuration = moveDis * 2 / (startspeed + endspeed)
-
-	if moveDuration <= 0 then 
-		print('[uplowclimb]: Warning: moveDuration <= 0')
-		return
-	end
-
-	return {
-		startpos = startpos,
-		endpos = endpos,
-
-		startspeed = startspeed,
-		endspeed = endspeed,
-
-		starttime = CurTime(),
-
-		duration = moveDuration,
-		dirNorm = dirNorm,
-	}
-end
-
-function upvault:Check(ply, obsTrace, climbTrace, refVel)
-	if not obsTrace or not climbTrace then
-		return
-	end
-
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
-		print('[upvault]: Warning: Invalid player')
-		return
-	end
-
-	if ply:GetMoveType() ~= MOVETYPE_WALK or !ply:Alive() then 
-		return
-	end
-
-	local vaultTrace = self:Detector(ply, obsTrace, climbTrace)
-
-	if not vaultTrace then
-		return 
-	end
-
-	return self:GetMoveData(ply, obsTrace, vaultTrace, refVel)
-end
+upvault.Check = UPar.emptyfunc
 
 function upvault:Start(ply, data)
     if CLIENT then 
@@ -164,8 +66,4 @@ function upvault:Clear(ply, data, mv, cmd)
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
 		ply:SetMoveType(MOVETYPE_WALK)
 	end
-end
-
-if CLIENT then
-
 end

@@ -17,8 +17,7 @@ local uphighclimb = UPAction:Register('uphighclimb', {
 	AAADesc = '#uphighclimb.desc',
 	icon = 'upgui/uparkour.jpg',
 	label = '#uphighclimb',
-	defaultDisabled = false,
-	defaultKeybind = '[33,79,65]'
+	defaultDisabled = false
 })
 
 uphighclimb:InitConVars({
