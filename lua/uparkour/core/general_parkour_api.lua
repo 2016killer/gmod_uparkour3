@@ -165,8 +165,9 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlenFrac, evlenFrac)
 	-- ehlenFrac 水平检测路径距离 比例 (玩家高度)
 	-- evlenFrac 垂直检测路径距离 比例 (玩家高度)
 	
-	-- 实际上是做一次镜像 obs 检测 + 垂直定位
-	-- 障碍最大的高度变化为 CONT_OBS_MAXH_DELTA, 超过则不视为障碍的一部分
+	-- 翻越的条件为可攀爬且障碍的镜像满足一定条件, 实际上是做一次镜像 obs 检测 + 垂直定位
+	-- 镜像 obs 检测时, 障碍最大的高度变化为 CONT_OBS_MAXH_DELTA, 超过部分则不视为障碍的一部分
+
 	local plyHeight = obsTrace.plyh
 	local plyWidth = obsTrace.plyw
 	local dirNorm = obsTrace.Normal
@@ -174,7 +175,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlenFrac, evlenFrac)
 	local dmins, dmaxs = climbTrace.mins, climbTrace.maxs
 
 	-- 简单检测一下是否会被阻挡 0.707 = 2^0.5 * 0.5
-	local ehlen = ehlenFrac * plyHeight
+	local ehlen = math.abs(ehlenFrac * plyHeight)
 
 	local linelen = ehlen + 0.707 * plyWidth
 	local line = dirNorm * linelen
@@ -207,7 +208,7 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlenFrac, evlenFrac)
 	end
  
 	local oimins, oimaxs = Vector(obsTrace.mins), Vector(obsTrace.maxs)
-	oimins[3] = oimaxs[3] * (1 - CONT_OBS_MAXH_DELTA)
+	oimins[3] = oimins[3] * (1 - CONT_OBS_MAXH_DELTA)
  
 	local obsImgTrace = util.TraceHull({
 		filter = ply, 
@@ -225,9 +226,9 @@ UPar.VaultDetector = function(ply, obsTrace, climbTrace, ehlenFrac, evlenFrac)
 		return
 	end
 
-	local usedImg = obsImgTrace.Fraction * maxVaultWidth
-
-	local evlen = evlenFrac * plyHeight
+	local usedImg = obsImgTrace.Fraction * maxVaultWidth	
+		
+	local evlen = math.min(landpos[3] - obsTrace.StartPos[3], math.abs(evlenFrac * plyHeight))
 	local startpos = obsImgTrace.HitPos + dirNorm * math.min(SAFE_OFFSET_H, usedImg)
 	startpos[3] = landpos[3]
 	local endpos = startpos - Vector(0, 0, evlen)
@@ -280,7 +281,7 @@ UPar.GetFallDamageInfo = function(ply, fallspeed, ref)
 	end
 end
 
-UPar.Hermite3 = function(t_norm, m0, m1)
+local function Hermite3(t_norm, m0, m1)
     local t = math.Clamp(t_norm, 0, 1)
     local t2 = t * t
     local t3 = t2 * t
@@ -292,4 +293,14 @@ UPar.Hermite3 = function(t_norm, m0, m1)
     local result = m0 * h10 + h01 + m1 * h11
 
     return math.Clamp(result, 0, 1)
+end
+
+UPar.Hermite3 = Hermite3
+
+
+UPar.UniformAccelInterpPos = function(t, startpos, endpos, startspeed, endspeed)
+	-- 注意: 最好验证下 startspeed + endspeed >= 0
+	local speed_max = math.abs(math.max(startspeed, endspeed, 0.001))
+	local result = Hermite3(t, startspeed / speed_max, endspeed / speed_max)
+	return LerpVector(result, startpos, endpos), result
 end
