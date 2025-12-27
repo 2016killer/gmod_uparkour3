@@ -7,7 +7,7 @@
 local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
-local IsPlyStartSolid = UPar.IsPlyStartSolid
+local IsInSolid = UPar.IsInSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
@@ -118,7 +118,7 @@ function uplowclimb:GetMoveData(ply, obsTrace, climbTrace, refVel)
 
 		starttime = CurTime(),
 
-		needduck = IsPlyStartSolid(ply, endpos, false),
+		needduck = IsInSolid(ply, endpos, false),
 		duration = moveDuration
 	}
 end

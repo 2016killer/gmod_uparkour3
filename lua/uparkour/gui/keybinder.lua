@@ -14,8 +14,8 @@ local function CreateMenu(panel)
 
 		panel:Help('')
 		panel:ControlHelp('#upgui.menu.keybinder.help')
-		panel:ControlHelp('#upgui.menu.keybinder.help2')
-
+		local help2 = panel:ControlHelp('#upgui.menu.keybinder.help2')
+		help2:SetTextColor(Color(255, 170, 0, 255))
 		panel:Help('=========================')
 
 		local keys = {}

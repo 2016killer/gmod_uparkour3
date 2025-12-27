@@ -1,6 +1,6 @@
 --[[
 	作者:白狼
-	2025 12 20
+	2025 12 27
 ]]--
 
 -- ==================== 二段翻越 ===============
@@ -10,7 +10,7 @@ local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local VaultDetector = UPar.VaultDetector
-local IsPlyStartSolid = UPar.IsPlyStartSolid
+local IsInSolid = UPar.IsInSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
@@ -26,14 +26,14 @@ local upvaultdl = UPAction:Register('upvaultdl', {
 
 upvaultdl:InitConVars({
 	{
-		name = 'upctrl_vt_ehlen',
+		name = 'upctrl_vt_evlen',
 		default = '0.6',
 		invisible = true
 	},
 
 	{
 		name = 'upvtdl_ehlen',
-		default = '2',
+		default = '1',
 		widget = 'NumSlider',
 		min = 0,
 		max = 5,
@@ -51,13 +51,11 @@ upvaultdl:InitConVars({
 })
 
 function upvaultdl:Detector(ply, obsTrace, climbTrace)
-	local mins, maxs = climbTrace.mins, climbTrace.maxs
-	local plyWidth = math.max(maxs[1] - mins[1], maxs[2] - mins[2])
-	local plyHeight = maxs[3] - mins[3]
-
-	local ehlen = self.ConVars.upvtdl_ehlen:GetFloat() * plyWidth
-	local evlen = self.ConVars.upctrl_vt_ehlen:GetFloat() * plyHeight
-	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, ehlen, evlen)
+	local convars = self.ConVars
+	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, 
+		convars.upvtdl_ehlen:GetFloat(), 
+		convars.upctrl_vt_evlen:GetFloat()
+	)
 
 	return vaultTrace
 end
@@ -121,58 +119,61 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
 		return
 	end
 
-
-	local climbMoveData = CallAct('uplowclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
 	local vaultMoveData = self:GetMoveData(ply, obsTrace, vaultTrace, refVel)
 
-	local mins, maxs = vaultTrace.mins, vaultTrace.maxs
-	local plyHeight = maxs[3] - mins[3]
-
-	local obsHeight = climbTrace.HitPos[3] - obsTrace.StartPos[3]
-	local threshold = self.ConVars.upctrl_vt_ehlen:GetFloat() * plyHeight
-
-	if obsHeight < threshold then
-		climbMoveData.endpos[3] = vaultTrace.StartPos[3]
-
-		return {
-			[1] = nil,
-			[2] = vaultMoveData,
-			rhythm = 1
-		}
+	print(vaultMoveData.endpos[3] - vaultMoveData.startpos[3])
+	if vaultMoveData.endpos[3] - vaultMoveData.startpos[3] < 18 then
+		return {{}, vaultMoveData, rhythm = 2}
 	else
-		return {
-			[1] = climbMoveData,
-			[2] = vaultMoveData,
-			rhythm = 1
-		}
+		local climbMoveData = CallAct('uplowclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
+		climbMoveData.endpos[3] = vaultMoveData.endpos[3]
+		vaultMoveData.startpos = climbMoveData.endpos
+		vaultMoveData.startspeed = 0
+
+		return {climbMoveData, vaultMoveData, rhythm = 1}
 	end
 end
 
 function upvaultdl:Start(ply, data)
-	local rhythm = data.rhythm
-	CallAct('upvault', 'Start', ply, data[rhythm])
+    if CLIENT then 
+		local timeout = ((isnumber(data[1].duration) and data[1].duration or 0) + 
+			(isnumber(data[2].duration) and data[2].duration or 0)) + 0.5
+
+		local needduck = false
+		SetMoveControl(true, true, 
+			needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
+			needduck and IN_DUCK or 0, 
+			timeout)
+	end
+	
+	if ply:GetMoveType() ~= MOVETYPE_NOCLIP then 
+		ply:SetMoveType(MOVETYPE_NOCLIP)
+	end
 end
 
 function upvaultdl:Think(ply, data, mv, cmd)
-	// local rhythm = data.rhythm
-	// local isClimbEnd = CallAct('upvault', 'Think', ply, data[rhythm], mv, cmd)
-	return true
+	if data.rhythm == 1 then
+		local isClimbEnd = CallAct('uplowclimb', 'Think', ply, data[1], mv, cmd)
+		if isClimbEnd then 
+			data.rhythm = 2
+			data[2].starttime = CurTime()
+		end
+	elseif data.rhythm == 2 then
+		return CallAct('upvault', 'Think', ply, data[2], mv, cmd)
+	end
 end
 
 function upvaultdl:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
-		if mv and istable(data) and isnumber(data.endspeed) and isvector(data.dirNorm) then
-			mv:SetVelocity(data.endspeed * data.dirNorm)
+		if mv and istable(data) and istable(data[2])
+		and isnumber(data[2].endspeed) and isvector(data[2].dirNorm) then
+			mv:SetVelocity(data[2].endspeed * data[2].dirNorm)
 		end
     end
 
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
 		ply:SetMoveType(MOVETYPE_WALK)
 	end
-end
-
-if CLIENT then
-
 end

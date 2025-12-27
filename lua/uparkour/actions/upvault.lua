@@ -5,10 +5,10 @@
 
 -- ==================== 翻越 ===============
 -- 实际上这个动作并不会被控制器触发, 它的作用仅仅是特效容器以及实现移动计算
+
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
-
 
 local upvault = UPAction:Register('upvault', {
 	AAAACreat = '白狼',
@@ -18,21 +18,6 @@ local upvault = UPAction:Register('upvault', {
 })
 
 upvault.Check = UPar.emptyfunc
-
-function upvault:Start(ply, data)
-    if CLIENT then 
-		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
-		local needduck = false
-		SetMoveControl(true, true, 
-			needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
-			needduck and IN_DUCK or 0, 
-			timeout)
-	end
-	
-	if ply:GetMoveType() ~= MOVETYPE_NOCLIP then 
-		ply:SetMoveType(MOVETYPE_NOCLIP)
-	end
-end
 
 function upvault:Think(ply, data, mv, cmd)
 	local startpos = data.startpos
@@ -52,18 +37,4 @@ function upvault:Think(ply, data, mv, cmd)
 	mv:SetOrigin(curpos)
 
 	return endflag
-end
-
-function upvault:Clear(ply, data, mv, cmd)
-	if CLIENT then 
-		SetMoveControl(false, false, 0, 0)
-	elseif SERVER then
-		if mv and istable(data) and isnumber(data.endspeed) and isvector(data.dirNorm) then
-			mv:SetVelocity(data.endspeed * data.dirNorm)
-		end
-    end
-
-	if ply:GetMoveType() == MOVETYPE_NOCLIP then 
-		ply:SetMoveType(MOVETYPE_WALK)
-	end
 end

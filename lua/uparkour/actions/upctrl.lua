@@ -5,7 +5,7 @@
 
 -- ==================== 总控制 ===============
 local ClimbDetector = UPar.ClimbDetector
-local IsPlyStartSolid = UPar.IsPlyStartSolid
+local IsInSolid = UPar.IsInSolid
 local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 
@@ -20,8 +20,8 @@ local controller = UPAction:Register('upctrl', {
 
 controller:InitConVars({
 	{
-		name = 'upctrl_vault_th',
-		default = '0.6',
+		name = 'upctrl_vt_evlen',
+		default = '0.7',
 		widget = 'NumSlider',
 		min = 0,
 		max = 5,
@@ -53,18 +53,11 @@ if CLIENT then
 		end
 	end)
 
-	UPKeyboard.Register('test_uphighclimb', '{}')
-	UPar.SeqHookAdd('UParKeyPress', 'test_uphighclimb', function(flags)
-		if flags['test_uphighclimb'] then 
-			UPar.Trigger(LocalPlayer(), 'uphighclimb')
-		end
-	end)
-
-	UPKeyboard.Register('test_upvault', '[]')
-	UPar.SeqHookAdd('UParKeyPress', 'test_upvault', function(flags)
-		if flags['test_upvault'] then 
+	UPKeyboard.Register('test_upvaultdl', '[]')
+	UPar.SeqHookAdd('UParKeyPress', 'test_upvaultdl', function(flags)
+		if flags['test_upvaultdl'] then 
 			local obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Detector', LocalPlayer())
-			UPar.Trigger(LocalPlayer(), 'upvault', nil, obsTrace, climbTrace)
+			UPar.Trigger(LocalPlayer(), 'upvaultdl', nil, obsTrace, climbTrace)
 		end
 	end)
 
