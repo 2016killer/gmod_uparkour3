@@ -165,20 +165,22 @@ function UPAction:AddConVar(cvCfg)
 
     self.ConVars = istable(self.ConVars) and self.ConVars or {}
     
-    local cvName = cvCfg.name
-    local cvDefault = cvCfg.default or '0'
-    local isclient = cvCfg.client
+    if cvCfg.widget ~= 'Label' then
+        local cvName = cvCfg.name
+        local cvDefault = cvCfg.default or '0'
+        local isclient = cvCfg.client
 
-    assert(isstring(cvName), string.format('Invalid field "name" (not a string), name = "%s"', cvName))
-    assert(isstring(cvDefault), string.format('Invalid field "default" (not a string), name = "%s"', cvName))
-    assert(isclient == nil or isbool(isclient), string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', cvName))
+        assert(isstring(cvName), string.format('Invalid field "name" (not a string), name = "%s"', cvName))
+        assert(isstring(cvDefault), string.format('Invalid field "default" (not a string), name = "%s"', cvName))
+        assert(isclient == nil or isbool(isclient), string.format('Invalid field "client" (must be a boolean or nil), name = "%s"', cvName))
 
-    if isclient == nil then
-        self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-    elseif SERVER and isclient == false then
-        self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
-    elseif CLIENT and isclient == true then
-        self.ConVars[cvName] = CreateClientConVar(cvName, cvDefault, true, false) 
+        if isclient == nil then
+            self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_CLIENTCMD_CAN_EXECUTE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+        elseif SERVER and isclient == false then
+            self.ConVars[cvName] = CreateConVar(cvName, cvDefault, { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE })
+        elseif CLIENT and isclient == true then
+            self.ConVars[cvName] = CreateClientConVar(cvName, cvDefault, true, false) 
+        end
     end
 
     if SERVER then

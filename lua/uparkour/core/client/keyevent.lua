@@ -30,6 +30,13 @@ UPKeyboard.Register = function(flag, default, label)
 
     local cvName = 'upkey_' .. string.gsub(flag, '[\\/:*?"<>|]', '_')
     local cvar = CreateClientConVar(cvName, default, true, false, '')
+    cvars.AddChangeCallback(cvName, function(name, old, new)
+        if KeyState[flag] then
+            SeqHookRunAllSafe('UParKeyRelease', {flag = FLAGS_UNHANDLED})     
+        end
+        KeyState[flag] = false
+    end, 'default')
+
 
     KeySet[flag] = {
         label = isstring(label) and label or flag,

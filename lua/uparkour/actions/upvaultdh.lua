@@ -3,7 +3,7 @@
 	2025 12 27
 ]]--
 
--- ==================== 二段翻越 - 低 ===============
+-- ==================== 二段翻越 - 高 ===============
 -- 为了加速检测, 这里需要复用攀爬的检测, 所以翻越是无法独立检测的
 
 local XYNormal = UPar.XYNormal
@@ -16,15 +16,15 @@ local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 local CallAct = UPar.CallAct
 
-local upvaultdl = UPAction:Register('upvaultdl', {
+local upvaultdh = UPAction:Register('upvaultdh', {
 	AAAACreat = '白狼',
-	AAADesc = '#upvaultdl.desc',
+	AAADesc = '#upvaultdh.desc',
 	icon = 'upgui/uparkour.jpg',
-	label = '#upvaultdl',
+	label = '#upvaultdh',
 	defaultDisabled = false
 })
 
-upvaultdl:InitConVars({
+upvaultdh:InitConVars({
 	{
 		name = 'upctrl_vt_evlen_f',
 		default = '0.5',
@@ -37,11 +37,11 @@ upvaultdl:InitConVars({
 		invisible = true
 	},
 
-	{label = '#upvaultdl.option.detector', widget = 'Label'},
+	{label = '#upvaultdh.option.detector', widget = 'Label'},
 
 	{
-		name = 'upvtdl_ehlen_f',
-		default = '1',
+		name = 'upvtdh_ehlen_f',
+		default = '0.5',
 		widget = 'NumSlider',
 		min = 0,
 		max = 2,
@@ -49,23 +49,23 @@ upvaultdl:InitConVars({
 		help = true,
 	},
 
-	{label = '#upvaultdl.option.speed', widget = 'Label'},
-	{label = '#upvaultdl.option.speed.help', color = Color(255, 170, 0), widget = 'Label'},
+	{label = '#upvaultdh.option.speed', widget = 'Label'},
+	{label = '#upvaultdh.option.speed.help', color = Color(255, 170, 0), widget = 'Label'},
 
 	{
-		name = 'upvtdl_enable_start_refspeed',
+		name = 'upvtdh_enable_start_refspeed',
 		default = '1',
 		widget = 'CheckBox'
 	},
 
 	{
-		name = 'upvtdl_enable_end_refspeed',
+		name = 'upvtdh_enable_end_refspeed',
 		default = '1',
 		widget = 'CheckBox'
 	},
 
 	{
-		name = 'upvtdl_start_speed_f',
+		name = 'upvtdh_start_speed_f',
 		default = '0.25 1 1',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
@@ -73,7 +73,7 @@ upvaultdl:InitConVars({
 	},
 
 	{
-		name = 'upvtdl_end_speed_f',
+		name = 'upvtdh_end_speed_f',
 		default = '0.25 1 1',
 		widget = 'UParVecEditor',
 		min = 0, max = 2, decimals = 2, interval = 0.1,
@@ -83,16 +83,16 @@ upvaultdl:InitConVars({
 	{label = 'SpeedPredi', widget = 'Label'}
 })
 
-function upvaultdl:Detector(ply, obsTrace, climbTrace)
+function upvaultdh:Detector(ply, obsTrace, climbTrace)
 	local convars = self.ConVars
 
 	return VaultDetector(ply, obsTrace, climbTrace, 
-		convars.upvtdl_ehlen_f:GetFloat(), 
+		convars.upvtdh_ehlen_f:GetFloat(), 
 		convars.upctrl_vt_evlen_f:GetFloat()
 	)
 end
 
-function upvaultdl:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
+function upvaultdh:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
 	refVel = isvector(refVel) and refVel or ply:GetVelocity()
 
 	local convars = self.ConVars
@@ -102,23 +102,23 @@ function upvaultdl:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
 	local moveDis = (endpos - startpos):Dot(moveDir)
 
 	local refSpeed = moveDir:Dot(refVel)
-	local startspeedRef = convars.upvtdl_enable_start_refspeed:GetBool() and refSpeed or 0
-	local endspeedRef = convars.upvtdl_enable_end_refspeed:GetBool() and refSpeed or 0
+	local startspeedRef = convars.upvtdh_enable_start_refspeed:GetBool() and refSpeed or 0
+	local endspeedRef = convars.upvtdh_enable_end_refspeed:GetBool() and refSpeed or 0
 
 	local moveVec = ply:KeyDown(IN_SPEED)  
 		and Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
 		or Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 
 	local startspeed = math.max(startspeedRef, 10,
-		math.abs(Vector(convars.upvtdl_start_speed_f:GetString()):Dot(moveVec)))
+		math.abs(Vector(convars.upvtdh_start_speed_f:GetString()):Dot(moveVec)))
 
 	local endspeed = math.max(endspeedRef, 10,
-		math.abs(Vector(convars.upvtdl_end_speed_f:GetString()):Dot(moveVec)))
+		math.abs(Vector(convars.upvtdh_end_speed_f:GetString()):Dot(moveVec)))
 
 	local moveDuration = moveDis * 2 / (startspeed + endspeed)
 
 	if moveDuration <= 0 then 
-		print('[upvaultdl]: Warning: moveDuration <= 0')
+		print('[upvaultdh]: Warning: moveDuration <= 0')
 		return
 	end
 
@@ -136,7 +136,7 @@ function upvaultdl:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
 	}
 end
 
-function upvaultdl:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
+function upvaultdh:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
 	local vaultMoveData = self:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
 	
 	if not vaultMoveData then
@@ -145,14 +145,15 @@ function upvaultdl:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
 
 	local threshold = obsTrace.plyh * self.ConVars.upctrl_vtd_thr_f:GetFloat()
 	if vaultMoveData.endpos[3] - vaultMoveData.startpos[3] < threshold then
-		return {{}, vaultMoveData, rhythm = 2}
+		return
 	else
 		-- 二段翻越
-		local climbMoveData = CallAct('uplowclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
+		local climbMoveData = CallAct('uphighclimb', 'GetMoveData', ply, obsTrace, climbTrace, refVel)
 		climbMoveData.endpos[3] = vaultMoveData.endpos[3]
-		climbMoveData.endspeed = climbMoveData.startspeed * 0.5
+		climbMoveData.endspeed = climbMoveData.startspeed * 0.2
 		climbMoveData.duration = (climbMoveData.startpos - climbMoveData.endpos):Length() * 2 / 
 		(climbMoveData.startspeed + climbMoveData.endspeed)
+		climbMoveData.starttime = CurTime() + 0.05
 		
 
 		vaultMoveData.startpos = climbMoveData.endpos
@@ -165,13 +166,13 @@ function upvaultdl:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
 end
 
 
-function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
+function upvaultdh:Check(ply, obsTrace, climbTrace, refVel)
 	if not obsTrace or not climbTrace then
 		return
 	end
 
 	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
-		print('[upvaultdl]: Warning: Invalid player')
+		print('[upvaultdh]: Warning: Invalid player')
 		return
 	end
 
@@ -187,7 +188,7 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
 	return self:GetMoveData(ply, obsTrace, climbTrace, vaultTrace, refVel)
 end
 
-function upvaultdl:Start(ply, data)
+function upvaultdh:Start(ply, data)
     if CLIENT then 
 		local timeout = ((isnumber(data[1].duration) and data[1].duration or 0) + 
 			(isnumber(data[2].duration) and data[2].duration or 0)) + 0.5
@@ -204,9 +205,9 @@ function upvaultdl:Start(ply, data)
 	end
 end
 
-function upvaultdl:Think(ply, data, mv, cmd)
+function upvaultdh:Think(ply, data, mv, cmd)
 	if data.rhythm == 1 then
-		local isClimbEnd = CallAct('uplowclimb', 'Think', ply, data[1], mv, cmd)
+		local isClimbEnd = CallAct('uphighclimb', 'Think', ply, data[1], mv, cmd)
 		if isClimbEnd then 
 			data.rhythm = 2
 			data[2].starttime = CurTime()
@@ -217,7 +218,7 @@ function upvaultdl:Think(ply, data, mv, cmd)
 	end
 end
 
-function upvaultdl:Clear(ply, data, mv, cmd)
+function upvaultdh:Clear(ply, data, mv, cmd)
 	if CLIENT then 
 		SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
@@ -232,12 +233,12 @@ function upvaultdl:Clear(ply, data, mv, cmd)
 end
 
 if CLIENT then
-	UPar.SeqHookAdd('UParActCVarWidget_upvaultdl', 'default', function(cvCfg, panel)
+	UPar.SeqHookAdd('UParActCVarWidget_upvaultdh', 'default', function(cvCfg, panel)
 		local cvName = cvCfg.name
 		local label = cvCfg.label
-		if cvName == 'upvtdl_ehlen_f' 
+		if cvName == 'upvtdh_ehlen_f' 
 		or label == 'SpeedPredi' then
-			local created = UPar.SeqHookRun('UParActCVarWidget', 'upvaultdl', cvCfg, panel)
+			local created = UPar.SeqHookRun('UParActCVarWidget', 'upvaultdh', cvCfg, panel)
 			if not created then
 				return
 			end
@@ -254,10 +255,10 @@ if CLIENT then
 				if label == 'SpeedPredi' then
 					local ply = LocalPlayer()
 			
-					local startspeedf = Vector(UPar.GetActKeyValue('upvaultdl', 'ConVars')['upvtdl_start_speed_f']:GetString())
-					local endspeedf = Vector(UPar.GetActKeyValue('upvaultdl', 'ConVars')['upvtdl_end_speed_f']:GetString())
-					local enableStartSpeedRef = UPar.GetActKeyValue('upvaultdl', 'ConVars')['upvtdl_enable_start_refspeed']:GetBool()
-					local enableEndSpeedRef = UPar.GetActKeyValue('upvaultdl', 'ConVars')['upvtdl_enable_end_refspeed']:GetBool()
+					local startspeedf = Vector(UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_start_speed_f']:GetString())
+					local endspeedf = Vector(UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_end_speed_f']:GetString())
+					local enableStartSpeedRef = UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_enable_start_refspeed']:GetBool()
+					local enableEndSpeedRef = UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_enable_end_refspeed']:GetBool()
 					
 					local moveVec = Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 					local moveVec2 = Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
@@ -285,10 +286,10 @@ if CLIENT then
 						endspeed_run
 					)
 
-				elseif cvName == 'upvtdl_ehlen_f'then
+				elseif cvName == 'upvtdh_ehlen_f'then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
-					local cvar = UPar.GetActKeyValue('upvaultdl', 'ConVars')[cvName]
+					local cvar = UPar.GetActKeyValue('upvaultdh', 'ConVars')[cvName]
 
 					value = math.Round(plyHeight * cvar:GetFloat(), 2)
 				end

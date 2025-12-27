@@ -52,10 +52,10 @@ UPar.ObsDetector = function(ply, pos, dirNorm, ohlenFrac, minhFrac, maxhFrac, lo
 	})
 
 	UPar.debugwireframebox(obsTrace.HitPos, mins, maxs, 3, 
-		(obsTrace.StartSolid or obsTrace.Hit) and Color(255, 0, 0) or Color(0, 255, 0), 
+		obsTrace.Hit and Color(255, 0, 0) or Color(0, 255, 0), 
 		true)
 
-	if obsTrace.StartSolid or not obsTrace.Hit or obsTrace.HitNormal[3] >= LANDSLID_ZNORM then
+	if not obsTrace.Hit or obsTrace.HitNormal[3] >= LANDSLID_ZNORM then
 		return
 	end
 

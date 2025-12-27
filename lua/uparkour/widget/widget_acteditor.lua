@@ -130,9 +130,12 @@ function ActEditor:CreateConVarsPanel(panel)
 		local cvName = cvCfg.name
 		local cvDefault = cvCfg.default or '0'
 		local cvHelp = cvCfg.help
+		local cvWidget = cvCfg.widget or 'NumSlider'
 
-		ctrl:AddConVar(cvName)
-		defaultPreset[cvName] = cvDefault
+		if cvWidget ~= 'Label' then
+			ctrl:AddConVar(cvName)
+			defaultPreset[cvName] = cvDefault
+		end
 
 		if invisible then 
 			continue 
@@ -185,6 +188,21 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 			isnumber(cvCfg.max) and cvCfg.max or 1, 
 			isnumber(cvCfg.decimals) and cvCfg.decimals or 2
 		)
+		created = true
+	elseif cvWidget == 'NumberWang' then
+		local numberWang = vgui.Create('DNumberWang', panel)
+		numberWang:SetMinMax(
+			isnumber(cvCfg.min) and cvCfg.min or 0, 
+			isnumber(cvCfg.max) and cvCfg.max or 1
+		)
+		numberWang:SetDecimals(isnumber(cvCfg.decimals) and cvCfg.decimals or 2)
+		numberWang:SetInterval(isnumber(cvCfg.interval) and cvCfg.interval or 0.5)
+		numberWang:SetValue(GetConVar(cvName) and GetConVar(cvName):GetFloat() or 0)
+		numberWang:SetConVar(cvName)
+
+		panel:Help(label)
+		panel:AddItem(numberWang)
+
 		created = true
 	elseif cvWidget == 'CheckBox' then
 		panel:CheckBox(label, cvName)
@@ -245,6 +263,10 @@ UPar.SeqHookAdd('UParActCVarWidget', 'default', function(actName, cvCfg, panel)
 
 		panel:Help(label)
 		panel:AddItem(keyBinder)
+		created = true
+	elseif cvWidget == 'Label' then
+		local label = panel:Help(label)
+		if IsColor(cvCfg.color) then label:SetTextColor(cvCfg.color) end
 		created = true
 	end
 
