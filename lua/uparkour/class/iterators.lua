@@ -10,16 +10,16 @@ local thinkHookStartTime = 0
 local THINK_HOOK_KEY = 'upar.iterators'
 
 
-UPar.PushIterator = function(identity, iterator, timeout)
+UPar.PushIterator = function(identity, iterator, addition, timeout)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(isstring(identity), 'identity must be a string.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 
 	local endtime = timeout + CurTime()
 	
-	hook.Run('UParIteratorPush', identity, endtime)
+	hook.Run('UParIteratorPush', identity, endtime, addition)
 
-	Iterators[identity] = {f = iterator, et = endtime}
+	Iterators[identity] = {f = iterator, et = endtime, add = addition}
 	
 	if not isThinkHookAdded then
 		thinkHookStartTime = CurTime()
@@ -34,19 +34,19 @@ UPar.PushIterator = function(identity, iterator, timeout)
 			for identity, data in pairs(Iterators) do
 				removeFlag = false
 
-				local iterator, edtime = data.f, data.et
-				local succ, result = pcall(iterator, dt, curTime)
+				local iterator, edtime, add = data.f, data.et, data.add
+				local succ, result = pcall(iterator, dt, curTime, add)
 				
 				if not succ then
 					ErrorNoHaltWithStack(result)
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, 'ERROR')
+					hook.Run('UParIteratorPop', identity, curTime, add, 'ERROR')
 				elseif result then
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, nil)
+					hook.Run('UParIteratorPop', identity, curTime, add, nil)
 				elseif curTime > edtime then
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, 'TIMEOUT')
+					hook.Run('UParIteratorPop', identity, curTime, add, 'TIMEOUT')
 				end
 			end
 
@@ -60,9 +60,11 @@ end
 
 UPar.PopIterator = function(identity)
 	assert(isstring(identity), 'identity must be a string.')
-
+	local iteratorData = Iterators[identity]
+	if istable(iteratorData) then
+		hook.Run('UParIteratorPop', identity, CurTime(), iteratorData.add, 'MANUAL')
+	end
 	Iterators[identity] = nil
-	hook.Run('UParIteratorPop', identity, CurTime(), 'MANUAL')
 end
 
 UPar.GetIterator = function(identity)

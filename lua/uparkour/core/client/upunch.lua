@@ -33,7 +33,7 @@ UPar.AngPunch = function(vel, off, timeout)
 	angOff = angOff + off
 	angVel = angVel + vel
 
-	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, timeout)
+	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, nil, timeout)
 end
 
 UPar.SetAngPunch = function(vel, off, timeout)
@@ -47,7 +47,7 @@ UPar.SetAngPunch = function(vel, off, timeout)
 	angOff = off
 	angVel = vel
 
-	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, timeout)
+	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, nil, timeout)
 end
 
 UPar.GetAngPunch = function()
@@ -81,7 +81,7 @@ UPar.VecPunchWorld = function(vel, off, timeout)
 	vecOffWorld = vecOffWorld + off
 	vecVelWorld = vecVelWorld + vel
 
-	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, timeout)
+	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, nil, timeout)
 end
 
 UPar.SetVecPunchWorld = function(vel, off, timeout)
@@ -95,7 +95,7 @@ UPar.SetVecPunchWorld = function(vel, off, timeout)
 	vecOffWorld = off
 	vecVelWorld = vel
 
-	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, timeout)
+	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, nil, timeout)
 end
 
 UPar.GetVecPunchWorld = function()
@@ -129,7 +129,7 @@ UPar.VecPunch = function(vel, off, timeout)
 	vecOff = vecOff + off
 	vecVel = vecVel + vel
 
-	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, timeout)
+	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, nil, timeout)
 end
 
 UPar.SetVecPunch = function(vel, off, timeout)
@@ -143,7 +143,7 @@ UPar.SetVecPunch = function(vel, off, timeout)
 	vecOff = off
 	vecVel = vel
 	
-	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, timeout)
+	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, nil, timeout)
 end
 
 UPar.GetVecPunch = function()
@@ -175,7 +175,7 @@ local function UPunchCalcViewModelView(wep, vm, oP, oA, p, a)
 	return wp + vecOffWorld, wa + Angle(angOff.x, angOff.y, angOff.z)
 end
 
-hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime)
+hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime, addition)
 	if identity == VEC_PUNCH_ITERATOR_ID then
 		hook.Add('CalcView', CALC_HOOK_KEY, UPunchCalcView)
 		return true
@@ -187,7 +187,7 @@ hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime)
 	
 end)
 
-hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, reason)
+hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
 	if not UPar.IsIteratorExist(VEC_PUNCH_ITERATOR_ID)
 	and not UPar.IsIteratorExist(ANG_PUNCH_ITERATOR_ID)  
 	and not UPar.IsIteratorExist(VEC_PUNCH_WORLD_ITERATOR_ID)
