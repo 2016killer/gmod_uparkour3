@@ -62,6 +62,15 @@ local HIGH_CLIMB_FLAG = 0x08
 
 
 function controller:Trigger(ply, actFlag)
+	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then 
+		print('[upctrl] Trigger: ply is not valid')
+		return 
+	end
+
+	if ply:GetMoveType() ~= MOVETYPE_WALK or not ply:Alive() then 
+		return 
+	end
+
 	actFlag = isnumber(actFlag) and actFlag or (ply.upctrl_act_flags or 0)
 
 	local refVel = ply:GetVelocity()

@@ -261,11 +261,17 @@ if SERVER then
 		net.Send(ply)
 	end
 
-	local function ForceEndAll(ply)
+	local function ForceEndAll(ply, filter)
 		local netData = {}
+
+		filter = istable(filter) and filter or emptyTable
 
 		net.Start('UParCallClientAction')
 		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
+			if filter[trackId] then
+				continue
+			end
+			
 			local playing, playingData, playingName = unpack(trackContent or emptyTable)
 
 			ply.uptracks[trackId] = nil
