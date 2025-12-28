@@ -39,14 +39,28 @@ local function SetBonePosition(ent, boneId, posw, angw)
 		return false
 	end
 
+	local curTransformInvert = curTransform:GetInverse()
+	if not curTransformInvert then 
+		print(string.format('[SetBonePosition]: ent "%s" boneId "%s" Matrix is Singular', ent, boneId))
+		return false
+	end
+
+	local parentTransformInvert = parentTransform:GetInverse()
+	if not parentTransformInvert then 
+		print(string.format('[SetBonePosition]: ent "%s" boneId "%s" parent Matrix is Singular', ent, boneId))
+		return false
+	end
+
+
 	local curAngManip = Matrix()
 	curAngManip:SetAngles(ent:GetManipulateBoneAngles(boneId))
 	
 	local tarRotate = Matrix()
 	tarRotate:SetAngles(angw)
 
-	local newManipAng = (curAngManip * curTransform:GetInverse() * tarRotate):GetAngles()
-	local newManipPos = parentTransform:GetInverse() 
+
+	local newManipAng = (curAngManip * curTransformInvert * tarRotate):GetAngles()
+	local newManipPos = parentTransformInvert
 		* (posw - curTransform:GetTranslation() + parentTransform:GetTranslation())
 		+ ent:GetManipulateBonePosition(boneId)
 
@@ -394,13 +408,15 @@ end)
 concommand.Add('upmanip_test', function(ply)
 	local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
 	local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
+	local Leg = IsValid(g_Legs.LegEnt) and g_Legs.LegEnt or ply
 
 	local speed = 1
 	local timeout = 1
 	local boneMapping = {
 		['ValveBiped.Bip01_Head1'] = true,
 		['ValveBiped.Bip01_R_Clavicle'] = true,
-		['ValveBiped.Bip01_L_Thigh'] = true,
+		['ValveBiped.Bip01_L_Foot'] = true,
+		['ValveBiped.Bip01_L_Calf'] = true,
 	}
 
 	local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
@@ -412,10 +428,12 @@ concommand.Add('upmanip_test', function(ply)
 	gman_high:SetPos(pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right()))
 	gman_high:SetupBones()
 
-	UPManip.AnimFadeIn(LocalPlayer(), gman_high, boneMapping, speed, timeout)
+	UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
+	UPManip.AnimFadeIn(Leg, Eli, boneMapping, speed, timeout)
 
 	timer.Simple(timeout * 0.5, function()
 		UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout)
+		UPManip.AnimFadeOut(Leg, boneMapping, speed, timeout)
 	end)
 
 	timer.Simple(timeout, function()
