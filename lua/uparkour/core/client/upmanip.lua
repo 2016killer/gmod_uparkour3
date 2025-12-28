@@ -383,11 +383,8 @@ end
 
 hook.Add('UParIteratorPop', 'upmanip.iterator.pop', function(identity, curTime, add, reason)
 	if string.StartWith(identity, 'upmanip.anim.fadein.') then
-		if istable(add) and reason ~= 'MANUAL' then 
-			print('fuck no MANUAL')
+		if istable(add) and reason ~= 'MANUAL' then
 			ClearManip(add.ent, add.boneMapping) 
-		else
-			print('fuck MANUAL')
 		end
 
 		return true
@@ -402,7 +399,8 @@ concommand.Add('upmanip_test', function(ply)
 	local timeout = 1
 	local boneMapping = {
 		['ValveBiped.Bip01_Head1'] = true,
-		['ValveBiped.Bip01_R_Clavicle'] = true
+		['ValveBiped.Bip01_R_Clavicle'] = true,
+		['ValveBiped.Bip01_L_Thigh'] = true,
 	}
 
 	local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
@@ -414,7 +412,7 @@ concommand.Add('upmanip_test', function(ply)
 	gman_high:SetPos(pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right()))
 	gman_high:SetupBones()
 
-	UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
+	UPManip.AnimFadeIn(LocalPlayer(), gman_high, boneMapping, speed, timeout)
 
 	timer.Simple(timeout * 0.5, function()
 		UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout)
