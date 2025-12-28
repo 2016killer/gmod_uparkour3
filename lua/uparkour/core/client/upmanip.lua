@@ -364,11 +364,11 @@ UPManip.AnimFadeIn = function(ent, target, boneMapping, speed, timeout)
 		target = target,
 		boneMapping = boneMapping,
 		boneKeys = boneKeys,
-		speed = isnumber(speed) and speed or 3
+		speed = isnumber(speed) and speed or 3,
+		flag = 'upmanip.anim.fadein'
 	}
 
-	local identity = string.format('upmanip.anim.fadein.%s', ent:EntIndex())
-
+	local identity = ent
 	UPar.PushIterator(identity, AnimFadeInIterator, iteratorData, timeout)
 end
 
@@ -385,19 +385,20 @@ UPManip.AnimFadeOut = function(ent, boneMapping, speed, timeout)
 	local iteratorData = {
 		ent = ent,
 		boneMapping = boneMapping,
-		speed = isnumber(speed) and speed or 3
+		speed = isnumber(speed) and speed or 3,
+		flag = 'upmanip.anim.fadeout'
 	}
 
-	local identityFadeIn = string.format('upmanip.anim.fadein.%s', ent:EntIndex())
-	local identityFadeOut = string.format('upmanip.anim.fadeout.%s', ent:EntIndex())
+	local identityFadeIn = ent
+	local identityFadeOut = ent
 
 	UPar.PopIterator(identityFadeIn)
 	UPar.PushIterator(identityFadeOut, AnimFadeOutIterator, iteratorData, timeout)
 end
 
 hook.Add('UParIteratorPop', 'upmanip.iterator.pop', function(identity, curTime, add, reason)
-	if string.StartWith(identity, 'upmanip.anim.fadein.') then
-		if istable(add) and reason ~= 'MANUAL' then
+	if IsValid(identity) and isentity(identity) then
+		if istable(add) and add.flag == 'upmanip.anim.fadeout' and reason ~= 'MANUAL' then
 			ClearManip(add.ent, add.boneMapping) 
 		end
 
@@ -413,8 +414,6 @@ concommand.Add('upmanip_test', function(ply)
 	local speed = 1
 	local timeout = 1
 	local boneMapping = {
-		['ValveBiped.Bip01_Head1'] = true,
-		['ValveBiped.Bip01_R_Clavicle'] = true,
 		['ValveBiped.Bip01_L_Foot'] = true,
 		['ValveBiped.Bip01_L_Calf'] = true,
 	}

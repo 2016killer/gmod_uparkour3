@@ -12,7 +12,7 @@ local THINK_HOOK_KEY = 'upar.iterators'
 
 UPar.PushIterator = function(identity, iterator, addition, timeout)
 	assert(isfunction(iterator), 'iterator must be a function.')
-	assert(isstring(identity), 'identity must be a string.')
+	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 
 	local endtime = timeout + CurTime()
@@ -59,7 +59,7 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 end
 
 UPar.PopIterator = function(identity)
-	assert(isstring(identity), 'identity must be a string.')
+	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if istable(iteratorData) then
 		hook.Run('UParIteratorPop', identity, CurTime(), iteratorData.add, 'MANUAL')
@@ -68,11 +68,11 @@ UPar.PopIterator = function(identity)
 end
 
 UPar.GetIterator = function(identity)
-	assert(isstring(identity), 'identity must be a string.')
+	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity]
 end
 
 UPar.IsIteratorExist = function(identity)
-	assert(isstring(identity), 'identity must be a string.')
+	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity] ~= nil
 end
