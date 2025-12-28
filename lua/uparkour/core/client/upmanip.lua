@@ -10,142 +10,55 @@ local emptyTable = UPar.emptyTable
 
 UPManip = UPManip or {}
 
-local playermodelbonesupper = {
-	["ValveBiped.Bip01_Head1"] = true,
-}
-
-local function SetBoneAngles(ent, boneId, ang)
+local function SetBonePosition(ent, boneId, posw, angw) 
+	-- 最好传入非奇异矩阵, 如果骨骼或父级的变换是奇异的, 则可能出现问题
 	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	-- 每帧都要更新
+	-- 应该还能再优化
 
-	if boneId == -1 then
-		ent:SetAngles(ang)
-		return true
-	end
-
-	local _, boneAngWorld = ent:GetBonePosition(boneId)
-	if not boneAngWorld then 
-		string.format('[SetBoneAngles]: ent "%s" boneId "%s" no angles', ent, boneId)
-		return false
-	end
-
-	local boneRotateWorld = Matrix()
-	boneRotateWorld:SetAngles(boneAngWorld)
-
-	local rotateManip = Matrix()
-	rotateManip:SetAngles(ent:GetManipulateBoneAngles(boneId))
-
-	local rotateAng = Matrix()
-	rotateAng:SetAngles(ang)
-
-	local boneRotate = boneRotateWorld * rotateManip:GetTransposed()
-	local rotateNewManip = boneRotate:GetTransposed() * rotateAng
-
-
-	local boneAng = boneRotate:GetAngles()
-	local angNewManip = rotateNewManip:GetAngles()
-	ent:ManipulateBoneAngles(boneId, angNewManip)
-
-	return angNewManip, boneAng
-end
-
-local function SetBonePos(ent, boneId, pos)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
-	-- 每帧都要更新, 并且位移有限 (128)
-
-	if boneId == -1 then
-		ent:SetPos(pos)
-		return true
-	end
-
-	local bonePosWorld = ent:GetBonePosition(boneId)
-	if not bonePosWorld then 
-		string.format('[SetBonePos]: ent "%s" boneId "%s" no position', ent, boneId)
-		return false
-	end
-
-	local parentboneId = ent:GetBoneParent(boneId)
-	local parentMat = parentboneId == -1 and ent:GetWorldTransformMatrix() or ent:GetBoneMatrix(parentboneId)
-	if not parentMat then 
-		string.format('[SetBonePos]: ent "%s" boneId "%s" no parent', ent, boneId)
-		return false
-	end
-
-	local bonePos = ent:WorldToLocal(bonePosWorld) - ent:GetManipulateBonePosition(boneId)
-	local posNewManip = ent:WorldToLocal(pos) - bonePos
-	ent:ManipulateBonePosition(boneId, posNewManip)
-
-	return posNewManip, bonePos
-end
-
-local function SetBonePosition(ent, boneId, pos, ang)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
-	-- 每帧都要更新
-
-	if boneId == -1 then
-		if pos then ent:SetPos(pos) end
-		if ang then ent:SetAngles(ang) end
-		return true
-	end
-
-	local bonePosWorld, boneAngWorld = ent:GetBonePosition(boneId)
-	if not bonePosWorld then 
-		string.format('[SetBonePosition]: ent "%s" boneId "%s" no position', ent, boneId)
-		return false
-	end
-
-	local boneAng = nil
-	local angNewManip = nil
-	if ang then
-		local boneRotateWorld = Matrix()
-		boneRotateWorld:SetAngles(boneAngWorld)
-
-		local rotateManip = Matrix()
-		rotateManip:SetAngles(ent:GetManipulateBoneAngles(boneId))
-
-		local rotateAng = Matrix()
-		rotateAng:SetAngles(ang)
-
-		local boneRotate = boneRotateWorld * rotateManip:GetTransposed()
-		local rotateNewManip = boneRotate:GetTransposed() * rotateAng
-
-
-		boneAng = boneRotate:GetAngles()
-		angNewManip = rotateNewManip:GetAngles()
-		ent:ManipulateBoneAngles(boneId, angNewManip)
+	if not IsValid(ent) or not isentity(ent) then
+		print(string.format('[UPManip.SetBonePosition]: invaild ent "%s"', ent))
+		return
 	end
 	
-	local bonePos = nil
-	local posNewManip = nil
-	if pos then
-		local parentboneId = ent:GetBoneParent(boneId)
-		local parentMat = parentboneId == -1 and ent:GetWorldTransformMatrix() or ent:GetBoneMatrix(parentboneId)
-		if not parentMat then 
-			string.format('[SetBonePos]: ent "%s" boneId "%s" no parent', ent, boneId)
-			return false
-		end
-
-		bonePos = ent:WorldToLocal(bonePosWorld) - ent:GetManipulateBonePosition(boneId)
-		posNewManip = ent:WorldToLocal(pos) - bonePos
-		ent:ManipulateBonePosition(boneId, posNewManip)
+	if boneId == -1 then
+		print('[SetBonePosition]: invalid boneId "-1"')
+		return false
+	end
+	
+	local curTransform = ent:GetBoneMatrix(boneId)
+	if not curTransform then 
+		string.format('[SetBonePosition]: ent "%s" boneId "%s" no Matrix', ent, boneId)
+		return false
+	end
+	
+	local parentboneId = ent:GetBoneParent(boneId)
+	local parentTransform = parentboneId == -1 and ent:GetWorldTransformMatrix() or ent:GetBoneMatrix(parentboneId)
+	if not parentTransform then 
+		string.format('[SetBonePosition]: ent "%s" boneId "%s" no parent', ent, boneId)
+		return false
 	end
 
-	return posNewManip, angNewManip, bonePos, boneAng
-end
+	local curAngManip = Matrix()
+	curAngManip:SetAngles(ent:GetManipulateBoneAngles(boneId))
+	
+	local tarRotate = Matrix()
+	tarRotate:SetAngles(angw)
 
-local function Clear(ent)
-	ent:SetAngles(zeroang)
-	ent:SetPos(zerovec)
-	for i = 0, ent:GetBoneCount() - 1 do
-		ent:ManipulateBoneAngles(i, zeroang)
-		ent:ManipulateBonePosition(i, zerovec)
-		ent:ManipulateBoneScale(i, diagonalvec)
-	end
+	local newManipAng = (curAngManip * curTransform:GetInverse() * tarRotate):GetAngles()
+	local newManipPos = parentTransform:GetInverse() 
+		* (posw - curTransform:GetTranslation() + parentTransform:GetTranslation())
+		+ ent:GetManipulateBonePosition(boneId)
+
+	ent:ManipulateBoneAngles(boneId, newManipAng)
+	ent:ManipulateBonePosition(boneId, newManipPos)
+
+	return newManipAng, newManipPos
 end
 
 local function UnpackBMData(bmdata)
 	-- 返回 骨骼名称, 偏移矩阵
-
+	
 	if istable(bmdata) then 
 		local boneName = isstring(bmdata.boneName) and bmdata.boneName or nil
 		
@@ -171,60 +84,169 @@ local function UnpackBMData(bmdata)
 	end
 end
 
-local function SnapshotWorld(ent)
+local function ClearManip(ent, boneMapping)
+	if not IsValid(ent) or not isentity(ent) then
+		print(string.format('[UPManip.ClearManip]: invaild ent "%s"', ent))
+		return
+	end
+
+	if istable(boneMapping) then
+		for boneName, _ in pairs(boneMapping) do
+			if not isstring(boneName) or string.Trim(boneName) == '' then 
+				continue 
+			end
+
+			local boneId = ent:LookupBone(boneName)
+			if not boneId then continue end
+
+			ent:ManipulateBoneAngles(boneId, zeroang)
+			ent:ManipulateBonePosition(boneId, zerovec)
+			ent:ManipulateBoneScale(boneId, diagonalvec)
+		end
+	else
+		for i = 0, ent:GetBoneCount() - 1 do
+			ent:ManipulateBoneAngles(i, zeroang)
+			ent:ManipulateBonePosition(i, zerovec)
+			ent:ManipulateBoneScale(i, diagonalvec)
+		end
+	end
+end
+
+local function MarkBoneFamilyLevel(boneId, currentLevel, family, familyLevel, cached)
+	cached = cached or {}
+
+	if cached[boneId] then 
+		print('What the hell are you doing?')
+		return
+	end
+	cached[boneId] = true
+
+	familyLevel[boneId] = currentLevel
+
+	if not family[boneId] then
+		return
+	end
+	
+	for childIdx, _ in pairs(family[boneId]) do
+		MarkBoneFamilyLevel(childIdx, currentLevel + 1, family, familyLevel, cached)
+	end
+end
+
+local function GetBonesFamilyLevel(ent, useLRU2)
+	if not IsValid(ent) or not isentity(ent) or not ent:GetModel() then
+		print(string.format('[UPManip.GetBonesFamilyLevel]: invaild ent "%s"', ent))
+		return
+	end
+
+	if useLRU2 then
+		local bonesLevel = UPar.LRU2Get(string.format('BonesFamilyLevel_%s', ent:GetModel()))
+		if istable(bonesLevel) then
+			return bonesLevel
+		end
+	end
+
+	ent:SetupBones()
+
+    local boneCount = ent:GetBoneCount()
+    local family = {} 
+    local familyLevel = {}
+
+    for boneIdx = 0, boneCount - 1 do
+        local parentIdx = ent:GetBoneParent(boneIdx)
+        
+        if not family[parentIdx] then
+            family[parentIdx] = {}
+        end
+        family[parentIdx][boneIdx] = true
+    end
+
+	if not family[-1] then
+		print(string.format('[UPManip.GetBonesFamilyLevel]: ent "%s" no root bone', ent))
+		return
+	end
+
+    MarkBoneFamilyLevel(-1, 0, family, familyLevel)
+
+	if useLRU2 then
+		UPar.LRU2Set(string.format('BonesFamilyLevel_%s', ent:GetModel()), familyLevel)
+	end
+
+	return familyLevel
+end
+
+local function GetBoneMappingKeysSorted(ent, boneMapping, useLRU2)
+	local keys = {}
+
+    for boneName, _ in pairs(boneMapping) do 
+		local boneId = ent:LookupBone(boneName)
+		if not boneId then continue end
+		table.insert(keys, boneName) 
+	end
+
+	local familyLevel = GetBonesFamilyLevel(ent, useLRU2)
+	if not familyLevel then
+		print(string.format('[UPManip.GetBoneMappingKeysSorted]: ent "%s" no family level', ent))
+		return
+	end
+
+    table.sort(keys, function(a, b)
+		local boneIdA = ent:LookupBone(a)
+		local boneIdB = ent:LookupBone(b)
+
+        local levelA = familyLevel[boneIdA] or 999
+        local levelB = familyLevel[boneIdB] or 999
+
+        if levelA ~= levelB then
+            return levelA < levelB
+        end
+
+        return boneIdA < boneIdB
+    end)
+
+	return keys
+end
+
+local function Snapshot(ent, boneMapping)
 	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	local snapshot = {}
 	for boneName, _ in pairs(boneMapping) do
 		local boneId = ent:LookupBone(boneName)
 		if not boneId then continue end
-		snapshot[boneId] = {ent:GetBonePosition(boneId)} 
+		local transform = ent:GetBoneMatrix(boneId)
+		snapshot[boneId] = {
+			ent:WorldToLocal(transform:GetTranslation()),
+			ent:WorldToLocalAngles(transform:GetAngles())
+		} 
 	end
 	
 	return snapshot
 end
 
-local function SnapshotWorld(ent)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
-	local snapshot = {}
-	for boneName, _ in pairs(boneMapping) do
-		local boneId = ent:LookupBone(boneName)
-		if not boneId then continue end
-		snapshot[boneId] = {ent:GetBonePosition(boneId)} 
+local function GetSnapshot(ent, pack)
+	local bonePos, boneAng = unpack(pack or emptyTable)
+	if not bonePos or not boneAng then 
+		return nil, nil
 	end
-	
-	return snapshot
+	return ent:LocalToWorld(bonePos), ent:LocalToWorldAngles(boneAng)
 end
 
-local function SnapshotLocal(ent)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
-	local snapshot = {}
-	for boneName, _ in pairs(boneMapping) do
-		local boneId = ent:LookupBone(boneName)
-		if not boneId then continue end
-		local posWorld, angWorld = ent:GetBonePosition(boneId)
-		snapshot[boneId] = {ent:WorldToLocal(posWorld), ent:WorldToLocalAngles(angWorld)} 
-	end
-
-	return snapshot
-end
-
-local function LerpBoneWorld(t, ent, target, boneMapping, snapshot)
+local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	-- 每帧都要更新
 	t = math.Clamp(t, 0, 1)
 
-	for boneName, data in pairs(boneMapping) do
+	for i, boneName in ipairs(boneKeys) do
+		local data = boneMapping[boneName]
 		local boneId = ent:LookupBone(boneName)
 		
 		if not boneId then 
 			continue
 		end
 
-		local bonePos, boneAng = snapshot[boneId]
-		if not bonePos or not boneAng then 
+		local boneMat = ent:GetBoneMatrix(boneId)
+		if not boneMat then
 			continue
 		end
-		
 
 		local targetBoneName, offsetMatrix = UnpackBMData(data)
 		local targetBoneId = target:LookupBone(targetBoneName or boneName)
@@ -242,95 +264,164 @@ local function LerpBoneWorld(t, ent, target, boneMapping, snapshot)
 			targetMatrix = targetMatrix * offsetMatrix
 		end
 
-		local newPos = LerpVector(t, boneMatrix:GetTranslation(), targetMatrix:GetTranslation())
-		local newAng = LerpAngle(t, boneMatrix:GetAngles(), targetMatrix:GetAngles())
-		SetBonePosition(ent, boneId, newPos, newAng)
+		local newPos = LerpVector(t, boneMat:GetTranslation(), targetMatrix:GetTranslation())
+		local newAng = LerpAngle(t, boneMat:GetAngles(), targetMatrix:GetAngles())
 
-		// local newScale = LerpVector(t, boneMatrix:GetScale(), targetMatrix:GetScale())
+		SetBonePosition(ent, boneId, newPos, newAng)
+	end
+end
+
+local function AnimFadeInIterator(dt, curTime, iteratorData)
+	local ent = iteratorData.ent
+	if not IsValid(ent) then 
+		print(string.format('[UPManip.AnimFadeInIterator]: ent "%s" is not valid', ent))
+		return true
 	end
 
-end
-
-local function LerpBoneLocal(t, ent, target, boneMapping)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
-	-- 每帧都要更新
-
-end
-
-local function LerpBoneWorldIterator(dt, curTime, iteratorData)
-	local ent = iteratorData.ent
 	local target = iteratorData.target
 	local boneMapping = iteratorData.boneMapping
-	local t = iteratorData.t + dt * iteratorData.speed
+	local boneKeys = iteratorData.boneKeys
+	local t = (iteratorData.t or 0) + dt * math.max(math.abs(iteratorData.speed), 0.01)
 	iteratorData.t = t
 
 	ent:SetupBones()
 	target:SetupBones()
 
-	LerpBoneWorld(t, ent, target, boneMapping)
+	LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 end
 
+local function AnimFadeOutIterator(dt, curTime, iteratorData)
+	local ent = iteratorData.ent
+	if not IsValid(ent) then 
+		print(string.format('[UPManip.AnimFadeOutIterator]: ent "%s" is not valid', ent))
+		return true
+	end
 
-UPManip.SetBoneAngles = SetBoneAngles
-UPManip.SetBonePos = SetBonePos
+	local boneMapping = iteratorData.boneMapping
+	local t = (iteratorData.t or 0) + dt * math.max(math.abs(iteratorData.speed), 0.01)
+	iteratorData.t = t
+
+	ent:SetupBones()
+
+	t = math.Clamp(t, 0, 1)
+	for boneName, _ in pairs(boneMapping) do
+		local boneId = ent:LookupBone(boneName)
+		if not boneId then 
+			continue
+		end
+
+		local curManipPos = ent:GetManipulateBonePosition(boneId)
+		local curManipAng = ent:GetManipulateBoneAngles(boneId)
+
+		ent:ManipulateBonePosition(boneId, LerpVector(t, curManipPos, zerovec))
+		ent:ManipulateBoneAngles(boneId, LerpAngle(t, curManipAng, zeroang))
+	end
+
+	return t <= 0
+end
+
 UPManip.SetBonePosition = SetBonePosition
-UPManip.Clear = Clear
+UPManip.ClearManip = ClearManip
 UPManip.UnpackBMData = UnpackBMData
 UPManip.LerpBoneWorld = LerpBoneWorld
-UPManip.LerpBoneLocal = LerpBoneLocal
+UPManip.Snapshot = Snapshot
+UPManip.GetSnapshot = GetSnapshot
+UPManip.GetBoneMappingKeysSorted = GetBoneMappingKeysSorted
+UPManip.GetBonesFamilyLevel = GetBonesFamilyLevel
 
-UPManip.FadeIn = function(ent, target, boneMapping, speed, method, timeout)
+UPManip.AnimFadeIn = function(ent, target, boneMapping, speed, timeout)
 	if not IsValid(ent) or not isentity(ent) or not ent:GetModel()
 	or not IsValid(target) or not isentity(target) or not target:GetModel() then 
 		return 
 	end
 
-	method = isstring(method) and method or 'WORLD'
-	timeout = isnumber(timeout) and timeout or 2
+	timeout = math.abs(isnumber(timeout) and timeout or 2)
 	boneMapping = istable(boneMapping) and boneMapping or emptyTable
 
 	ent:SetupBones()
-	local snapshot = {}
-	for boneName, _ in pairs(boneMapping) do
-		local boneId = ent:LookupBone(boneName)
-		if not boneId then continue end
-		snapshot[boneId] = {ent:GetBonePosition(boneId)} 
+
+	local boneKeys = GetBoneMappingKeysSorted(ent, boneMapping, true)
+	if not boneKeys then
+		return
 	end
 
 	local iteratorData = {
 		ent = ent,
 		target = target,
 		boneMapping = boneMapping,
-		speed = isnumber(speed) and speed or 3,
-		t = 0,
-		snapshot = snapshot
+		boneKeys = boneKeys,
+		speed = isnumber(speed) and speed or 3
 	}
 
-	local identity = string.format('upmanip.fadein.%s', ent:EntIndex())
-	local iterator = method == 'WORLD' and LerpBoneWorldIterator or LerpBoneLocalIterator
-	
-	UPar.PushIterator(identity, iterator, iteratorData, timeout)
+	local identity = string.format('upmanip.anim.fadein.%s', ent:EntIndex())
+
+	UPar.PushIterator(identity, AnimFadeInIterator, iteratorData, timeout)
+end
+
+UPManip.AnimFadeOut = function(ent, boneMapping, speed, timeout)
+	if not IsValid(ent) or not isentity(ent) or not ent:GetModel() then 
+		return 
+	end
+
+	timeout = math.abs(isnumber(timeout) and timeout or 2)
+	boneMapping = istable(boneMapping) and boneMapping or emptyTable
+
+	ent:SetupBones()
+
+	local iteratorData = {
+		ent = ent,
+		boneMapping = boneMapping,
+		speed = isnumber(speed) and speed or 3
+	}
+
+	local identityFadeIn = string.format('upmanip.anim.fadein.%s', ent:EntIndex())
+	local identityFadeOut = string.format('upmanip.anim.fadeout.%s', ent:EntIndex())
+
+	UPar.PopIterator(identityFadeIn)
+	UPar.PushIterator(identityFadeOut, AnimFadeOutIterator, iteratorData, timeout)
 end
 
 hook.Add('UParIteratorPop', 'upmanip.iterator.pop', function(identity, curTime, add, reason)
-	if string.StartWith(identity, 'upmanip.fadein.') 
-	or string.StartWith(identity, 'upmanip.fadeout.')
-	then
-		Clear(add.ent)
+	if string.StartWith(identity, 'upmanip.anim.fadein.') then
+		if istable(add) and reason ~= 'MANUAL' then 
+			print('fuck no MANUAL')
+			ClearManip(add.ent, add.boneMapping) 
+		else
+			print('fuck MANUAL')
+		end
+
 		return true
 	end
 end)
 
-UPManip.FadeOut = function(ent)
+concommand.Add('upmanip_test', function(ply)
+	local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
+	local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
 
-end
+	local speed = 1
+	local timeout = 1
+	local boneMapping = {
+		['ValveBiped.Bip01_Head1'] = true,
+		['ValveBiped.Bip01_R_Clavicle'] = true
+	}
 
+	local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
 
-aaaa = aaaa or ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
-bbbb = bbbb or ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
+	Eli:SetPos(pos1)
+	Eli:SetAngles(zeroang)
+	Eli:SetupBones()
 
-bbbb:SetPos(Vector(100, 0, 0))
+	gman_high:SetPos(pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right()))
+	gman_high:SetupBones()
 
-UPManip.FadeIn(aaaa, LocalPlayer(), playermodelbonesupper, 3, 'WORLD', 2)
+	UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
 
+	timer.Simple(timeout * 0.5, function()
+		UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout)
+	end)
 
+	timer.Simple(timeout, function()
+		Eli:Remove()
+		gman_high:Remove()
+	end)
+end)
