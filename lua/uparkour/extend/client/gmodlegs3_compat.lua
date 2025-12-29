@@ -65,13 +65,12 @@ end)
 -- 拦截 VMLegs.PlayAnim 和 VMLegs.Remove 使用 UPManip 控制方案代替
 -- ==============================================================
 UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
-	['ValveBiped.Bip01_Pelvis'] = true,
-	['ValveBiped.Bip01_Spine'] = true,
-	['ValveBiped.Bip01_Spine1'] = true,
-	['ValveBiped.Bip01_Spine2'] = true,
-	['ValveBiped.Bip01_Spine4'] = true,
-	['ValveBiped.Bip01_L_Clavicle'] = true,
-	['ValveBiped.Bip01_R_Clavicle'] = true,
+	// ['ValveBiped.Bip01_Spine'] = true,
+	// ['ValveBiped.Bip01_Spine1'] = true,
+	// ['ValveBiped.Bip01_Spine2'] = true,
+	// ['ValveBiped.Bip01_Spine4'] = true,
+	// ['ValveBiped.Bip01_L_Clavicle'] = true,
+	// ['ValveBiped.Bip01_R_Clavicle'] = true,
 
 	['ValveBiped.Bip01_L_Thigh'] = true,
 	['ValveBiped.Bip01_L_Calf'] = true,
@@ -87,6 +86,7 @@ UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 	if not upext_gmodlegs3_manip:GetBool() then return end
 	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) then
+		VMLegs.LegModel:SetNoDraw(true)
 		UPManip.AnimFadeIn(
 			g_Legs.LegEnt, 
 			VMLegs.LegModel,

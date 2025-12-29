@@ -37,8 +37,12 @@ local function ThinkCall()
 		end
 	end
 
-	for _, v in ipairs(removeIdentities) do
-		local identity = v[1]
+	for i = #removeIdentities, 1, -1 do
+		local identity, data, _ = unpack(removeIdentities[i])
+		if Iterators[identity] ~= data then
+			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in think call', identity))
+			table.remove(removeIdentities, i)
+		end
 		Iterators[identity] = nil
 	end
 
