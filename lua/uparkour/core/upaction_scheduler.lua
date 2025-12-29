@@ -335,6 +335,11 @@ if SERVER then
 				continue
 			end
 
+			-- 添加了对 Think 中动态修改 trackContent 的支持
+			if ply.uptracks[trackId] ~= trackContent then
+				continue
+			end
+
 			ply.uptracks[trackId] = nil
 			
 			net.Start('UParCallClientAction')
