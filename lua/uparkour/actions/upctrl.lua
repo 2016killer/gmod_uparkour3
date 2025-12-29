@@ -54,12 +54,20 @@ controller:InitConVars({
 	}
 })
 
+if SERVER then
+	cvars.AddChangeCallback(controller.CV_PredictionMode:GetName(), function(name)
+		PrintMessage(HUD_PRINTTALK, name .. ' 需要 重启服务器 才会生效')
+	end, 'notify')
+end
 
 local VAULTDL_FLAG = 0x01
 local LOW_CLIMB_FLAG = 0x02
 local VAULTDH_FLAG = 0x04
 local HIGH_CLIMB_FLAG = 0x08
-
+local CMD_ADD = 'upctrl_add'
+local CMD_REMOVE = 'upctrl_remove'
+local THINK_HOOK_IDENTITY = 'upctrl.think'
+local RESET_HOOK_IDENTITY = 'upctrl.reset'
 
 function controller:Trigger(ply, actFlag)
 	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then 
@@ -129,7 +137,8 @@ function controller:Trigger(ply, actFlag)
 
 end
 
-concommand.Add('upctrl_add_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args)
+
+local function temp_add_act_flag(ply, cmd, args)
 	if not IsValid(ply) or not ply:IsPlayer() then
 		return
 	end
@@ -142,9 +151,9 @@ concommand.Add('upctrl_add_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, ar
 
 	ply.upctrl_act_flags = bit.bor(ply.upctrl_act_flags or 0, actFlag)
 	controller:Trigger(ply)
-end)
+end
 
-concommand.Add('upctrl_remove_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args)
+local function temp_remove_act_flag(ply, cmd, args)
 	if not IsValid(ply) or not ply:IsPlayer() then
 		return
 	end
@@ -157,34 +166,74 @@ concommand.Add('upctrl_remove_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd,
 	end
 			
 	ply.upctrl_act_flags = bit.band(ply.upctrl_act_flags or 0, bit.bnot(actFlag))
-end)
+end
 
 if SERVER then
-	local interval = GetConVar('upctrl_tick_time') and GetConVar('upctrl_tick_time'):GetFloat() or 0.1
-	local nextThinkTime = 0
-	cvars.AddChangeCallback('upctrl_tick_time', function(name, old, new)
-		local newVal = tonumber(new)
-		if newVal then 
+	if controller:GetPredictionMode() then
+		hook.Remove('PlayerPostThink', THINK_HOOK_IDENTITY)
+		hook.Remove('PlayerSpawn', RESET_HOOK_IDENTITY)
+		cvars.RemoveChangeCallback('upctrl_tick_time', 'default')
+		concommand.Remove(CMD_ADD)
+		concommand.Remove(CMD_REMOVE)
+	else
+		local interval = GetConVar('upctrl_tick_time') and GetConVar('upctrl_tick_time'):GetFloat() or 0.1
+		local nextThinkTime = 0
+
+		cvars.AddChangeCallback('upctrl_tick_time', function(name, old, new)
+			local newVal = tonumber(new)
+			if not newVal then return end
 			interval = newVal 
 			nextThinkTime = CurTime() + interval
-		end
-	end, 'default')
+		end, 'default')
 
-	hook.Add('PlayerInitialSpawn', 'upctrl.init', function(ply)
-		ply.upctrl_act_flags = 0
-	end)
+		hook.Add('PlayerSpawn', RESET_HOOK_IDENTITY, function(ply)
+			ply.upctrl_act_flags = 0
+		end)
 
-	hook.Add('PlayerPostThink', 'upctrl.think', function(ply)
-		if CurTime() < nextThinkTime then return end
-		nextThinkTime = CurTime() + interval
+		hook.Add('PlayerPostThink', THINK_HOOK_IDENTITY, function(ply)
+			if CurTime() < nextThinkTime then return end
+			nextThinkTime = CurTime() + interval
 
-		if not IsValid(ply) or not ply:IsPlayer() then
-			return
-		end
+			if not IsValid(ply) or not ply:IsPlayer() then
+				return
+			end
 
-		controller:Trigger(ply)
-	end)
+			controller:Trigger(ply)
+		end)
+
+		concommand.Add(CMD_ADD, temp_add_act_flag)
+		concommand.Add(CMD_REMOVE, temp_remove_act_flag)
+	end
+elseif CLIENT then
+	if not controller:GetPredictionMode() then
+		hook.Remove('Think', THINK_HOOK_IDENTITY)
+		concommand.Remove(CMD_ADD)
+		concommand.Remove(CMD_REMOVE)
+	else
+		local interval = GetConVar('upctrl_tick_time')
+		local nextThinkTime = 0
+
+		hook.Add('Think', THINK_HOOK_IDENTITY, function()
+			if CurTime() < nextThinkTime then return end
+			nextThinkTime = CurTime() + interval:GetFloat()
+
+			local ply = LocalPlayer()
+			if not IsValid(ply) or not ply:IsPlayer() then
+				return
+			end
+
+			controller:Trigger(ply)
+		end)
+
+		concommand.Add(CMD_ADD, temp_add_act_flag)
+		concommand.Add(CMD_REMOVE, temp_remove_act_flag)
+	end
 end
+
+temp_add_act_flag = nil
+temp_remove_act_flag = nil
+THINK_HOOK_IDENTITY = nil
+RESET_HOOK_IDENTITY = nil
 
 
 if CLIENT then
@@ -208,7 +257,7 @@ if CLIENT then
 			return
 		end
 
-		RunConsoleCommand('upctrl_add_sv', actFlag)
+		RunConsoleCommand(CMD_ADD, actFlag)
 
 		eventflags['upctrl_lowclimb'] = FLAGS_HANDLED
 		eventflags['upctrl_highclimb'] = FLAGS_HANDLED
@@ -227,44 +276,13 @@ if CLIENT then
 			return
 		end
 
-		RunConsoleCommand('upctrl_remove_sv', actFlag)
+		RunConsoleCommand(CMD_REMOVE, actFlag)
 
 		eventflags['upctrl_lowclimb'] = FLAGS_HANDLED
 		eventflags['upctrl_highclimb'] = FLAGS_HANDLED
 		eventflags['upctrl_vaultdl'] = FLAGS_HANDLED
 		eventflags['upctrl_vaultdh'] = FLAGS_HANDLED
 	end)
-
-	local interval = GetConVar('upctrl_tick_time')
-	local nextThinkTime = 0
-
-	hook.Add('Think', 'upctrl.think', function()
-		if CurTime() < nextThinkTime then return end
-		nextThinkTime = CurTime() + interval:GetFloat()
-
-		local ply = LocalPlayer()
-		if not IsValid(ply) or not ply:IsPlayer() then
-			return
-		end
-
-		controller:Trigger(ply)
-	end)
-
-	// UPKeyboard.Register('test_uplowclimb', '[]')
-	// UPar.SeqHookAdd('UParKeyPress', 'test_uplowclimb', function(flags)
-	// 	if flags['test_uplowclimb'] then 
-	// 		UPar.Trigger(LocalPlayer(), 'uplowclimb')
-	// 	end
-	// end)
-
-	// UPKeyboard.Register('test_upvaultdl', '[]')
-	// UPar.SeqHookAdd('UParKeyPress', 'test_upvaultdl', function(flags)
-	// 	if flags['test_upvaultdl'] then 
-	// 		local obsTrace, climbTrace = UPar.CallAct('uplowclimb', 'Detector', LocalPlayer())
-	// 		UPar.Trigger(LocalPlayer(), 'upvaultdl', nil, obsTrace, climbTrace)
-	// 	end
-	// end)
-
 
 	UPar.SeqHookAdd('UParActCVarWidget_upctrl', 'default', function(cvCfg, panel)
 		local cvName = cvCfg.name

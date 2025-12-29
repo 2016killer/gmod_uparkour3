@@ -46,4 +46,4 @@ print('test')
 //     end
 // end
 
-// CVarFlagsDesc('upact_upctrl_disabled')
+// CVarFlagsDesc('upctrl_remove')
