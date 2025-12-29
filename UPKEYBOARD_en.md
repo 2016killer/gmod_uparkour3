@@ -3,32 +3,30 @@
   <a href="./README.md">简体中文</a>
 </p>
 
-## 目录
+## Table of Contents
 
-<a href="./UPACTION.md">UPAction</a>  
-<a href="./UPEFFECT.md">UPEffect</a>  
-<a href="./SERHOOK.md">SeqHook</a>  
-<a href="./HOOK.md">Hook</a>  
-<a href="./LRU.md">LRU</a>  
-<a href="./CUSTOMEFFECT.md">Custom Effect</a>  
-<a href="./UPMANIP.md">UPManip</a>  
-<a href="./UPKEYBOARD.md">UPKeyboard</a>  
+<a href="./UPACTION_en.md">UPAction</a>  
+<a href="./UPEFFECT_en.md">UPEffect</a>  
+<a href="./SERHOOK_en.md">SeqHook</a>  
+<a href="./HOOK_en.md">Hook</a>  
+<a href="./LRU_en.md">LRU</a>  
+<a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
+<a href="./UPMANIP_en.md">UPManip</a>  
+<a href="./UPKEYBOARD_en.md">UPKeyboard</a>  
 
-# UPKeyboard 键盘事件
-## 简介
-在客户端运行, 使用 Think 钩子每隔 0.03 秒检查一次按键状态。
+# UPKeyboard - Keyboard Events
+## Overview
+Runs on the client-side and uses the Think hook to check the key state every 0.03 seconds.
 
-它可以处理简单的组合按键, 但是并没有对按键的顺序进行检查, 例如 **W + A**, **先按 A 再按 W** 和 **先按 W 再按 A** 是一样的。
+It can handle simple key combinations but does not verify the order of key presses. For example, **W + A** is treated the same regardless of whether you press **A first then W** or **W first then A**.
 
-
-
-## 可用方法
+## Available Methods
 
 ![client](./materials/upgui/client.jpg)
 UPKeyboard.Register(**string** flag, **string** default, **string** label=flag)
 ```note
-注册一个按键绑定, 当按键被按下时, 会触发 UParKeyPress 钩子。
-注册后能在 Q 菜单找到。
+Registers a key binding. When the bound keys are pressed, the UParKeyPress hook will be triggered.
+The registered key binding can be found in the Q menu.
 ```
 ```lua
 -- W + Space
@@ -38,30 +36,30 @@ UPKeyboard.Register('example', '[33,65]')
 ![client](./materials/upgui/client.jpg)
 **table** UPKeyboard.GetKeys(**string** flag)
 ```note
-返回按键列表, 是一个int数组
+Returns the list of bound keys as an integer array.
 ```
 
 ![client](./materials/upgui/client.jpg)
 UPKeyboard.SetKeys(**string** flag, **table** or **string** keys)
 ```note
-设置按键列表, 可以是一个int数组, 也可以是JSON字符串
+Sets the list of bound keys, which can be either an integer array or a JSON string.
 ```
 
 ## SeqHook
 ![client](./materials/upgui/client.jpg)
-**@名字:** **UParKeyPress**  
-**@参数:** eventflags **table**  
+**@Name:** **UParKeyPress**  
+**@Parameters:** eventflags **table**  
 ```note
-一个或多个被按下时会触发此钩子, 也就是说所有按下事件都在这里处理。
+This hook is triggered when one or more bound key groups are pressed, meaning all key press events are handled here.
 
-eventflags 是一个表, 按键组的标志作为键, 处理标志作为值。
+eventflags is a table where the keys are the flags of the key groups, and the corresponding values are the handling flags.
 
-处理标志:
+Handling Flags:
 UPKeyboard.KEY_EVENT_FLAGS.UNHANDLED
 UPKeyboard.KEY_EVENT_FLAGS.HANDLED
 UPKeyboard.KEY_EVENT_FLAGS.SKIPPED
 
-这些标记毫无用处, 仅用于协调开发者之间的处理。
+These flags have no functional impact and are only used for coordination between developers.
 ```
 ```lua
 local VAULTDL_FLAG = 0x01
@@ -89,10 +87,9 @@ UPar.SeqHookAdd('UParKeyPress', 'upctrl', function(eventflags)
 end)
 ```
 
-
 ![client](./materials/upgui/client.jpg)
-**@名字:** **UParKeyRelease**  
-**@参数:** eventflags **table**  
+**@Name:** **UParKeyRelease**  
+**@Parameters:** eventflags **table**  
 ```
-和 UParKeyPress 钩子一样, 但是是在按键被释放时触发。
+Identical to the UParKeyPress hook, but triggered when the bound keys are released.
 ```
