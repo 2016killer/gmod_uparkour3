@@ -5,10 +5,6 @@
 
 -- ==================== 二段翻越 - 低 ===============
 -- 为了加速检测, 这里需要复用攀爬的检测, 所以翻越是无法独立检测的
-
-local XYNormal = UPar.XYNormal
-local ObsDetector = UPar.ObsDetector
-local ClimbDetector = UPar.ClimbDetector
 local VaultDetector = UPar.VaultDetector
 local IsInSolid = UPar.IsInSolid
 local unitzvec = UPar.unitzvec
@@ -85,10 +81,14 @@ upvaultdl:InitConVars({
 function upvaultdl:Detector(ply, obsTrace, climbTrace)
 	local convars = self.ConVars
 
-	return VaultDetector(ply, obsTrace, climbTrace, 
+	local vaultTrace = VaultDetector(ply, obsTrace, climbTrace, 
 		convars.upvtdl_ehlen_f:GetFloat(), 
 		convars.upctrl_vt_evlen_f:GetFloat()
 	)
+
+	if istable(vaultTrace) and not IsInSolid(ply, vaultTrace.HitPos + unitzvec, false) then
+		return vaultTrace
+	end
 end
 
 function upvaultdl:GetVaultMoveData(ply, obsTrace, vaultTrace, refVel)
