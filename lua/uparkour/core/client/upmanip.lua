@@ -10,7 +10,7 @@ local emptyTable = UPar.emptyTable
 
 UPManip = UPManip or {}
 
-local function SetBonePosition(ent, boneId, posw, angw) 
+local function SetBonePosition(ent, boneId, posw, angw, dontmanip) 
 	-- 最好传入非奇异矩阵, 如果骨骼或父级的变换是奇异的, 则可能出现问题
 	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	-- 每帧都要更新
@@ -64,8 +64,10 @@ local function SetBonePosition(ent, boneId, posw, angw)
 		* (posw - curTransform:GetTranslation() + parentTransform:GetTranslation())
 		+ ent:GetManipulateBonePosition(boneId)
 
-	ent:ManipulateBoneAngles(boneId, newManipAng)
-	ent:ManipulateBonePosition(boneId, newManipPos)
+	if not dontmanip then 
+		ent:ManipulateBoneAngles(boneId, newManipAng)
+		ent:ManipulateBonePosition(boneId, newManipPos)
+	end
 
 	return newManipAng, newManipPos
 end
@@ -104,14 +106,14 @@ local function UnpackBMData(bmdata)
 	end
 end
 
-local function ClearManip(ent, boneMapping)
+local function ClearManip(ent, snapshot)
 	if not IsValid(ent) or not isentity(ent) then
 		print(string.format('[UPManip.ClearManip]: invaild ent "%s"', ent))
 		return
 	end
 
-	if istable(boneMapping) then
-		for boneName, _ in pairs(boneMapping) do
+	if istable(snapshot) then
+		for boneName, transformArray in pairs(snapshot) do
 			if not isstring(boneName) or string.Trim(boneName) == '' then 
 				continue 
 			end
@@ -119,9 +121,14 @@ local function ClearManip(ent, boneMapping)
 			local boneId = ent:LookupBone(boneName)
 			if not boneId then continue end
 
-			ent:ManipulateBoneAngles(boneId, zeroang)
-			ent:ManipulateBonePosition(boneId, zerovec)
-			ent:ManipulateBoneScale(boneId, diagonalvec)
+			local snapshotPos, snapshotAng, snapshotScale = unpack(transformArray)
+			snapshotPos = isvector(snapshotPos) and snapshotPos or zerovec
+			snapshotAng = isangle(snapshotAng) and snapshotAng or zeroang
+			snapshotScale = isvector(snapshotScale) and snapshotScale or diagonalvec
+
+			ent:ManipulateBoneAngles(boneId, snapshotAng)
+			ent:ManipulateBonePosition(boneId, snapshotPos)
+			ent:ManipulateBoneScale(boneId, snapshotScale)
 		end
 	else
 		for i = 0, ent:GetBoneCount() - 1 do
@@ -227,27 +234,18 @@ local function GetBoneMappingKeysSorted(ent, boneMapping, useLRU2)
 end
 
 local function Snapshot(ent, boneMapping)
-	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	local snapshot = {}
 	for boneName, _ in pairs(boneMapping) do
 		local boneId = ent:LookupBone(boneName)
 		if not boneId then continue end
-		local transform = ent:GetBoneMatrix(boneId)
-		snapshot[boneId] = {
-			ent:WorldToLocal(transform:GetTranslation()),
-			ent:WorldToLocalAngles(transform:GetAngles())
-		} 
+		snapshot[boneName] = {
+			ent:GetManipulateBonePosition(boneId),
+			ent:GetManipulateBoneAngles(boneId),
+			ent:GetManipulateBoneScale(boneId),
+		}
 	end
 	
 	return snapshot
-end
-
-local function GetSnapshot(ent, pack)
-	local bonePos, boneAng = unpack(pack or emptyTable)
-	if not bonePos or not boneAng then 
-		return nil, nil
-	end
-	return ent:LocalToWorld(bonePos), ent:LocalToWorldAngles(boneAng)
 end
 
 local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
@@ -320,6 +318,7 @@ local function AnimFadeInIterator(dt, curTime, iteratorData)
 end
 
 local function AnimFadeOutIterator(dt, curTime, iteratorData)
+	local snapshot = iteratorData.snapshot
 	local boneMapping = iteratorData.boneMapping
 	local speed = math.max(math.abs(iteratorData.speed), 0.01)
 	local t = (iteratorData.t or 0) + dt * speed
@@ -344,12 +343,21 @@ local function AnimFadeOutIterator(dt, curTime, iteratorData)
 		local curManipAng = ent:GetManipulateBoneAngles(boneId)
 		local curManipScale = ent:GetManipulateBoneScale(boneId)
 
-		ent:ManipulateBonePosition(boneId, LerpVector(t, curManipPos, zerovec))
-		ent:ManipulateBoneAngles(boneId, LerpAngle(t, curManipAng, zeroang))
-		ent:ManipulateBoneScale(boneId, LerpVector(t, curManipScale, diagonalvec))
+		local tarManipPos, tarManipAng, tarManipScale = nil
+		if not snapshot or not snapshot[boneId] then 
+			tarManipPos = zerovec
+			tarManipAng = zeroang
+			tarManipScale = diagonalvec
+		else
+			tarManipPos, tarManipAng, tarManipScale = unpack(snapshot[boneId])
+		end
+
+		ent:ManipulateBonePosition(boneId, LerpVector(t, curManipPos, tarManipPos))
+		ent:ManipulateBoneAngles(boneId, LerpAngle(t, curManipAng, tarManipAng))
+		ent:ManipulateBoneScale(boneId, LerpVector(t, curManipScale, tarManipScale))
 	end
 
-	return t <= 0
+	return t >= 1
 end
 
 UPManip.SetBonePosition = SetBonePosition
@@ -361,6 +369,9 @@ UPManip.GetSnapshot = GetSnapshot
 UPManip.GetBoneMappingKeysSorted = GetBoneMappingKeysSorted
 UPManip.GetBonesFamilyLevel = GetBonesFamilyLevel
 UPManip.BoneMappings = UPManip.BoneMappings or {}
+
+local FADE_IN_SUB_IDENTITY = 'upmanip.anim.fadein'
+local FADE_OUT_SUB_IDENTITY = 'upmanip.anim.fadeout'
 
 UPManip.AnimFadeIn = function(ent, target, boneMapping, speed, timeout)
 	if not IsValid(ent) or not isentity(ent) or not ent:GetModel()
@@ -378,21 +389,36 @@ UPManip.AnimFadeIn = function(ent, target, boneMapping, speed, timeout)
 		return
 	end
 
+	local snapshot = Snapshot(ent, boneMapping)
+
 	local iteratorData = {
 		ent = ent,
 		target = target,
 		boneMapping = boneMapping,
 		boneKeys = boneKeys,
 		speed = isnumber(speed) and speed or 3,
-		flag = 'upmanip.anim.fadein'
+		flag = FADE_IN_SUB_IDENTITY,
+		snapshot = snapshot
 	}
 
-	local identity = ent
-	UPar.PushIterator(identity, AnimFadeInIterator, iteratorData, timeout)
+
+	local identityFadeIn = ent
+	local identityFadeOut = ent
+
+	UPar.PopIterator(identityFadeOut)
+	UPar.PushIterator(identityFadeIn, AnimFadeInIterator, iteratorData, timeout)
 end
 
 UPManip.AnimFadeOut = function(ent, boneMapping, speed, timeout)
 	if not IsValid(ent) or not isentity(ent) or not ent:GetModel() then 
+		return 
+	end
+
+	local identityFadeIn = ent
+	local iteratorDataFadeIn = UPar.GetIterator(identityFadeIn)
+	if not iteratorDataFadeIn or not istable(iteratorDataFadeIn.add) 
+	or iteratorDataFadeIn.add.flag ~= FADE_IN_SUB_IDENTITY then
+		print(string.format('[UPManip.AnimFadeOut]: Warning: must call AnimFadeIn first'))
 		return 
 	end
 
@@ -405,20 +431,27 @@ UPManip.AnimFadeOut = function(ent, boneMapping, speed, timeout)
 		ent = ent,
 		boneMapping = boneMapping,
 		speed = isnumber(speed) and speed or 3,
-		flag = 'upmanip.anim.fadeout'
+		flag = FADE_OUT_SUB_IDENTITY
 	}
 
-	local identityFadeIn = ent
-	local identityFadeOut = ent
 
+
+	local identityFadeOut = ent
+	local snapshot = iteratorDataFadeIn.add.snapshot
+
+	if snapshot then 
+		PrintTable(snapshot)
+	end
+	
 	UPar.PopIterator(identityFadeIn)
 	UPar.PushIterator(identityFadeOut, AnimFadeOutIterator, iteratorData, timeout)
 end
 
 hook.Add('UParIteratorPop', 'upmanip.iterator.pop', function(identity, curTime, add, reason)
+	if reason == 'OVERRIDE' then return end
 	if IsValid(identity) and isentity(identity) then
-		if istable(add) and add.flag == 'upmanip.anim.fadeout' and reason ~= 'MANUAL' then
-			ClearManip(add.ent, add.boneMapping) 
+		if istable(add) and add.flag == FADE_IN_SUB_IDENTITY and reason ~= 'MANUAL' then
+			ClearManip(add.ent, add.snapshot) 
 		end
 
 		return true
@@ -430,20 +463,29 @@ concommand.Add('upmanip_test', function(ply)
 	local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
 
 	local speed = 1
-	local timeout = 1
+	local timeout = 10
 	local boneMapping = {
-		['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(20, 0, 0), scale = Vector(2, 1, 1)},
+		['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(0, 90, 0), scale = Vector(2, 1, 1)},
 		['ValveBiped.Bip01_L_Calf'] = true,
 	}
 
-	local pos1 = ply:GetPos() + 100 * ply:EyeAngles():Forward()
-	local pos2 = pos1 + 100 * ply:EyeAngles():Right()
+	local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
+	local pos2 = pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right())
 
 	Eli:SetPos(pos1)
 	Eli:SetupBones()
 
-	gman_high:SetPos(pos2)
 	gman_high:SetupBones()
+	gman_high:ResetSequenceInfo()
+	gman_high:SetPlaybackRate(1)
+	gman_high:ResetSequence(gman_high:LookupSequence('crouch_reload_pistol'))
+	gman_high:SetPos(pos2)
+
+	UPar.PushIterator('upmanip_test', function(dt)
+		if not IsValid(gman_high) then return true end
+		local cycle = (gman_high:GetCycle() + dt) % 1
+		gman_high:SetCycle(cycle)
+	end, nil, timeout)
 
 	UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
 	timer.Simple(timeout * 0.5, function() 
