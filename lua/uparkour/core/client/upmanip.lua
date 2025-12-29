@@ -360,6 +360,7 @@ UPManip.Snapshot = Snapshot
 UPManip.GetSnapshot = GetSnapshot
 UPManip.GetBoneMappingKeysSorted = GetBoneMappingKeysSorted
 UPManip.GetBonesFamilyLevel = GetBonesFamilyLevel
+UPManip.BoneMappings = UPManip.BoneMappings or {}
 
 UPManip.AnimFadeIn = function(ent, target, boneMapping, speed, timeout)
 	if not IsValid(ent) or not isentity(ent) or not ent:GetModel()

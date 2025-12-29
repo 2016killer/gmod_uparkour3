@@ -48,6 +48,22 @@ All other extensible features follow this same pattern.
 6. Enable the creation of **more custom special effects**.
 ```
 
+### Contributors
+
+Name: 22050hz amen break sample  
+Link: https://steamcommunity.com/id/laboratorymember001  
+Contribution: **Mighty Foot Engaged** animation  
+(Maybe him? I’m not sure — the original plugin has been hidden, so I can’t trace it back.)
+
+Name: Bai Lang  
+Link: https://steamcommunity.com/id/whitewolfking/  
+Contribution: Most of the code and Chinese documentation
+
+Name: Miss Dou  
+Link: Doubao AI  
+Contribution: Part of the code and English documentation
+
+
 - Author: 白狼 2322012547@qq.com
 - Translator: Miss DouBao
 - Date: December 10, 2025

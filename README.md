@@ -45,6 +45,23 @@ UPAction、UPEffect 生命周期的同步永远是一次性的。 因为同步�
 5. 新增按键绑定与事件支持。
 6. 可以创建更多的自定义特效
 ```
+
+### 贡献者
+
+名字: 22050hz amen break sample  
+链接: https://steamcommunity.com/id/laboratorymember001  
+贡献: **mighty foot engaged** 动画  
+(可能是他? 我不知道, 因为原插件被隐藏了, 所以我无法追溯)
+
+名字: 白狼
+链接: https://steamcommunity.com/id/whitewolfking/
+贡献: 大部分代码以及中文文档
+
+名字: 豆小姐
+链接: 豆包AI
+贡献: 部分代码以及英文文档
+
+
 - 作者：白狼 2322012547@qq.com
 - 翻译: 豆小姐
 - 日期：2025 12 10
