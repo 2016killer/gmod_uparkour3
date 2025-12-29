@@ -255,20 +255,6 @@ if SERVER then
 			ply.uptracks[trackId] = nil
 		end
 
-		net.Start('UParCallClientAction')
-		for _, v in ipairs(removeData) do
-			local _, trackContent, reason = unpack(v)
-			local _, playingData, playingName = unpack(trackContent or emptyTable)
-
-			if not playingName then
-				continue
-			end
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({playingName, playingData or emptyTable, reason or false})
-		end
-		net.WriteInt(END_FLAG, BIT_COUNT)
-		net.Send(ply)
-
 		for _, v in ipairs(removeData) do
 			local _, trackContent, reason = unpack(v)
 			local playing, playingData, _ = unpack(trackContent or emptyTable)
@@ -282,6 +268,20 @@ if SERVER then
 				ErrorNoHaltWithStack(err)
 			end
 		end
+
+		net.Start('UParCallClientAction')
+		for _, v in ipairs(removeData) do
+			local _, trackContent, reason = unpack(v)
+			local _, playingData, playingName = unpack(trackContent or emptyTable)
+
+			if not playingName then
+				continue
+			end
+			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
+			net.WriteTable({playingName, playingData or emptyTable, reason or false})
+		end
+		net.WriteInt(END_FLAG, BIT_COUNT)
+		net.Send(ply)
 	end
 
 	local function ForceEndTarget(ply, target)
