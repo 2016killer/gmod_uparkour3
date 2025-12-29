@@ -14,7 +14,7 @@ local INTERRUPT_FLAG = 3
 local RHYTHM_FLAG = 4
 local END_FLAG = 5
 local BIT_COUNT = 4
-local MAX_ACT_EVENT = 20
+local MAX_ACT_EVENT = 100
 
 local function GetPlyUsingEffect(ply, actName)
 	if actName == nil then
@@ -150,7 +150,7 @@ UPar.CallPlyUsingEff = function(actName, methodName, ply, ...)
 
     local method = effect[methodName]
     if not isfunction(method) then
-		print(string.format('not found method "%s" in eff "%s" of act "%s"', methodName, effName, actName))
+		print(string.format('not found method "%s" in eff "USING" of act "%s"', methodName, actName))
 		return
     end
 
