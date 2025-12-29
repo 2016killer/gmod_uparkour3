@@ -16,7 +16,7 @@ end
 local SAFE_OFFSET_H = 2
 local SAFE_OFFSET_V = 1
 local LANDSLID_ZNORM = 0.707
-local CONT_OBS_MAXH_DELTA = math.Clamp(0.7, 0, 1)
+local CONT_OBS_MAXH_DELTA = math.Clamp(0.1, 0, 1)
 
 UPar.XYNormal = XYNormal
 
