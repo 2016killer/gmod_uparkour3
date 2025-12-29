@@ -15,6 +15,11 @@
 <a href="./UPKEYBOARD_en.md">UPKeyboard</a>  
 
 # UPKeyboard - Keyboard Events
+```note
+Note: This is a test module and is not recommended for use in a production environment.
+```
+
+
 ## Overview
 Runs on the client-side and uses the Think hook to check the key state every 0.03 seconds.
 

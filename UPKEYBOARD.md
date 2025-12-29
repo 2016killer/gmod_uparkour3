@@ -15,6 +15,11 @@
 <a href="./UPKEYBOARD.md">UPKeyboard</a>  
 
 # UPKeyboard 键盘事件
+```note
+注意: 这是一个测试性模块, 不建议在生产环境中使用。
+```
+
+
 ## 简介
 在客户端运行, 使用 Think 钩子每隔 0.03 秒检查一次按键状态。
 

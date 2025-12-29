@@ -15,6 +15,11 @@
 <a href="./UPKEYBOARD.md">UPKeyboard</a>  
 
 # UPManip 骨骼操纵
+```note
+注意: 这是一个测试性模块, 不建议在生产环境中使用。
+```
+
+
 ## 简介
 使用 `upmanip_test` 控制台指令可以测试 UPManip 的功能。
 

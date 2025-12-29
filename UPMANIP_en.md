@@ -15,6 +15,11 @@
 <a href="./UPKEYBOARD_en.md">UPKeyboard</a>  
 
 # UPManip - Bone Manipulation
+```note
+Note: This is a test module and is not recommended for use in a production environment.
+```
+
+
 ## Overview
 The `upmanip_test` console command can be used to test the functionality of UPManip.
 
