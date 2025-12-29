@@ -34,13 +34,19 @@ The best practice is to avoid initializing or manipulating context-dependent dat
 
 ### Changes
 ```note
-Regarding the implementation of interruptions and similar features, SeqHook is now used. If the action "test_lifecycle" is running in a track and you trigger another action, the sequences "UParUParActAllowInterrupt_test_lifecycle" and "UParUParActInterrupt" will be executed. All other extensible features follow this pattern.
+Regarding the implementation of interrupts and similar features, **sequence hooks are now used instead**.
+If the action *"test_lifecycle"* is running in a track **and you trigger an interrupt**, the sequences *"UParUParActAllowInterrupt_test_lifecycle"* and *"UParUParActInterrupt"* will be executed.
+All other extensible features follow this same pattern.
 
-Added support for custom panels in the Action Editor.
-Refactored the lifecycle, removed most rarely used parameters, and actions now support multi-track parallel execution.
+1. Add support for **custom panels in the Action Editor**.
+2. **Refactor the lifecycle**: remove most rarely used parameters, and enable **multi-track parallel execution of actions**.
+3. Add new **iterator support**.
+4. Add the new **UPManip API** for direct bone manipulation (note: this has relatively high computational overhead).
+5. Add new **key binding and event support**.
+6. Enable the creation of **more custom special effects**.
 ```
 
-- Author: 白狼 (ava741963@163.com)
+- Author: 白狼 2322012547@qq.com
 - Translator: Miss DouBao
 - Date: December 10, 2025
 - Version: 3.0.0

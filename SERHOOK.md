@@ -38,8 +38,8 @@ UPar.SeqHookRemove(**string** eventName, **string** identifier)
 ```
 ```lua
 UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
-	panel:CheckBox('#up.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
-	panel:ControlHelp('#up.gmodlegs3_compat.help')
+	panel:CheckBox('#upgui.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
+	panel:ControlHelp('#upgui.gmodlegs3_compat.help')
 end, 1)
 ```
 
