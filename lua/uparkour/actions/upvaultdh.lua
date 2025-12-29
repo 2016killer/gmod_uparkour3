@@ -36,7 +36,7 @@ upvaultdh:InitConVars({
 
 	{
 		name = 'upvtdh_ehlen_f',
-		default = '0.5',
+		default = '0.8',
 		widget = 'NumSlider',
 		min = 0,
 		max = 2,
