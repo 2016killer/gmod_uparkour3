@@ -14,7 +14,7 @@ local INTERRUPT_FLAG = 3
 local RHYTHM_FLAG = 4
 local END_FLAG = 5
 local BIT_COUNT = 4
-local MAX_ACT_EVENT = 100
+local MAX_ACT_EVENT = 50
 
 local function GetPlyUsingEffect(ply, actName)
 	if actName == nil then
@@ -144,13 +144,13 @@ end
 UPar.CallPlyUsingEff = function(actName, methodName, ply, ...)
     local effect = GetPlyUsingEffect(ply, actName)
     if not effect then
-		print(string.format('not found eff "%s" in act "%s" for ply "%s"', effName, actName, ply))
+		print(string.format('not found eff "USING" in act "%s" for ply "%s"', actName, ply))
 		return
     end
 
     local method = effect[methodName]
     if not isfunction(method) then
-		print(string.format('not found method "%s" in eff "USING" of act "%s"', methodName, actName))
+		print(string.format('not found method "%s" in eff "USING" act "%s" for ply "%s"', methodName, actName, ply))
 		return
     end
 
@@ -160,7 +160,7 @@ end
 UPar.GetPlyUsingEffKeyValue = function(actName, key, ply)
     local effect = GetPlyUsingEffect(ply, actName)
     if not effect then
-		print(string.format('not found eff "%s" in act "%s" for ply "%s"', effName, actName, ply))
+		print(string.format('not found eff "USING" in act "%s" for ply "%s"', actName, ply))
 		return
     end
 
@@ -240,62 +240,78 @@ if SERVER then
 		return checkResult
 	end
 
-	local function ForceEnd(ply, trackId)
-		local playing, playingData, playingName = unpack(ply.uptracks[trackId] or emptyTable)
-
-		ply.uptracks[trackId] = nil
-
-		if not playing then
+	local function RemoveTracks(ply, removeData, mv, cmd)
+		if #removeData < 1 then
 			return
 		end
-		net.Start('UParCallClientAction')
-		net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-		net.WriteTable({playingName, playingData, true})
 
-		local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, true)
-		if not succ then
-			ErrorNoHaltWithStack(err)
+		if #removeData > MAX_ACT_EVENT then
+			ErrorNoHaltWithStack(string.format('[UPar]: Warning: RemoveTracks: removeData count is %d, max is %d', #removeData, MAX_ACT_EVENT))
+			return
 		end
 
-		net.WriteInt(END_FLAG, BIT_COUNT)
-		net.Send(ply)
-	end
-
-	local function ForceEndAll(ply, filter)
-		local netData = {}
-
-		filter = istable(filter) and filter or emptyTable
+		for _, v in ipairs(removeData) do
+			local trackId = v[1]
+			ply.uptracks[trackId] = nil
+		end
 
 		net.Start('UParCallClientAction')
-		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
-			if filter[trackId] then
+		for _, v in ipairs(removeData) do
+			local _, trackContent, reason = unpack(v)
+			local _, playingData, playingName = unpack(trackContent or emptyTable)
+
+			if not playingName then
 				continue
 			end
-			
-			local playing, playingData, playingName = unpack(trackContent or emptyTable)
+			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
+			net.WriteTable({playingName, playingData or emptyTable, reason or false})
+		end
+		net.WriteInt(END_FLAG, BIT_COUNT)
+		net.Send(ply)
 
-			ply.uptracks[trackId] = nil
+		for _, v in ipairs(removeData) do
+			local _, trackContent, reason = unpack(v)
+			local playing, playingData, _ = unpack(trackContent or emptyTable)
 
 			if not playing then
 				continue
 			end
 
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({playingName, playingData, true})
-
-			local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, true)
+			local succ, err = pcall(ActClear, ply, playing, playingData or emptyTable, mv, cmd, reason or false)
 			if not succ then
 				ErrorNoHaltWithStack(err)
 			end
 		end
-
-		net.WriteInt(END_FLAG, BIT_COUNT)
-		net.Send(ply)
 	end
 
-	UPar.ForceEnd = ForceEnd
-	UPar.ForceEndAll = ForceEndAll
+	local function ForceEndTarget(ply, target)
+		ply.uptracks = istable(ply.uptracks) and ply.uptracks or {}
+		target = istable(target) and target or emptyTable
+		local removeData = {}
+		for _, trackId in pairs(target) do
+			local trackContent = ply.uptracks[trackId]
+			if not trackContent then continue end
+			table.insert(removeData, {trackId, trackContent, true})
+		end
 
+		RemoveTracks(ply, removeData, nil, nil)
+	end
+
+	local function ForceEndAllExcept(ply, filter)
+		ply.uptracks = istable(ply.uptracks) and ply.uptracks or {}
+		filter = istable(filter) and filter or emptyTable
+		local removeData = {}
+		for trackId, trackContent in pairs(ply.uptracks) do
+			if filter[trackId] then continue end
+			table.insert(removeData, {trackId, trackContent, true})
+		end
+
+		RemoveTracks(ply, removeData, nil, nil)
+	end
+
+	UPar.ForceEndTarget = ForceEndTarget
+	UPar.ForceEndAllExcept = ForceEndAllExcept
+	UPar.RemoveTracks = RemoveTracks
 	UPar.Trigger = Trigger
 
 	net.Receive('UParStart', function(len, ply)
@@ -317,6 +333,7 @@ if SERVER then
 	end)
 
 	hook.Add('SetupMove', 'upar.think', function(ply, mv, cmd)
+		local removeData = {}
 		for trackId, trackContent in pairs(ply.uptracks or emptyTable) do
 			local action, checkResult, actName = unpack(trackContent or emptyTable)
 
@@ -324,46 +341,25 @@ if SERVER then
 				continue
 			end
 
-			local succ, err = pcall(action.Think, action, ply, checkResult, mv, cmd)
+			local succ, result = pcall(action.Think, action, ply, checkResult, mv, cmd)
 			if not succ then
-				ForceEnd(ply, trackId)
-				error(string.format('action named "%s" Think error: %s\n', actName, err))
+				ErrorNoHaltWithStack(result)
+				table.insert(removeData, {trackId, trackContent, true})
+			elseif result then
+				table.insert(removeData, {trackId, trackContent, false})
 			end
-
-			local toclear = err
-			if not toclear then
-				continue
-			end
-
-			-- 添加了对 Think 中动态修改 trackContent 的支持
-			if ply.uptracks[trackId] ~= trackContent then
-				print(string.format('[UPar]: Warnning: trackId "%s" trackContent changed, actName "%s"', trackId, actName))
-				continue
-			end
-
-			ply.uptracks[trackId] = nil
-			
-			net.Start('UParCallClientAction')
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({actName, checkResult, false})
-
-			succ, err = pcall(ActClear, ply, action, checkResult, mv, cmd, false)
-			if not succ then
-				ErrorNoHaltWithStack(err)
-			end
-
-			net.WriteInt(END_FLAG, BIT_COUNT)
-			net.Send(ply)
 		end
+
+		RemoveTracks(ply, removeData, mv, cmd)
 	end)
 
 	hook.Add('PlayerInitialSpawn', 'upar.init.tracks', function(ply)
 		ply.uptracks = {}
 	end)
 
-	hook.Add('PlayerSpawn', 'upar.clear', ForceEndAll)
-	hook.Add('PlayerDeath', 'upar.clear', ForceEndAll)
-	hook.Add('PlayerSilentDeath', 'upar.clear', ForceEndAll)
+	hook.Add('PlayerSpawn', 'upar.clear', ForceEndAllExcept)
+	hook.Add('PlayerDeath', 'upar.clear', ForceEndAllExcept)
+	hook.Add('PlayerSilentDeath', 'upar.clear', ForceEndAllExcept)
 elseif CLIENT then
 	UPar.Trigger = function(ply, actName, checkResult, ...)
         if not IsValid(ply) or not ply:IsPlayer() then
@@ -477,7 +473,7 @@ elseif CLIENT then
 					end
 				end
 			elseif flag == CLEAR_FLAG then
-				local interruptSource = batch[3]
+				local interruptSource = batch[3] or false
 		
 				local succ, err = pcall(ActClear, ply, action, checkResult, nil, nil, interruptSource)
 				if not succ then
