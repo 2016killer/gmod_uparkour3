@@ -11,7 +11,6 @@ local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local VaultDetector = UPar.VaultDetector
 local IsInSolid = UPar.IsInSolid
-local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 local CallAct = UPar.CallAct
@@ -193,7 +192,7 @@ function upvaultdl:Start(ply, data)
 			(isnumber(data[2].duration) and data[2].duration or 0)) + 0.5
 
 		local needduck = false
-		SetMoveControl(true, true, 
+		UPar.SetMoveControl(true, true, 
 			needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
 			needduck and IN_DUCK or 0, 
 			timeout)
@@ -219,7 +218,7 @@ end
 
 function upvaultdl:Clear(ply, data, mv, cmd)
 	if CLIENT then 
-		SetMoveControl(false, false, 0, 0)
+		UPar.SetMoveControl(false, false, 0, 0)
 	elseif SERVER then
 		if mv and istable(data) and istable(data[2]) and isvector(data[2].endvel) then
 			mv:SetVelocity(data[2].endvel)

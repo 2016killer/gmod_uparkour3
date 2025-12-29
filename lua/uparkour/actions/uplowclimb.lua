@@ -8,7 +8,6 @@ local XYNormal = UPar.XYNormal
 local ObsDetector = UPar.ObsDetector
 local ClimbDetector = UPar.ClimbDetector
 local IsInSolid = UPar.IsInSolid
-local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 local zerovec = UPar.zerovec
@@ -162,7 +161,7 @@ function uplowclimb:Start(ply, data)
     if CLIENT then 
 		local timeout = isnumber(data.duration) and data.duration * 2 or 0.5
 		local needduck = data.needduck
-		SetMoveControl(true, true, 
+		UPar.SetMoveControl(true, true, 
 			needduck and IN_JUMP or bit.bor(IN_DUCK, IN_JUMP),
 			needduck and IN_DUCK or 0, 
 			timeout)
@@ -177,7 +176,7 @@ uplowclimb.Think = UPar.UniformAccelMoveThink
 
 function uplowclimb:Clear(ply, data, mv, cmd)
 	if CLIENT then 
-		SetMoveControl(false, false, 0, 0)
+		UPar.SetMoveControl(false, false, 0, 0)
     end
 
 	if ply:GetMoveType() == MOVETYPE_NOCLIP then 

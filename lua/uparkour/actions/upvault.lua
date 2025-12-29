@@ -6,7 +6,6 @@
 -- ==================== 翻越 ===============
 -- 实际上这个动作并不会被控制器触发, 它的作用仅仅是特效容器以及实现移动计算
 
-local SetMoveControl = UPar.SetMoveControl
 local unitzvec = UPar.unitzvec
 local Hermite3 = UPar.Hermite3
 

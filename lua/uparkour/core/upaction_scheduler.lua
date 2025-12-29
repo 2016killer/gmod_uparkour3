@@ -337,6 +337,7 @@ if SERVER then
 
 			-- 添加了对 Think 中动态修改 trackContent 的支持
 			if ply.uptracks[trackId] ~= trackContent then
+				print(string.format('[UPar]: Warnning: trackId "%s" trackContent changed, actName "%s"', trackId, actName))
 				continue
 			end
 
