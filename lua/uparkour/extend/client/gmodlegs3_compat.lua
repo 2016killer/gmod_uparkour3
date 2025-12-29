@@ -3,43 +3,56 @@
 	2025 12 29
 --]]
 
-local upeff_gmodlegs3_compat = CreateClientConVar('upeff_gmodlegs3_compat', '1', true, false, '')
-local upeff_gmodlegs3_manip = CreateClientConVar('upeff_gmodlegs3_manip', '1', true, false, '')
+local upext_gmodlegs3_compat = CreateClientConVar('upext_gmodlegs3_compat', '1', true, false, '')
+local upext_gmodlegs3_manip = CreateClientConVar('upext_gmodlegs3_manip', '1', true, false, '')
 
 -- ==============================================================
 -- 兼容 GmodLegs3 (启动 VMLegs 时 禁用 GmodLegs3)
 -- ==============================================================
 local function ShouldDisableLegs()
-	return not upeff_gmodlegs3_manip:GetBool() and VMLegs and VMLegs:IsActive()
+	return not upext_gmodlegs3_manip:GetBool() and VMLegs and VMLegs:IsActive()
 end
 
 local function GmodLegs3CompatChange(name, old, new)
 	local HOOK_IDENTITY_COMPAT = 'upar.gmodleg3.compat'
 	if new == '1' then
-		print('[UPar] GmodLegs3Compat enabled')
+		print('[UPExt]: GmodLegs3Compat enabled')
 		hook.Add('ShouldDisableLegs', HOOK_IDENTITY_COMPAT, ShouldDisableLegs)
 	else
-		print('[UPar] GmodLegs3Compat disabled')
+		print('[UPExt]: GmodLegs3Compat disabled')
 		hook.Remove('ShouldDisableLegs', HOOK_IDENTITY_COMPAT)
 	end
 end
-cvars.AddChangeCallback('upeff_gmodlegs3_compat', GmodLegs3CompatChange, 'default')
-GmodLegs3CompatChange('upeff_gmodlegs3_compat', '', upeff_gmodlegs3_compat:GetBool() and '1' or '0')
+cvars.AddChangeCallback('upext_gmodlegs3_compat', GmodLegs3CompatChange, 'default')
+GmodLegs3CompatChange(nil, nil, upext_gmodlegs3_compat:GetBool() and '1' or '0')
 
 -- ==============================================================
--- gmodlegs3 控制
+-- 修改 gmodlegs3 以方便控制其运行状态
+-- 添加一个 updateFlag 来标记是否需要更新 GmodLegs3
 -- ==============================================================
 
+-- ==============================================================
+-- 拦截 VMLegs.PlayAnim 和 VMLegs.Remove 使用 UPManip 控制方案代替
+-- ==============================================================
+hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
+	print('play', anim)
+end)
 
+hook.Add('VMLegsRemove', 'UPExtGmodLegs3Manip', function(anim)
+	print('remove', anim)
+end)
 
 -- ==============================================================
 -- 菜单
 -- ==============================================================
 
 UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
-	panel:CheckBox('#upgui.gmodlegs3_compat', 'upeff_gmodlegs3_compat')
-	panel:ControlHelp('#upgui.gmodlegs3_compat.help')
+	panel:Help('·························· GmodLegs3 ··························')
+	panel:CheckBox('#upext.gmodlegs3_compat', 'upext_gmodlegs3_compat')
+	panel:ControlHelp('#upext.gmodlegs3_compat.help')
 
-	panel:CheckBox('#up.gmodlegs3_manip', 'upeff_gmodlegs3_manip')
-	panel:ControlHelp('#upgui.gmodlegs3_manip.help')
-end, 2)
+	panel:CheckBox('#upext.gmodlegs3_manip', 'upext_gmodlegs3_manip')
+	panel:ControlHelp('#upext.gmodlegs3_manip.help')
+	local help2 = panel:ControlHelp('#upext.gmodlegs3_manip.help2')
+	help2:SetTextColor(Color(255, 170, 0))
+end, 1)

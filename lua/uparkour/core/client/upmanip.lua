@@ -294,17 +294,24 @@ local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 end
 
 local function AnimFadeInIterator(dt, curTime, iteratorData)
+	local boneMapping = iteratorData.boneMapping
+	local boneKeys = iteratorData.boneKeys
+	local speed = math.max(math.abs(iteratorData.speed), 0.01)
+	local t = (iteratorData.t or 0) + dt * speed
+	iteratorData.t = t
+
 	local ent = iteratorData.ent
-	if not IsValid(ent) then 
+	if not IsValid(ent) or not isentity(ent) then 
 		print(string.format('[UPManip.AnimFadeInIterator]: ent "%s" is not valid', ent))
 		return true
 	end
 
 	local target = iteratorData.target
-	local boneMapping = iteratorData.boneMapping
-	local boneKeys = iteratorData.boneKeys
-	local t = (iteratorData.t or 0) + dt * math.max(math.abs(iteratorData.speed), 0.01)
-	iteratorData.t = t
+	if not IsValid(target) or not isentity(target) then 
+		print(string.format('[UPManip.AnimFadeInIterator]: target "%s" is not valid', target))
+		UPManip.AnimFadeOut(ent, boneMapping, 3, 2)
+		return true
+	end
 
 	ent:SetupBones()
 	target:SetupBones()
@@ -313,15 +320,16 @@ local function AnimFadeInIterator(dt, curTime, iteratorData)
 end
 
 local function AnimFadeOutIterator(dt, curTime, iteratorData)
+	local boneMapping = iteratorData.boneMapping
+	local speed = math.max(math.abs(iteratorData.speed), 0.01)
+	local t = (iteratorData.t or 0) + dt * speed
+	iteratorData.t = t
+
 	local ent = iteratorData.ent
 	if not IsValid(ent) then 
 		print(string.format('[UPManip.AnimFadeOutIterator]: ent "%s" is not valid', ent))
 		return true
 	end
-
-	local boneMapping = iteratorData.boneMapping
-	local t = (iteratorData.t or 0) + dt * math.max(math.abs(iteratorData.speed), 0.01)
-	iteratorData.t = t
 
 	ent:SetupBones()
 

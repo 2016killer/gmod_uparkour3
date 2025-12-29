@@ -39,14 +39,14 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 				
 				if not succ then
 					ErrorNoHaltWithStack(result)
+					if Iterators[identity] then hook.Run('UParIteratorPop', identity, curTime, add, 'ERROR') end
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, add, 'ERROR')
 				elseif result then
+					if Iterators[identity] then hook.Run('UParIteratorPop', identity, curTime, add, nil) end
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, add, nil)
 				elseif curTime > edtime then
+					if Iterators[identity] then hook.Run('UParIteratorPop', identity, curTime, add, 'TIMEOUT') end
 					Iterators[identity] = nil
-					hook.Run('UParIteratorPop', identity, curTime, add, 'TIMEOUT')
 				end
 			end
 
