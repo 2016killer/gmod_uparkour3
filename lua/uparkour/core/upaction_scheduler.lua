@@ -250,9 +250,14 @@ if SERVER then
 			return
 		end
 
-		for _, v in ipairs(removeData) do
-			local trackId = v[1]
-			ply.uptracks[trackId] = nil
+		for i = #removeData, 1, -1 do
+			local trackId, trackContent, reason = unpack(removeData[i])
+			if trackContent ~= ply.uptracks[trackId] then
+				print(string.format('[UPar]: Warning: track "%s" content changed in other place', trackId))
+				table.remove(removeData, i)
+			else
+				ply.uptracks[trackId] = nil
+			end
 		end
 
 		for _, v in ipairs(removeData) do

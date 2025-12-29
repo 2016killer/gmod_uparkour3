@@ -42,8 +42,9 @@ local function ThinkCall()
 		if Iterators[identity] ~= data then
 			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in think call', identity))
 			table.remove(removeIdentities, i)
+		else
+			Iterators[identity] = nil
 		end
-		Iterators[identity] = nil
 	end
 
 	for _, v in ipairs(removeIdentities) do
