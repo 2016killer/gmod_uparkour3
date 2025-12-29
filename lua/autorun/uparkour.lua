@@ -350,6 +350,12 @@ concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function(ply)
 	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
 end)
 
-concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function()
-	PrintTable(UPar)
+concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args)
+	if args[1] then
+		local tar = UPar[args[1]]
+		print(tar)
+		if istable(tar) then PrintTable(tar) end
+	else
+		PrintTable(UPar)
+	end
 end)
