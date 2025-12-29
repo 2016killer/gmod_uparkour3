@@ -188,6 +188,7 @@ hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime, additio
 end)
 
 hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
+	if reason == 'OVERRIDE' then return end
 	if not UPar.IsIteratorExist(VEC_PUNCH_ITERATOR_ID)
 	and not UPar.IsIteratorExist(ANG_PUNCH_ITERATOR_ID)  
 	and not UPar.IsIteratorExist(VEC_PUNCH_WORLD_ITERATOR_ID)
