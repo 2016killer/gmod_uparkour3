@@ -11,12 +11,14 @@
 <a href="./HOOK.md">Hook</a>  
 <a href="./LRU.md">LRU</a>  
 <a href="./CUSTOMEFFECT.md">Custom Effect</a>  
+<a href="./UPMANIP.md">UPManip</a>  
+<a href="./UPKEYBOARD.md">UPKeyboard</a>  
 
 
 ## 简介
 
 ### 示例
-使用指令 developer 1;up_reload_sv;up_reload_cl 来加载示例。
+使用指令 `developer 1;up_reload_sv;up_reload_cl` 来加载示例。
 可以在所有带有 test 的 lua 文件中找到示例代码。
 
 ### 共识

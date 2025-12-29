@@ -28,26 +28,26 @@ local function SetBonePosition(ent, boneId, posw, angw)
 	
 	local curTransform = ent:GetBoneMatrix(boneId)
 	if not curTransform then 
-		string.format('[SetBonePosition]: ent "%s" boneId "%s" no Matrix', ent, boneId)
+		// string.format('[SetBonePosition]: ent "%s" boneId "%s" no Matrix', ent, boneId)
 		return false
 	end
 	
 	local parentboneId = ent:GetBoneParent(boneId)
 	local parentTransform = parentboneId == -1 and ent:GetWorldTransformMatrix() or ent:GetBoneMatrix(parentboneId)
 	if not parentTransform then 
-		string.format('[SetBonePosition]: ent "%s" boneId "%s" no parent', ent, boneId)
+		// string.format('[SetBonePosition]: ent "%s" boneId "%s" no parent', ent, boneId)
 		return false
 	end
 
 	local curTransformInvert = curTransform:GetInverse()
 	if not curTransformInvert then 
-		print(string.format('[SetBonePosition]: ent "%s" boneId "%s" Matrix is Singular', ent, boneId))
+		// print(string.format('[SetBonePosition]: ent "%s" boneId "%s" Matrix is Singular', ent, boneId))
 		return false
 	end
 
 	local parentTransformInvert = parentTransform:GetInverse()
 	if not parentTransformInvert then 
-		print(string.format('[SetBonePosition]: ent "%s" boneId "%s" parent Matrix is Singular', ent, boneId))
+		// print(string.format('[SetBonePosition]: ent "%s" boneId "%s" parent Matrix is Singular', ent, boneId))
 		return false
 	end
 
@@ -79,6 +79,7 @@ local function UnpackBMData(bmdata)
 		local offsetMatrix = nil
 		local offsetAng = bmdata.ang
 		local offsetPos = bmdata.pos
+		local offsetScale = bmdata.scale
 
 		if isangle(offsetAng) then
 			offsetMatrix = offsetMatrix or Matrix()
@@ -88,6 +89,11 @@ local function UnpackBMData(bmdata)
 		if isvector(offsetPos) then
 			offsetMatrix = offsetMatrix or Matrix()
 			offsetMatrix:SetTranslation(offsetPos)
+		end
+
+		if isvector(offsetScale) then
+			offsetMatrix = offsetMatrix or Matrix()
+			offsetMatrix:SetScale(offsetScale)
 		end
 
 		return boneName, offsetMatrix
@@ -280,7 +286,9 @@ local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 
 		local newPos = LerpVector(t, boneMat:GetTranslation(), targetMatrix:GetTranslation())
 		local newAng = LerpAngle(t, boneMat:GetAngles(), targetMatrix:GetAngles())
+		local newScale = LerpVector(t, boneMat:GetScale(), targetMatrix:GetScale())
 
+		ent:ManipulateBoneScale(boneId, newScale)
 		SetBonePosition(ent, boneId, newPos, newAng)
 	end
 end
@@ -326,9 +334,11 @@ local function AnimFadeOutIterator(dt, curTime, iteratorData)
 
 		local curManipPos = ent:GetManipulateBonePosition(boneId)
 		local curManipAng = ent:GetManipulateBoneAngles(boneId)
+		local curManipScale = ent:GetManipulateBoneScale(boneId)
 
 		ent:ManipulateBonePosition(boneId, LerpVector(t, curManipPos, zerovec))
 		ent:ManipulateBoneAngles(boneId, LerpAngle(t, curManipAng, zeroang))
+		ent:ManipulateBoneScale(boneId, LerpVector(t, curManipScale, diagonalvec))
 	end
 
 	return t <= 0
@@ -409,33 +419,29 @@ end)
 concommand.Add('upmanip_test', function(ply)
 	local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
 	local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
-	local Leg = IsValid(g_Legs.LegEnt) and g_Legs.LegEnt or ply
 
 	local speed = 1
 	local timeout = 1
 	local boneMapping = {
-		['ValveBiped.Bip01_L_Foot'] = true,
+		['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(20, 0, 0), scale = Vector(2, 1, 1)},
 		['ValveBiped.Bip01_L_Calf'] = true,
 	}
 
-	local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
+	local pos1 = ply:GetPos() + 100 * ply:EyeAngles():Forward()
+	local pos2 = pos1 + 100 * ply:EyeAngles():Right()
 
 	Eli:SetPos(pos1)
-	Eli:SetAngles(zeroang)
 	Eli:SetupBones()
 
-	gman_high:SetPos(pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right()))
+	gman_high:SetPos(pos2)
 	gman_high:SetupBones()
 
 	UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
-	UPManip.AnimFadeIn(Leg, Eli, boneMapping, speed, timeout)
-
-	timer.Simple(timeout * 0.5, function()
-		UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout)
-		UPManip.AnimFadeOut(Leg, boneMapping, speed, timeout)
+	timer.Simple(timeout * 0.5, function() 
+		UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout) 
 	end)
-
-	timer.Simple(timeout, function()
+	
+	timer.Simple(timeout + 1, function() 
 		Eli:Remove()
 		gman_high:Remove()
 	end)

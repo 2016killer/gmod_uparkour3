@@ -47,28 +47,3 @@ print('test')
 // end
 
 // CVarFlagsDesc('upact_upctrl_disabled')
-
-
-
-
--- 1. 定义原欧拉角（示例：带旋转的姿态）
-local originalAng = Angle(30, 45, 15) -- pitch=30, yaw=45, roll=15
-
--- 2. 求逆旋转欧拉角：直接对每个分量取反（核心逻辑）
-local inverseAng = Angle(-originalAng.p, -originalAng.y, -originalAng.r)
--- 等价写法（更直观，变量名语义化）：
--- local inverseAng = Angle(
---     -originalAng.pitch,
---     -originalAng.yaw,
---     -originalAng.roll
--- )
-
--- 3. 验证：原旋转 + 逆旋转 = 零旋转（无旋转）
--- 在GMod中，可通过矩阵叠加验证（旋转矩阵相乘为单位矩阵，即无旋转）
-local matOriginal = Matrix()
-matOriginal:SetAngles(originalAng)
-local matInverse = Matrix()
-matInverse:SetAngles(inverseAng)
-local matCombine = matOriginal * matInverse -- 叠加旋转
-local combineAng = matCombine:GetAngles()
-print("叠加后的旋转：", combineAng) -- 接近 Angle(0,0,0)，微小偏差可忽略

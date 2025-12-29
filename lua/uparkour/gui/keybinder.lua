@@ -17,6 +17,7 @@ local function CreateMenu(panel)
 		local help2 = panel:ControlHelp('#upgui.menu.keybinder.help2')
 		help2:SetTextColor(Color(255, 170, 0, 255))
 		panel:Help('=========================')
+   		panel:NumSlider('#upgui.keycheck_interval', 'upkeycheck_interval', 0, 0.1, 2)
 
 		local keys = {}
 		for k, v in pairs(UPKeyboard.KeySet) do table.insert(keys, k) end

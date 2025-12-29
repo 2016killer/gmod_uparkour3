@@ -21,8 +21,16 @@ local KeyState = UPKeyboard.KeyState
 local KeySet = UPKeyboard.KeySet
 local SeqHookRunAllSafe = UPar.SeqHookRunAllSafe
 
+local upkeycheck_interval = CreateClientConVar('upkeycheck_interval', '0.03', true, false, '')
 local nextThinkTime = 0
-local interval = 0.03
+local interval = upkeycheck_interval:GetFloat()
+
+cvars.AddChangeCallback('upkeycheck_interval', function(name, old, new)
+    local newVal = tonumber(new)
+    if not newVal then return end
+    interval = newVal
+    nextThinkTime = RealTime()
+end, 'default')
 
 UPKeyboard.Register = function(flag, default, label)
     assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
@@ -72,7 +80,7 @@ UPKeyboard.SetKeys = function(flag, keys)
 end
 
 
-hook.Add('Think', 'upar.key.event', function()
+hook.Add('Think', 'upkeyboard.check', function()
     local curTime = RealTime()
     if curTime < nextThinkTime then
         return

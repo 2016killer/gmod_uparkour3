@@ -11,6 +11,8 @@
 <a href="./HOOK.md">Hook</a>  
 <a href="./LRU.md">LRU</a>  
 <a href="./CUSTOMEFFECT.md">Custom Effect</a>  
+<a href="./UPMANIP.md">UPManip</a>  
+<a href="./UPKEYBOARD.md">UPKeyboard</a>  
 
 
 ## 自定义特效
