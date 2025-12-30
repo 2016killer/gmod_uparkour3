@@ -26,40 +26,6 @@ end
 cvars.AddChangeCallback('upext_gmodlegs3_compat', GmodLegs3CompatChange, 'default')
 GmodLegs3CompatChange(nil, nil, upext_gmodlegs3_compat:GetBool() and '1' or '0')
 
--- ==============================================================
--- 修改 gmodlegs3 以方便控制其运行状态
--- 添加一个 updateFlag 来标记是否需要更新 GmodLegs3
--- ==============================================================
-concommand.Add('upext_gmodlegs3_inject', function()
-	if not g_Legs then
-		print('[UPExt]: can not find g_Legs')
-		return
-	end
-
-	g_Legs.OriginalUpdate = isfunction(g_Legs.OriginalUpdate) and g_Legs.OriginalUpdate or g_Legs.Update
-	g_Legs.Update = function(self, maxseqgroundspeed, ...)
-		if self.Sleep then return end
-		self:OriginalUpdate(maxseqgroundspeed, ...)
-	end
-
-	print('[UPExt]: g_Legs.Update already injected')
-end)
-
-concommand.Add('upext_gmodlegs3_recovery', function()
-	if not g_Legs then
-		print('[UPExt]: can not find g_Legs')
-		return
-	end
-
-	g_Legs.Update = isfunction(g_Legs.OriginalUpdate) and g_Legs.OriginalUpdate or g_Legs.Update
-	print('[UPExt]: g_Legs.Update already recovered')
-end)
-
-hook.Add('KeyPress', 'UPExtGmodLegs3Inject', function()
-	hook.Remove('KeyPress', 'UPExtGmodLegs3Inject')
-	timer.Simple(3, function() RunConsoleCommand('upext_gmodlegs3_inject') end)
-end)
-
 
 -- ==============================================================
 -- 拦截 VMLegs.PlayAnim 和 VMLegs.Remove 使用 UPManip 控制方案代替
@@ -83,14 +49,19 @@ UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 
 local function tempIter(dt, curtime, data)
 	local ent = data.ent
-	local popFlag = UPManip.AnimFadeIterator(dt, curtime, data)
+	local tar = data.target
+	local popFlag, t = UPManip.AnimFadeIterator(dt, curtime, data)
 
 	if popFlag then
 		ent:SetPos(Vector())
 		ent:SetAngles(Angle())
-	else
-		ent:SetPos(g_Legs.RenderPos)
-		ent:SetAngles(g_Legs.RenderAngle)
+
+		g_Legs.RenderPosOff = nil
+	elseif isentity(tar) and IsValid(tar) then
+		ent:SetPos(tar:GetPos())
+		ent:SetAngles(tar:GetAngles())
+		
+		g_Legs.RenderPosOff = LerpVector(t, UPar.zerovec, tar:GetPos() - g_Legs.RenderPos)
 	end
 
 	return popFlag
@@ -117,8 +88,17 @@ hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 		g_Legs.Sleep = true
 
 		local identity = UPManip.GetEntAnimFadeIdentity(g_Legs.LegEnt)
-		UPar.PushIterator(identity, tempIter, fadeInData, timeout)
+		UPar.PushPVMDIterator(identity, tempIter, fadeInData, timeout)
 	end
+end)
+
+
+hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
+	print('UParIteratorPop', identity, reason)
+end)
+
+hook.Add('UParPVMDIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
+	print('UParPVMDIteratorPop', identity, reason)
 end)
 
 hook.Add('VMLegsPreRemove', 'UPExtGmodLegs3Manip', function(anim)
@@ -126,7 +106,8 @@ hook.Add('VMLegsPreRemove', 'UPExtGmodLegs3Manip', function(anim)
 	if not upext_gmodlegs3_manip:GetBool() then return end
 	local speed = 1
 	local timeout = 10
-	UPManip:AnimFadeOut(g_Legs.LegEnt, nil, speed, timeout)
+	local succ = UPManip:AnimFadeOut(g_Legs.LegEnt, nil, speed, timeout)
+	print('UPExtGmodLegs3Manip', succ)
 end)
 
 -- ==============================================================
@@ -135,8 +116,6 @@ end)
 
 UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
 	panel:Help('·························· GmodLegs3 ··························')
-	panel:ControlHelp('#upext.gmodlegs3_inject.help')
-
 	panel:CheckBox('#upext.gmodlegs3_compat', 'upext_gmodlegs3_compat')
 	panel:ControlHelp('#upext.gmodlegs3_compat.help')
 
@@ -145,6 +124,4 @@ UPar.SeqHookAdd('UParExtendMenu', 'GmodLegs3Compat', function(panel)
 	local help2 = panel:ControlHelp('#upext.gmodlegs3_manip.help2')
 	help2:SetTextColor(Color(255, 170, 0))
 
-	panel:Button('#upext.gmodlegs3_inject', 'upext_gmodlegs3_inject')
-	panel:Button('#upext.gmodlegs3_recovery', 'upext_gmodlegs3_recovery')
 end, 1)

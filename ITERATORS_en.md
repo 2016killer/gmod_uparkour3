@@ -18,11 +18,16 @@
 
 # Iterators 
 
-## 1.  Push Render Iterator
+There are actually two iterator systems:
+1. PVMDIterators: Used to execute iterators in the PreDrawViewModel frame loop.
+2. Iterators: Used to execute iterators in the Think frame loop. 
+UPar.PushIterator and UPar.PushPVMDIterator are isomorphic.
+
+## 1.  Push Iterator
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.PushRenderIterator(**any** identity, **function** iterator, **any** addition, **number** timeout, **function** clear)
+**boolean** UPar.PushIterator(**any** identity, **function** iterator, **any** addition, **number** timeout, **function** clear)
 ```note
-Used to push a render iterator, which will be executed in the PostRender frame loop.
+Used to push a iterator, which will be executed in the Think frame loop.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type, supporting custom types for special business requirements);
 2.  iterator: Frame loop callback function with parameters (dt<delta time>, curTime<current time>, add<additional data>);
@@ -30,30 +35,30 @@ Parameter Description:
 4.  timeout: Timeout duration (in seconds, must be greater than 0, otherwise returns false);
 5.  clear: Iterator cleanup callback function with parameters (identity, curTime, add, reason<cleanup reason>).
 
-If an iterator with the same identity already exists, the UParRenderIteratorPop hook will be triggered first and the old iterator will be overwritten.
-If there are no valid iterators currently, the PostRender hook will be automatically added.
+If an iterator with the same identity already exists, the UParIteratorPop hook will be triggered first and the old iterator will be overwritten.
+If there are no valid iterators currently, the Think hook will be automatically added.
 Returns true if the push is successful, and returns false if the timeout parameter is invalid (<= 0).
 ```
 
-## 2.  Pop Render Iterator Manually
+## 2.  Pop Iterator Manually
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.PopRenderIterator(**any** identity, **boolean** silent)
+**boolean** UPar.PopIterator(**any** identity, **boolean** silent)
 ```note
-Used to manually remove the render iterator with the specified identifier.
+Used to manually remove the iterator with the specified identifier.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParRenderIteratorPop hook will not be triggered when set to true.
+2.  silent: Whether to execute silently, the UParIteratorPop hook will not be triggered when set to true.
 
 If the iterator exists, the cleanup callback (clear) will be executed first, then the hook will be triggered or not according to the silent parameter, and finally returns true.
 If the iterator does not exist, returns false directly.
 The additional data (add) of the iterator will be automatically nullified after removal to reduce memory redundancy.
 ```
 
-## 3.  Get Render Iterator Data
+## 3.  Get Iterator Data
 ![shared](./materials/upgui/shared.jpg)
-**table/nil** UPar.GetRenderIterator(**any** identity)
+**table/nil** UPar.GetIterator(**any** identity)
 ```note
-Used to obtain the complete data of the render iterator corresponding to the specified identifier.
+Used to obtain the complete data of the iterator corresponding to the specified identifier.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type).
 
@@ -61,25 +66,25 @@ If the iterator exists, returns the iterator data table (including fields: f<cal
 If the iterator does not exist, returns nil.
 ```
 
-## 4.  Check If Render Iterator Exists
+## 4.  Check If Iterator Exists
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.IsRenderIteratorExist(**any** identity)
+**boolean** UPar.IsIteratorExist(**any** identity)
 ```note
-Used to quickly determine whether the render iterator with the specified identifier exists.
+Used to quickly determine whether the iterator with the specified identifier exists.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type).
 
 Returns true if the iterator exists, and returns false if the iterator does not exist.
 ```
 
-## 5.  Pause Render Iterator
+## 5.  Pause Iterator
 ![shared](./materials/upgui/shared.jpg)
-**boolean/number** UPar.PauseRenderIterator(**any** identity, **boolean** silent)
+**boolean/number** UPar.PauseIterator(**any** identity, **boolean** silent)
 ```note
-Used to pause the render iterator with the specified identifier; the iterator will no longer participate in the PostRender frame loop execution after pausing.
+Used to pause the iterator with the specified identifier; the iterator will no longer participate in the Think frame loop execution after pausing.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParRenderIteratorPause hook will not be triggered when set to true.
+2.  silent: Whether to execute silently, the UParIteratorPause hook will not be triggered when set to true.
 
 Return Value Description:
 1.  false: The iterator does not exist;
@@ -89,14 +94,14 @@ Return Value Description:
 The current time (pt field) will be recorded when pausing, which is used to compensate the timeout duration when resuming.
 ```
 
-## 6.  Resume Render Iterator
+## 6.  Resume Iterator
 ![shared](./materials/upgui/shared.jpg)
-**boolean/number** UPar.ResumeRenderIterator(**any** identity, **boolean** silent)
+**boolean/number** UPar.ResumeIterator(**any** identity, **boolean** silent)
 ```note
-Used to resume the paused render iterator with the specified identifier.
+Used to resume the paused iterator with the specified identifier.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParRenderIteratorResume hook will not be triggered when set to true.
+2.  silent: Whether to execute silently, the UParIteratorResume hook will not be triggered when set to true.
 
 Return Value Description:
 1.  false: The iterator does not exist;
@@ -104,17 +109,17 @@ Return Value Description:
 3.  true: The iterator is resumed successfully.
 
 The timeout duration will be automatically compensated when resuming (new end time = resume time + remaining timeout duration) to ensure the accuracy of the timeout logic.
-If there are no valid iterators currently, the PostRender hook will be automatically added after resumption.
+If there are no valid iterators currently, the Think hook will be automatically added after resumption.
 ```
 
 ## 7.  Set Nested Additional Data of Iterator
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.SetRenderIterAddiKV(**any** identity, **...** varargs)
+**boolean** UPar.SetIterAddiKV(**any** identity, **...** varargs)
 ```note
-Used to set the nested additional data of the render iterator, supporting assignment with multi-level key paths.
+Used to set the nested additional data of the iterator, supporting assignment with multi-level key paths.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  varargs: Variable arguments, requiring at least 1 key + 1 value (e.g.: SetRenderIterAddiKV(ident, "a", "b", 10) corresponds to add.a.b = 10).
+2.  varargs: Variable arguments, requiring at least 1 key + 1 value (e.g.: SetIterAddiKV(ident, "a", "b", 10) corresponds to add.a.b = 10).
 
 Returns false directly if the table corresponding to the intermediate nested key does not exist.
 Returns false if the iterator does not exist.
@@ -124,12 +129,12 @@ Does not support automatic creation of nested tables, only supports assignment f
 
 ## 8.  Get Nested Additional Data of Iterator
 ![shared](./materials/upgui/shared.jpg)
-**any/nil** UPar.GetRenderIterAddiKV(**any** identity, **...** varargs)
+**any/nil** UPar.GetIterAddiKV(**any** identity, **...** varargs)
 ```note
-Used to obtain the nested additional data of the render iterator, supporting query with multi-level key paths.
+Used to obtain the nested additional data of the iterator, supporting query with multi-level key paths.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  varargs: Variable arguments, requiring at least 1 key (e.g.: GetRenderIterAddiKV(ident, "a", "b") corresponds to querying add.a.b).
+2.  varargs: Variable arguments, requiring at least 1 key (e.g.: GetIterAddiKV(ident, "a", "b") corresponds to querying add.a.b).
 
 Returns nil if the table corresponding to the intermediate nested key does not exist.
 Returns nil if the iterator does not exist.
@@ -138,13 +143,13 @@ Returns the value of the corresponding key if the query is successful.
 
 ## 9.  Set Iterator Timeout End Time
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.SetRenderIterEndTime(**any** identity, **number** endTime, **boolean** silent)
+**boolean** UPar.SetIterEndTime(**any** identity, **number** endTime, **boolean** silent)
 ```note
-Used to directly set the timeout end time of the specified render iterator.
+Used to directly set the timeout end time of the specified iterator.
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
 2.  endTime: New timeout end time (in timestamp format);
-3.  silent: Whether to execute silently, the UParRenderIteratorEndTimeChanged hook will not be triggered when set to true.
+3.  silent: Whether to execute silently, the UParIteratorEndTimeChanged hook will not be triggered when set to true.
 
 Returns true if the iterator exists and the end time is set successfully.
 Returns false if the iterator does not exist.
@@ -152,9 +157,9 @@ Returns false if the iterator does not exist.
 
 ## 10. Merge Iterator Additional Data
 ![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.MergeRenderIterAddiKV(**any** identity, **table** data)
+**boolean** UPar.MergeIterAddiKV(**any** identity, **table** data)
 ```note
-Used to merge the additional data of the render iterator, implemented based on the GLua table.Merge method (shallow merge).
+Used to merge the additional data of the iterator, implemented based on the GLua table.Merge method (shallow merge).
 Parameter Description:
 1.  identity: Unique identifier of the iterator (any non-nil type);
 2.  data: Additional data to be merged (must be a table type, otherwise an assertion error will be thrown).

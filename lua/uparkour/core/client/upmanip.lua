@@ -316,22 +316,22 @@ UPManip.LerpBoneManip = LerpBoneManip
 
 UPManip.FADE_SUB_IDENTITY = 'upmanip.anim.fade'
 
-UPManip.AnimFadeIterator = function(dt, curTime, iteratorData)
-	local boneMapping = iteratorData.boneMapping
-	local boneKeys = iteratorData.boneKeys
-	local speed = iteratorData.speed
-	local t = iteratorData.t
-	local ent = iteratorData.ent
-	local target = iteratorData.target
+UPManip.AnimFadeIterator = function(dt, curTime, additive)
+	local boneMapping = additive.boneMapping
+	local boneKeys = additive.boneKeys
+	local speed = additive.speed
+	local t = additive.t
+	local ent = additive.ent
+	local target = additive.target
 
 	speed = math.max(math.abs(speed), 0.01)
 	t = math.Clamp((t or 0) + dt * speed, 0, 1) 
 
-	iteratorData.t = t
+	additive.t = t
 
 	if not isentity(ent) or not IsValid(ent) then 
 		print(string.format('[UPManip.AnimFadeIterator]: ent "%s" is not valid', ent))
-		return true
+		return true, t
 	end
 
 	if istable(target) then 
@@ -341,10 +341,13 @@ UPManip.AnimFadeIterator = function(dt, curTime, iteratorData)
 		target:SetupBones()
 		LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 	else
-		local snapshot = iteratorData.snapshot
+		local snapshot = additive.snapshot
 		LerpBoneManip(t, ent, snapshot)
-		return t >= 1
+		
+		return t >= 1, t
 	end
+
+	return nil, t
 end
 
 UPManip.GetAnimFadeData = function(ent, target, boneMapping, speed)
@@ -388,7 +391,7 @@ end
 
 UPManip.IsEntAnimFade = function(ent)
 	local identity = UPManip.GetEntAnimFadeIdentity(ent)
-	local iter = UPar.GetIterator(identity)
+	local iter = UPar.GetPVMDIterator(identity)
 	return !!iter and iter.add.subId == UPManip.FADE_SUB_IDENTITY
 end
 
@@ -404,7 +407,7 @@ function UPManip:AnimFadeIn(ent, target, boneMapping, speed, timeout)
 	local identity = self.GetEntAnimFadeIdentity(ent)
 	local iter = self.AnimFadeIterator
 	
-	return UPar.PushIterator(identity, iter, data, timeout)
+	return UPar.PushPVMDIterator(identity, iter, data, timeout)
 end
 
 function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
@@ -414,8 +417,8 @@ function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
 
 	local identity = self.GetEntAnimFadeIdentity(ent)
 
-	local succ = UPar.SetIterEndTime(identity, CurTime() + timeout)
-	succ = succ and UPar.MergeIterAddiKV(identity, {
+	local succ = UPar.SetPVMDIterEndTime(identity, CurTime() + timeout)
+	succ = succ and UPar.MergePVMDIterAddiKV(identity, {
 		t = 0,
 		speed = speed,
 		target = false,
