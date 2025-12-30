@@ -195,7 +195,5 @@ hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, 
 	then
 		hook.Remove('CalcView', CALC_HOOK_KEY)
 		hook.Remove('CalcViewModelView', CALC_HOOK_KEY)
-		return true
 	end
-	
 end)
