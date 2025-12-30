@@ -43,11 +43,13 @@ local function ThinkCall()
 		end
 	end
 
+	-- 多次遍历防止交叉感染
 	for i = #removeIdentities, 1, -1 do
 		local identity, data, _ = unpack(removeIdentities[i])
 		if Iterators[identity] ~= data then
 			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in think call', identity))
 			table.remove(removeIdentities, i)
+			removeThinkFlag = false
 		else
 			Iterators[identity] = nil
 		end
@@ -55,6 +57,28 @@ local function ThinkCall()
 
 	for _, v in ipairs(removeIdentities) do
 		local identity, data, reason = unpack(v)
+
+		if Iterators[identity] ~= nil then
+			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
+			removeThinkFlag = false
+			continue
+		end
+
+		if isfunction(data.clear) then
+			local succ, result = pcall(data.clear, identity, curTime, data.add, reason)
+			if not succ then ErrorNoHaltWithStack(result) end
+		end
+	end
+
+	for _, v in ipairs(removeIdentities) do
+		local identity, data, reason = unpack(v)
+
+		if Iterators[identity] ~= nil then
+			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
+			removeThinkFlag = false
+			continue
+		end
+
 		hook.Run(POP_HOOK, identity, curTime, data.add, reason) 
 	end
 
@@ -64,7 +88,7 @@ local function ThinkCall()
 	end
 end
 
-UPar.PushIterator = function(identity, iterator, addition, timeout)
+UPar.PushIterator = function(identity, iterator, addition, timeout, clear)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
@@ -80,7 +104,7 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 	addition = istable(addition) and addition or {}
 	hook.Run(PUSH_HOOK, identity, endtime, addition)
 
-	Iterators[identity] = {f = iterator, et = endtime, add = addition}
+	Iterators[identity] = {f = iterator, et = endtime, add = addition, clear = clear}
 	
 	if not isThinkHookAdded then
 		thinkHookStartTime = CurTime()
