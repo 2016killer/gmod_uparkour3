@@ -3,18 +3,18 @@
 	2025 12 30
 --]]
 
-UPar.PDVMIterators = UPar.PDVMIterators or {}
-local Iterators = UPar.PDVMIterators
+UPar.RenderIterators = UPar.RenderIterators or {}
+local Iterators = UPar.RenderIterators
 
 local isThinkHookAdded = false
 local thinkHookStartTime = 0
 local THINK_HOOK_KEY = 'upar.iterators'
-local THINK_HOOK = 'PreDrawViewModel'
-local POP_HOOK = 'UParPDVMIteratorPop'
-local PUSH_HOOK = 'UParPDVMIteratorPush'
-local PAUSE_HOOK = 'UParPDVMIteratorPause'
-local END_TIME_CHANGED_HOOK = 'UParPDVMIteratorEndTimeChanged'
-local RESUME_HOOK = 'UParPDVMIteratorResume'
+local THINK_HOOK = 'PostDrawOpaqueRenderables'
+local POP_HOOK = 'UParRenderIteratorPop'
+local PUSH_HOOK = 'UParRenderIteratorPush'
+local PAUSE_HOOK = 'UParRenderIteratorPause'
+local END_TIME_CHANGED_HOOK = 'UParRenderIteratorEndTimeChanged'
+local RESUME_HOOK = 'UParRenderIteratorResume'
 
 local function ThinkCall()
 	local removeThinkFlag = true
@@ -48,7 +48,7 @@ local function ThinkCall()
 	for i = #removeIdentities, 1, -1 do
 		local identity, data, _ = unpack(removeIdentities[i])
 		if Iterators[identity] ~= data then
-			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in think call', identity))
+			print(string.format('[UPar.RenderIterators]: warning: iterator "%s" changed in think call', identity))
 			table.remove(removeIdentities, i)
 			removeThinkFlag = false
 		else
@@ -60,7 +60,7 @@ local function ThinkCall()
 		local identity, data, reason = unpack(v)
 
 		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in other', identity))
+			print(string.format('[UPar.RenderIterators]: warning: iterator "%s" changed in other', identity))
 			removeThinkFlag = false
 			continue
 		end
@@ -75,7 +75,7 @@ local function ThinkCall()
 		local identity, data, reason = unpack(v)
 
 		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in other', identity))
+			print(string.format('[UPar.RenderIterators]: warning: iterator "%s" changed in other', identity))
 			removeThinkFlag = false
 			continue
 		end
@@ -90,12 +90,12 @@ local function ThinkCall()
 	end
 end
 
-UPar.PushPDVMIterator = function(identity, iterator, addition, timeout, clear)
+UPar.PushRenderIterator = function(identity, iterator, addition, timeout, clear)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 	if timeout <= 0 then 
-		print('[UPar.PushPDVMIterator]: warning: timeout <= 0!') 
+		print('[UPar.PushRenderIterator]: warning: timeout <= 0!') 
 		return false
 	end
 
@@ -117,7 +117,7 @@ UPar.PushPDVMIterator = function(identity, iterator, addition, timeout, clear)
 	return true
 end
 
-UPar.PopPDVMIterator = function(identity, silent)
+UPar.PopRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 
 	local iteratorData = Iterators[identity]
@@ -141,17 +141,17 @@ UPar.PopPDVMIterator = function(identity, silent)
 	return true
 end
 
-UPar.GetPDVMIterator = function(identity)
+UPar.GetRenderIterator = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity]
 end
 
-UPar.IsPDVMIteratorExist = function(identity)
+UPar.IsRenderIteratorExist = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity] ~= nil
 end
 
-UPar.PausePDVMIterator = function(identity, silent)
+UPar.PauseRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -172,7 +172,7 @@ UPar.PausePDVMIterator = function(identity, silent)
 	return true
 end
 
-UPar.ResumePDVMIterator = function(identity, silent)
+UPar.ResumeRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -202,7 +202,7 @@ UPar.ResumePDVMIterator = function(identity, silent)
 	end
 end
 
-UPar.SetPDVMIterAddiKV = function(identity, ...)
+UPar.SetRenderIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -225,7 +225,7 @@ UPar.SetPDVMIterAddiKV = function(identity, ...)
 	return true
 end
 
-UPar.GetPDVMIterAddiKV = function(identity, ...)
+UPar.GetRenderIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -247,7 +247,7 @@ UPar.GetPDVMIterAddiKV = function(identity, ...)
 	return target[keyValue[total - 1]]
 end
 
-UPar.SetPDVMIterEndTime = function(identity, endTime, silent)
+UPar.SetRenderIterEndTime = function(identity, endTime, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -263,7 +263,7 @@ UPar.SetPDVMIterEndTime = function(identity, endTime, silent)
 	return true
 end
 
-UPar.MergePDVMIterAddiKV = function(identity, data)
+UPar.MergeRenderIterAddiKV = function(identity, data)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(istable(data), 'data must be a table.')
 

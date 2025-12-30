@@ -18,6 +18,8 @@
 # UPManip 骨骼操纵
 ```note
 注意: 这是一个测试性模块, 不建议在生产环境中使用。
+
+这些都很难用, 简直一坨屎。
 ```
 
 
@@ -42,78 +44,6 @@
 ```note
 控制指定实体的指定骨骼的位置和角度, 新的位置不能距离旧位置太远 (128个单位)
 最好在调用之前使用 ent:SetupBones(), 因为计算中需要当前骨骼矩阵。
-```
 
-![client](./materials/upgui/client.jpg)
-**table** UPManip.SnapshotManip(**entity** ent, **table** boneMapping)
-```note
-返回当前实体的指定骨骼的位置和角度。
-内部使用 ent:ManipulateBonexxx()
-```
-
-![client](./materials/upgui/client.jpg)
-**entity** UPManip.GetEntAnimFadeIdentity(**entity** ent)
-```note
-返回指定实体的动画淡入迭代器标志位。
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip.IsEntAnimFade(**entity** ent)
-```note
-判断实体是否有动画淡入迭代器。
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip:AnimFadeIn(**entity** ent, **entity** or **table** target or snapshot, **table** boneMapping, **float** speed=3, **float** timeout=2)
-```note
-boneMapping 指定了需要操纵的骨骼。
-
-淡入时间为 1 / speed 秒, 需要手动淡出, 如果 target 是实体, 当 target 被删除时会自动淡出。
-
-内部会使用 UPar.UParIteratorPush 添加迭代器, 返回是否成功。
-迭代器超时后不做任何事。
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip:AnimFadeOut(**entity** ent, **table** or **nil** snapshot, **float** speed=3, **float** timeout=2)
-```note
-boneMapping 指定了需要操纵的骨骼。
-snapshot 为 nil 则使用当前快照。
-
-淡出时间为 1 / speed 秒
-
-迭代器超时后不做任何事。
-```
-
-```lua
-local ply = LocalPlayer()
-local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
-local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
-
-local speed = 1
-local timeout = 10
-local boneMapping = {
-	['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(0, 90, 0), scale = Vector(2, 1, 1)},
-	['ValveBiped.Bip01_L_Calf'] = true,
-}
-
-local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
-local pos2 = pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right())
-
-Eli:SetPos(pos1)
-Eli:SetupBones()
-
-gman_high:SetupBones()
-gman_high:SetPos(pos2)
-
-UPManip:AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
-timer.Simple(timeout * 0.5, function() 
-	UPManip:AnimFadeOut(Eli, nil, speed, timeout)
-	print('淡出')
-end)
-
-timer.Simple(timeout + 1, function() 
-	Eli:Remove()
-	gman_high:Remove()
-end)
+这已经是最好用的, 其他更是一坨答辩
 ```

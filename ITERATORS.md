@@ -19,10 +19,10 @@
 # 迭代器
 ```
 实际上有两个迭代器系统：
-1. PVMDIterators: 用于在 PreDrawViewModel 帧循环中执行迭代器。
+1. RenderIterators: 用于在 PostDrawOpaqueRenderables 帧循环中执行迭代器。
 2. Iterators: 用于在 Think 帧循环中执行迭代器。
 
-UPar.PushIterator 与 UPar.PushPVMDIterator 是同构的。
+UPar.PushIterator 与 UPar.PushRenderIterator 是同构的。
 ```
 
 

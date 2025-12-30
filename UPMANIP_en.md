@@ -18,6 +18,8 @@
 # UPManip - Bone Manipulation
 ```note
 Note: This is a test module and is not recommended for use in a production environment.
+
+These are all very difficult to use. They are simply a pile of crap.
 ```
 
 
@@ -44,79 +46,6 @@ This is a **client-side only** API that provides direct control over bones via m
 Controls the position and angle of the specified bone of the target entity.
 The new position cannot be too far from the old position (128 units maximum).
 It is recommended to call ent:SetupBones() before using this function, as the current bone matrix is required for calculations.
-```
 
-![client](./materials/upgui/client.jpg)
-**table** UPManip.SnapshotManip(**entity** ent, **table** boneMapping)
-```note
-Returns the current position and angle of the specified bones of the entity.
-Internally uses ent:ManipulateBonexxx() methods.
-```
-
-![client](./materials/upgui/client.jpg)
-**entity** UPManip.GetEntAnimFadeIdentity(**entity** ent)
-```note
-Returns the animation fade-in iterator identifier of the specified entity.
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip.IsEntAnimFade(**entity** ent)
-```note
-Determines whether the entity has an animation fade-in iterator.
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip:AnimFadeIn(**entity** ent, **entity** or **table** target or snapshot, **table** boneMapping, **float** speed=3, **float** timeout=2)
-```note
-boneMapping specifies the bones to be manipulated.
-
-The fade-in time is 1 / speed seconds. Manual fade-out is required.
-If the target is an entity, automatic fade-out will occur when the target is deleted.
-
-Internally uses UPar.PushIterator to add an iterator. Returns whether the operation succeeded.
-No action is taken after the iterator times out.
-```
-
-![client](./materials/upgui/client.jpg)
-**bool** UPManip:AnimFadeOut(**entity** ent, **table** or **nil** snapshot, **float** speed=3, **float** timeout=2)
-```note
-boneMapping specifies the bones to be manipulated.
-If snapshot is nil, the current snapshot will be used.
-
-The fade-out time is 1 / speed seconds.
-
-No action is taken after the iterator times out.
-```
-
-```lua
-local ply = LocalPlayer()
-local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
-local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
-
-local speed = 1
-local timeout = 10
-local boneMapping = {
-	['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(0, 90, 0), scale = Vector(2, 1, 1)},
-	['ValveBiped.Bip01_L_Calf'] = true,
-}
-
-local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
-local pos2 = pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right())
-
-Eli:SetPos(pos1)
-Eli:SetupBones()
-
-gman_high:SetupBones()
-gman_high:SetPos(pos2)
-
-UPManip:AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
-timer.Simple(timeout * 0.5, function() 
-	UPManip:AnimFadeOut(Eli, nil, speed, timeout)
-	print('Fade out')
-end)
-
-timer.Simple(timeout + 1, function() 
-	Eli:Remove()
-	gman_high:Remove()
-end)
+This is already the most convenient one. The others are just a bunch of feces.
 ```

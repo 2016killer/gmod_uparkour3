@@ -19,9 +19,9 @@
 # Iterators 
 
 There are actually two iterator systems:
-1. PVMDIterators: Used to execute iterators in the PreDrawViewModel frame loop.
+1. RenderIterators: Used to execute iterators in the PostDrawOpaqueRenderables frame loop.
 2. Iterators: Used to execute iterators in the Think frame loop. 
-UPar.PushIterator and UPar.PushPVMDIterator are isomorphic.
+UPar.PushIterator and UPar.PushRenderIterator are isomorphic.
 
 ## 1.  Push Iterator
 ![shared](./materials/upgui/shared.jpg)

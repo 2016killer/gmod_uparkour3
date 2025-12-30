@@ -15,10 +15,8 @@ function effect:Start(ply, data)
 	return UPar.CallPlyUsingEff(actName, 'Start', ply, ply, data)
 end
 
-function effect:Rhythm(ply, data)
-	local rhythm = istable(data) and data.rhythm or 2
-	local actName = rhythm == 1 and 'uphighclimb' or 'upvault'
-	return UPar.CallPlyUsingEff(actName, 'Start', ply, ply, data)
+function effect:Rhythm(ply, _)
+	return UPar.CallPlyUsingEff('upvault', 'Start', ply, ply, data)
 end
 
 effect.Clear = UPar.GenEffClear
