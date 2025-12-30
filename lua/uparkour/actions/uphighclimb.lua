@@ -140,7 +140,7 @@ function uphighclimb:GetMoveData(ply, obsTrace, climbTrace, refVel)
 end
 
 function uphighclimb:Check(ply, pos, dirNorm, refVel)
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+	if not isentity(ply) or not IsValid(ply) then
 		print('[uphighclimb]: Warning: Invalid player')
 		return
 	end

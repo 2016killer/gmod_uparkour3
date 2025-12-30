@@ -169,7 +169,7 @@ function upvaultdl:Check(ply, obsTrace, climbTrace, refVel)
 		return
 	end
 
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+	if not isentity(ply) or not IsValid(ply) then
 		print('[upvaultdl]: Warning: Invalid player')
 		return
 	end

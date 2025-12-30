@@ -69,7 +69,7 @@ local THINK_HOOK_IDENTITY = 'upctrl.think'
 local RESET_HOOK_IDENTITY = 'upctrl.reset'
 
 function controller:Trigger(ply, actFlag)
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then 
+	if not isentity(ply) or not IsValid(ply) then 
 		print('[upctrl] Trigger: ply is not valid')
 		return 
 	end
@@ -138,10 +138,6 @@ end
 
 
 local function temp_add_act_flag(ply, cmd, args)
-	if not IsValid(ply) or not ply:IsPlayer() then
-		return
-	end
-
 	local actFlag = tonumber(args[1])
 	if not actFlag then 
 		print(string.format('Invalid actFlag "%s" (not a number)', args[1]))
@@ -153,10 +149,6 @@ local function temp_add_act_flag(ply, cmd, args)
 end
 
 local function temp_remove_act_flag(ply, cmd, args)
-	if not IsValid(ply) or not ply:IsPlayer() then
-		return
-	end
-
 	local actFlag = tonumber(args[1])
 	if not actFlag then 
 		actFlag = 0xff
@@ -193,10 +185,6 @@ if SERVER then
 			if CurTime() < nextThinkTime then return end
 			nextThinkTime = CurTime() + interval
 
-			if not IsValid(ply) or not ply:IsPlayer() then
-				return
-			end
-
 			controller:Trigger(ply)
 		end)
 
@@ -216,12 +204,7 @@ elseif CLIENT then
 			if CurTime() < nextThinkTime then return end
 			nextThinkTime = CurTime() + interval:GetFloat()
 
-			local ply = LocalPlayer()
-			if not IsValid(ply) or not ply:IsPlayer() then
-				return
-			end
-
-			controller:Trigger(ply)
+			controller:Trigger(LocalPlayer())
 		end)
 
 		concommand.Add(CMD_ADD, temp_add_act_flag)

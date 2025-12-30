@@ -170,7 +170,7 @@ function upvaultdh:Check(ply, obsTrace, climbTrace, refVel)
 		return
 	end
 
-	if not IsValid(ply) or not isentity(ply) or not ply:IsPlayer() then
+	if not isentity(ply) or not IsValid(ply) then
 		print('[upvaultdh]: Warning: Invalid player')
 		return
 	end

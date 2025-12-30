@@ -83,13 +83,26 @@ UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 	if not upext_gmodlegs3_manip:GetBool() then return end
 	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) and IsValid(VMLegs.LegParent) then
-		g_Legs.Sleep = true
+		
+		local fadeInData = self.GetAnimFadeData(ent, target, boneMapping, 3)
+		if not fadeInData then 
+			return 
+		end
+
 		VMLegs.LegModel:SetNoDraw(true)
 		g_Legs.LegEnt:SetPos(g_Legs.RenderPos)
 		g_Legs.LegEnt:SetAngles(g_Legs.RenderAngle)
 		g_Legs.LegEnt:SetParent(LocalPlayer())
 
-		UPManip.AnimFadeIn(g_Legs.LegEnt, VMLegs.LegModel, UPManip.BoneMappings['gmodlegs3tovmlegs'], 3, 10)
+		g_Legs.Sleep = true
+
+		local identity = self.GetEntAnimFadeIdentity(ent)
+		local iter = self.AnimFadeIterator
+		
+		return UPar.PushIterator(identity, iter, data, timeout)
+
+
+		UPManip:AnimFadeIn(g_Legs.LegEnt, VMLegs.LegModel, UPManip.BoneMappings['gmodlegs3tovmlegs'], 3, 10)
 	end
 end)
 

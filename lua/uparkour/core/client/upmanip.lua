@@ -16,7 +16,7 @@ local function SetBonePosition(ent, boneId, posw, angw)
 	-- 每帧都要更新
 	-- 应该还能再优化
 
-	if not IsValid(ent) or not isentity(ent) then
+	if not isentity(ent) or not IsValid(ent) then
 		print(string.format('[UPManip.SetBonePosition]: invaild ent "%s"', ent))
 		return
 	end
@@ -125,7 +125,7 @@ local function MarkBoneFamilyLevel(boneId, currentLevel, family, familyLevel, ca
 end
 
 local function GetBonesFamilyLevel(ent, useLRU2)
-	if not IsValid(ent) or not isentity(ent) or not ent:GetModel() then
+	if not isentity(ent) or not IsValid(ent) or not ent:GetModel() then
 		print(string.format('[UPManip.GetBonesFamilyLevel]: invaild ent "%s"', ent))
 		return
 	end
@@ -282,7 +282,7 @@ local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 end
 
 local function ClearManip(ent, snapshot)
-	if not IsValid(ent) or not isentity(ent) then
+	if not isentity(ent) or not IsValid(ent) then
 		print(string.format('[UPManip.ClearManip]: invaild ent "%s"', ent))
 		return
 	end
@@ -329,14 +329,14 @@ UPManip.AnimFadeIterator = function(dt, curTime, iteratorData)
 
 	iteratorData.t = t
 
-	if not IsValid(ent) or not isentity(ent) then 
+	if not isentity(ent) or not IsValid(ent) then 
 		print(string.format('[UPManip.AnimFadeIterator]: ent "%s" is not valid', ent))
 		return true
 	end
 
 	if istable(target) then 
 		LerpBoneManip(t, ent, target)
-	elseif IsValid(target) and isentity(target) then
+	elseif isentity(target) and IsValid(target) then
 		ent:SetupBones()
 		target:SetupBones()
 		LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
@@ -348,13 +348,25 @@ UPManip.AnimFadeIterator = function(dt, curTime, iteratorData)
 end
 
 UPManip.GetAnimFadeData = function(ent, target, boneMapping, speed)
-	assert(IsValid(ent) and isentity(ent), 'ent is not valid or not entity')
-	assert(istable(target) or (IsValid(target) and isentity(target)), 'target must be nil or table or valid entity')
+	if not isentity(ent) or not IsValid(ent) then 
+		print(string.format('[UPManip.GetAnimFadeData]: ent "%s" is not valid or not entity', ent))
+		return nil
+	end
+
+	if not istable(target) and (not isentity(target) or not IsValid(target)) then
+		print(string.format('[UPManip.GetAnimFadeData]: target "%s" is not valid or not entity', target))
+		return nil
+	end
+
+	boneMapping = istable(boneMapping) and boneMapping or emptyTable
 
 	ent:SetupBones()
 	local snapshot = SnapshotManip(ent, boneMapping)
 	local boneKeys = GetBoneMappingKeysSorted(ent, boneMapping, true)
-	if not boneKeys then return end
+	if not boneKeys then 
+		return nil 
+	end
+
 	speed = isnumber(speed) and speed or 3
 
 	return {
@@ -370,7 +382,7 @@ UPManip.GetAnimFadeData = function(ent, target, boneMapping, speed)
 end
 
 UPManip.GetEntAnimFadeIdentity = function(ent)
-	assert(IsValid(ent) and isentity(ent), 'ent is not valid or not entity')
+	assert(isentity(ent) and IsValid(ent), 'ent is not valid or not entity')
 	return ent
 end
 
@@ -394,6 +406,8 @@ function UPManip:AnimFadeIn(ent, target, boneMapping, speed, timeout)
 	
 	return UPar.PushIterator(identity, iter, data, timeout)
 end
+
+print(UPManip.GetAnimFadeData(LocalPlayer(), {}, 6656, 3))
 
 function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
 	-- 必须先淡入, 否则无效
