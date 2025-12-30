@@ -67,6 +67,7 @@ end)
 UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 	['ValveBiped.Bip01_Spine'] = true,
 	['ValveBiped.Bip01_Spine1'] = true,
+	['ValveBiped.Bip01_Spine2'] = true,
 
 	['ValveBiped.Bip01_L_Thigh'] = true,
 	['ValveBiped.Bip01_L_Calf'] = true,
@@ -81,27 +82,14 @@ UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 
 hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 	if not upext_gmodlegs3_manip:GetBool() then return end
-	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) then
-		local temp = ClientsideModel('models/breen.mdl', RENDERGROUP_OTHER)
-		temp:SetPos(LocalPlayer():GetPos() + -100 * UPar.XYNormal(LocalPlayer():EyeAngles():Forward()))
-		temp:SetParent(LocalPlayer())
+	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) and IsValid(VMLegs.LegParent) then
+		g_Legs.Sleep = true
+		VMLegs.LegModel:SetNoDraw(true)
+		g_Legs.LegEnt:SetPos(g_Legs.RenderPos)
+		g_Legs.LegEnt:SetAngles(g_Legs.RenderAngle)
+		g_Legs.LegEnt:SetParent(LocalPlayer())
 
-		if istable(g_Legs.BonesToRemove) then
-			for k, v in pairs(g_Legs.BonesToRemove) do
-                local boneId = temp:LookupBone(v)
-                if not boneId then continue end
-				temp:ManipulateBoneScale(boneId, Vector(0,0,0))
-            end
-		end
-
-		timer.Simple(10, function() temp:Remove() end)
-		UPManip.AnimFadeIn(
-			temp, 
-			LocalPlayer(),
-			UPManip.BoneMappings['gmodlegs3tovmlegs'],
-			3,
-			10
-		)
+		UPManip.AnimFadeIn(g_Legs.LegEnt, VMLegs.LegModel, UPManip.BoneMappings['gmodlegs3tovmlegs'], 3, 10)
 	end
 end)
 

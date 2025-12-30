@@ -38,28 +38,53 @@ This is a **client-side only** API that provides direct control over bones via m
 ## Available Methods
 
 ![client](./materials/upgui/client.jpg)
-UPManip.SetBonePosition(**entity** ent, **int** boneId, **vector** posw, **angle** angw)
+**vec, ang** UPManip.SetBonePosition(**entity** ent, **int** boneId, **vector** posw, **angle** angw)
 ```note
-Controls the position and angle of the specified bone on the specified entity. The new position must not be too far from the old position (128 units).
-It is recommended to call ent:SetupBones() before invoking this method, as the current bone matrix is required for calculations.
+Controls the position and angle of the specified bone of the target entity.
+The new position cannot be too far from the old position (128 units maximum).
+It is recommended to call ent:SetupBones() before using this function, as the current bone matrix is required for calculations.
 ```
 
 ![client](./materials/upgui/client.jpg)
-UPManip.AnimFadeIn(**entity** ent, **entity** target, **table** boneMapping, **float** speed=3, **float** timeout=2)
+**table** UPManip.SnapshotManip(**entity** ent, **table** boneMapping)
 ```note
-Controls the specified bones of the source entity to fade in to the animation state of the target entity. The animation duration is 1 / speed seconds. 
-After the timeout, all ManipulateBonexxx operations will be cleared. boneMapping specifies the names of the bones to be manipulated and their corresponding bone names on the target entity.
-
-Internally, it uses UPar.UParIteratorPush to add an iterator, with the entity as the flag.
+Returns the current position and angle of the specified bones of the entity.
+Internally uses ent:ManipulateBonexxx() methods.
 ```
 
 ![client](./materials/upgui/client.jpg)
-UPManip.AnimFadeOut(**entity** ent, **table** boneMapping, **float** speed=3, **float** timeout=2)
+**entity** UPManip.GetEntAnimFadeIdentity(**entity** ent)
 ```note
-Controls the specified bones of the entity to perform a fade-out animation. The fade-out duration is 1 / speed seconds. No action will be taken after the timeout.
-boneMapping specifies the names of the bones to be faded out.
+Returns the animation fade-in iterator identifier of the specified entity.
+```
 
-Internally, it first uses UPar.UParIteratorPop to remove the fade-in iterator, then uses UPar.UParIteratorPush to add a new iterator, with the entity as the flag.
+![client](./materials/upgui/client.jpg)
+**bool** UPManip.IsEntAnimFade(**entity** ent)
+```note
+Determines whether the entity has an animation fade-in iterator.
+```
+
+![client](./materials/upgui/client.jpg)
+**bool** UPManip:AnimFadeIn(**entity** ent, **entity** or **table** target or snapshot, **table** boneMapping, **float** speed=3, **float** timeout=2)
+```note
+boneMapping specifies the bones to be manipulated.
+
+The fade-in time is 1 / speed seconds. Manual fade-out is required.
+If the target is an entity, automatic fade-out will occur when the target is deleted.
+
+Internally uses UPar.PushIterator to add an iterator. Returns whether the operation succeeded.
+No action is taken after the iterator times out.
+```
+
+![client](./materials/upgui/client.jpg)
+**bool** UPManip:AnimFadeOut(**entity** ent, **table** or **nil** snapshot, **float** speed=3, **float** timeout=2)
+```note
+boneMapping specifies the bones to be manipulated.
+If snapshot is nil, the current snapshot will be used.
+
+The fade-out time is 1 / speed seconds.
+
+No action is taken after the iterator times out.
 ```
 
 ```lua
@@ -68,30 +93,25 @@ local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
 local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
 
 local speed = 1
-local timeout = 1
+local timeout = 10
 local boneMapping = {
-	['ValveBiped.Bip01_Head1'] = {
-		-- The final offset matrix is composed of three parts. For ease of understanding, it is split into position offset, angle offset, and scale offset here.
-		boneName = 'ValveBiped.Bip01_Head1', -- Target bone name
-		pos = Vector(10, 0, 0), -- Position offset
-		ang = Angle(20, 0, 0), -- Angle offset
-		scale = Vector(2, 1, 1), -- Scale offset
-	},
-	['ValveBiped.Bip01_L_Calf'] = true, -- Use identity mapping to get the bone name
+	['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(0, 90, 0), scale = Vector(2, 1, 1)},
+	['ValveBiped.Bip01_L_Calf'] = true,
 }
 
-local pos1 = ply:GetPos() + 100 * ply:EyeAngles():Forward()
-local pos2 = pos1 + 100 * ply:EyeAngles():Right()
+local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
+local pos2 = pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right())
 
 Eli:SetPos(pos1)
 Eli:SetupBones()
 
-gman_high:SetPos(pos2)
 gman_high:SetupBones()
+gman_high:SetPos(pos2)
 
-UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
+UPManip:AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
 timer.Simple(timeout * 0.5, function() 
-	UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout) 
+	UPManip:AnimFadeOut(Eli, nil, speed, timeout)
+	print('Fade out')
 end)
 
 timer.Simple(timeout + 1, function() 

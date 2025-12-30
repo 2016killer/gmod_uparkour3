@@ -37,26 +37,51 @@
 ## 可用方法
 
 ![client](./materials/upgui/client.jpg)
-UPManip.SetBonePosition(**entity** ent, **int** boneId, **vector** posw, **angle** angw)
+**vec**, **ang** UPManip.SetBonePosition(**entity** ent, **int** boneId, **vector** posw, **angle** angw)
 ```note
 控制指定实体的指定骨骼的位置和角度, 新的位置不能距离旧位置太远 (128个单位)
 最好在调用之前使用 ent:SetupBones(), 因为计算中需要当前骨骼矩阵。
 ```
 
 ![client](./materials/upgui/client.jpg)
-UPManip.AnimFadeIn(**entity** ent, **entity** target, **table** boneMapping, **float** speed=3, **float** timeout=2)
+**table** UPManip.SnapshotManip(**entity** ent, **table** boneMapping)
 ```note
-控制指定实体的指定骨骼淡入到目标的动画, 动画时间为 1 / speed 秒, 超时后会清空 ManipulateBonexxx, boneMapping 指定了需要操纵的骨骼名以及对应目标的骨骼名。
-
-内部会使用 UPar.UParIteratorPush 添加迭代器, 标志位是实体。
+返回当前实体的指定骨骼的位置和角度。
+内部使用 ent:ManipulateBonexxx()
 ```
 
 ![client](./materials/upgui/client.jpg)
-UPManip.AnimFadeOut(**entity** ent, **table** boneMapping, **float** speed=3, **float** timeout=2)
+**entity** UPManip.GetEntAnimFadeIdentity(**entity** ent)
 ```note
-控制指定实体的指定骨骼淡出动画, 淡出时间为 1 / speed 秒, 超时后不做任何事, boneMapping 指定了需要淡出的骨骼名。
+返回指定实体的动画淡入迭代器标志位。
+```
 
-内部会使用 UPar.UParIteratorPop 弹出淡入的迭代器, 然后使用 UPar.UParIteratorPush 添加迭代器, 标志位是实体。
+![client](./materials/upgui/client.jpg)
+**bool** UPManip.IsEntAnimFade(**entity** ent)
+```note
+判断实体是否有动画淡入迭代器。
+```
+
+![client](./materials/upgui/client.jpg)
+**bool** UPManip:AnimFadeIn(**entity** ent, **entity** or **table** target or snapshot, **table** boneMapping, **float** speed=3, **float** timeout=2)
+```note
+boneMapping 指定了需要操纵的骨骼。
+
+淡入时间为 1 / speed 秒, 需要手动淡出, 如果 target 是实体, 当 target 被删除时会自动淡出。
+
+内部会使用 UPar.UParIteratorPush 添加迭代器, 返回是否成功。
+迭代器超时后不做任何事。
+```
+
+![client](./materials/upgui/client.jpg)
+**bool** UPManip:AnimFadeOut(**entity** ent, **table** or **nil** snapshot, **float** speed=3, **float** timeout=2)
+```note
+boneMapping 指定了需要操纵的骨骼。
+snapshot 为 nil 则使用当前快照。
+
+淡出时间为 1 / speed 秒
+
+迭代器超时后不做任何事。
 ```
 
 ```lua
@@ -65,30 +90,25 @@ local Eli = ClientsideModel('models/Eli.mdl', RENDERGROUP_OTHER)
 local gman_high = ClientsideModel('models/gman_high.mdl', RENDERGROUP_OTHER)
 
 local speed = 1
-local timeout = 1
+local timeout = 10
 local boneMapping = {
-	['ValveBiped.Bip01_Head1'] = {
-		-- 最终的偏移矩阵由三个部分合成, 但为了方便理解, 这里将其拆分为位置偏移、角度偏移、缩放偏移
-		boneName = 'ValveBiped.Bip01_Head1', -- 目标骨骼名
-		pos = Vector(10, 0, 0), -- 位置偏移
-		ang = Angle(20, 0, 0), -- 角度偏移
-		scale = Vector(2, 1, 1), -- 缩放偏移
-	},
-	['ValveBiped.Bip01_L_Calf'] = true, -- 使用恒等映射获取骨骼名
+	['ValveBiped.Bip01_Head1'] = {pos = Vector(10, 0, 0), ang = Angle(0, 90, 0), scale = Vector(2, 1, 1)},
+	['ValveBiped.Bip01_L_Calf'] = true,
 }
 
-local pos1 = ply:GetPos() + 100 * ply:EyeAngles():Forward()
-local pos2 = pos1 + 100 * ply:EyeAngles():Right()
+local pos1 = ply:GetPos() + 100 * UPar.XYNormal(ply:EyeAngles():Forward())
+local pos2 = pos1 + 100 * UPar.XYNormal(ply:EyeAngles():Right())
 
 Eli:SetPos(pos1)
 Eli:SetupBones()
 
-gman_high:SetPos(pos2)
 gman_high:SetupBones()
+gman_high:SetPos(pos2)
 
-UPManip.AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
+UPManip:AnimFadeIn(Eli, gman_high, boneMapping, speed, timeout)
 timer.Simple(timeout * 0.5, function() 
-	UPManip.AnimFadeOut(Eli, boneMapping, speed, timeout) 
+	UPManip:AnimFadeOut(Eli, nil, speed, timeout)
+	print('淡出')
 end)
 
 timer.Simple(timeout + 1, function() 

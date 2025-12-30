@@ -229,9 +229,7 @@ UPar.MergeIterAddiKV = function(identity, data)
 		return false
 	end
 
-	local target = iteratorData.add
-
-	table.Merge(target, data)
-
+	table.Merge(iteratorData.add, data)
+	
 	return true
 end
