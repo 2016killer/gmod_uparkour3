@@ -1,19 +1,20 @@
 --[[
 	作者:白狼
-	2025 12 20
+	2025 12 30
 --]]
-UPar.Iterators = UPar.Iterators or {}
-local Iterators = UPar.Iterators
+
+UPar.RenderIterators = UPar.RenderIterators or {}
+local Iterators = UPar.RenderIterators
 
 local isThinkHookAdded = false
 local thinkHookStartTime = 0
 local THINK_HOOK_KEY = 'upar.iterators'
-local THINK_HOOK = 'Think'
-local POP_HOOK = 'UParIteratorPop'
-local PUSH_HOOK = 'UParIteratorPush'
-local PAUSE_HOOK = 'UParIteratorPause'
-local END_TIME_CHANGED_HOOK = 'UParIteratorEndTimeChanged'
-local RESUME_HOOK = 'UParIteratorResume'
+local THINK_HOOK = 'PostRender'
+local POP_HOOK = 'UParRenderIteratorPop'
+local PUSH_HOOK = 'UParRenderIteratorPush'
+local PAUSE_HOOK = 'UParRenderIteratorPause'
+local END_TIME_CHANGED_HOOK = 'UParRenderIteratorEndTimeChanged'
+local RESUME_HOOK = 'UParRenderIteratorResume'
 
 local function ThinkCall()
 	local removeThinkFlag = true
@@ -64,12 +65,12 @@ local function ThinkCall()
 	end
 end
 
-UPar.PushIterator = function(identity, iterator, addition, timeout)
+UPar.PushRenderIterator = function(identity, iterator, addition, timeout)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 	if timeout <= 0 then 
-		print('[UPar.PushIterator]: warning: timeout <= 0!') 
+		print('[UPar.PushRenderIterator]: warning: timeout <= 0!') 
 		return false
 	end
 
@@ -91,7 +92,7 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 	return true
 end
 
-UPar.PopIterator = function(identity, silent)
+UPar.PopRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 
 	local iteratorData = Iterators[identity]
@@ -108,17 +109,17 @@ UPar.PopIterator = function(identity, silent)
 	return true
 end
 
-UPar.GetIterator = function(identity)
+UPar.GetRenderIterator = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity]
 end
 
-UPar.IsIteratorExist = function(identity)
+UPar.IsRenderIteratorExist = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity] ~= nil
 end
 
-UPar.PauseIterator = function(identity, silent)
+UPar.PauseRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -135,7 +136,7 @@ UPar.PauseIterator = function(identity, silent)
 	return true
 end
 
-UPar.ResumeIterator = function(identity, silent)
+UPar.ResumeRenderIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -165,7 +166,7 @@ UPar.ResumeIterator = function(identity, silent)
 	end
 end
 
-UPar.SetIterAddiKV = function(identity, ...)
+UPar.SetRenderIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -188,7 +189,7 @@ UPar.SetIterAddiKV = function(identity, ...)
 	return true
 end
 
-UPar.GetIterAddiKV = function(identity, ...)
+UPar.GetRenderIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -210,7 +211,7 @@ UPar.GetIterAddiKV = function(identity, ...)
 	return target[keyValue[total - 1]]
 end
 
-UPar.SetIterEndTime = function(identity, endTime, silent)
+UPar.SetRenderIterEndTime = function(identity, endTime, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -226,7 +227,7 @@ UPar.SetIterEndTime = function(identity, endTime, silent)
 	return true
 end
 
-UPar.MergeIterAddiKV = function(identity, data)
+UPar.MergeRenderIterAddiKV = function(identity, data)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(istable(data), 'data must be a table.')
 

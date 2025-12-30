@@ -274,9 +274,9 @@ local function LerpBoneWorld(t, ent, target, boneMapping, boneKeys)
 
 		local newPos = LerpVector(t, boneMat:GetTranslation(), targetMatrix:GetTranslation())
 		local newAng = LerpAngle(t, boneMat:GetAngles(), targetMatrix:GetAngles())
-		local newScale = LerpVector(t, boneMat:GetScale(), targetMatrix:GetScale())
+		// local newScale = LerpVector(t, boneMat:GetScale(), targetMatrix:GetScale())
 
-		ent:ManipulateBoneScale(boneId, newScale)
+		// ent:ManipulateBoneScale(boneId, newScale)
 		SetBonePosition(ent, boneId, newPos, newAng)
 	end
 end
@@ -406,8 +406,6 @@ function UPManip:AnimFadeIn(ent, target, boneMapping, speed, timeout)
 	
 	return UPar.PushIterator(identity, iter, data, timeout)
 end
-
-print(UPManip.GetAnimFadeData(LocalPlayer(), {}, 6656, 3))
 
 function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
 	-- 必须先淡入, 否则无效

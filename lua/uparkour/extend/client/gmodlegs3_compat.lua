@@ -65,6 +65,7 @@ end)
 -- 拦截 VMLegs.PlayAnim 和 VMLegs.Remove 使用 UPManip 控制方案代替
 -- ==============================================================
 UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
+	['ValveBiped.Bip01_Pelvis'] = true,
 	['ValveBiped.Bip01_Spine'] = true,
 	['ValveBiped.Bip01_Spine1'] = true,
 	['ValveBiped.Bip01_Spine2'] = true,
@@ -80,35 +81,52 @@ UPManip.BoneMappings['gmodlegs3tovmlegs'] = {
 	['ValveBiped.Bip01_R_Toe0'] = true
 }
 
+local function tempIter(dt, curtime, data)
+	local ent = data.ent
+	local popFlag = UPManip.AnimFadeIterator(dt, curtime, data)
+
+	if popFlag then
+		ent:SetPos(Vector())
+		ent:SetAngles(Angle())
+	else
+		ent:SetPos(g_Legs.RenderPos)
+		ent:SetAngles(g_Legs.RenderAngle)
+	end
+
+	return popFlag
+end
+
 hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 	if not upext_gmodlegs3_manip:GetBool() then return end
-	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) and IsValid(VMLegs.LegParent) then
+	if IsValid(g_Legs.LegEnt) and IsValid(VMLegs.LegModel) then
+		local timeout = 10
+		local speed = 1
+
+		local fadeInData = UPManip.GetAnimFadeData(
+			g_Legs.LegEnt, 
+			VMLegs.LegModel, 
+			UPManip.BoneMappings['gmodlegs3tovmlegs'], 
+			speed
+		)
 		
-		local fadeInData = self.GetAnimFadeData(ent, target, boneMapping, 3)
 		if not fadeInData then 
 			return 
 		end
 
 		VMLegs.LegModel:SetNoDraw(true)
-		g_Legs.LegEnt:SetPos(g_Legs.RenderPos)
-		g_Legs.LegEnt:SetAngles(g_Legs.RenderAngle)
-		g_Legs.LegEnt:SetParent(LocalPlayer())
-
 		g_Legs.Sleep = true
 
-		local identity = self.GetEntAnimFadeIdentity(ent)
-		local iter = self.AnimFadeIterator
-		
-		return UPar.PushIterator(identity, iter, data, timeout)
-
-
-		UPManip:AnimFadeIn(g_Legs.LegEnt, VMLegs.LegModel, UPManip.BoneMappings['gmodlegs3tovmlegs'], 3, 10)
+		local identity = UPManip.GetEntAnimFadeIdentity(g_Legs.LegEnt)
+		UPar.PushIterator(identity, tempIter, fadeInData, timeout)
 	end
 end)
 
-hook.Add('VMLegsRemove', 'UPExtGmodLegs3Manip', function(anim)
+hook.Add('VMLegsPreRemove', 'UPExtGmodLegs3Manip', function(anim)
 	g_Legs.Sleep = false
 	if not upext_gmodlegs3_manip:GetBool() then return end
+	local speed = 1
+	local timeout = 10
+	UPManip:AnimFadeOut(g_Legs.LegEnt, nil, speed, timeout)
 end)
 
 -- ==============================================================
