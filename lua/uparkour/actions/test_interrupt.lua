@@ -35,17 +35,3 @@ if SERVER then
 	// 	return math.random() > 0.5
 	// end)
 end
-
--- 启动后
-// UPar.SeqHookAdd('UParActStartOut_test_lifecycle', 'example.prestart.out', function(ply, checkResult)
-// end)
-
-// UPar.SeqHookAdd('UParActStartOut', 'example.prestart.out', function(actName, ply, checkResult)
-// end)
-
--- 清除后
-// UPar.SeqHookAdd('UParActClearOut_test_lifecycle', 'example.prestart.out', function(ply, checkResult, mv, cmd, interruptSource)
-// end)
-
-// UPar.SeqHookAdd('UParActClearOut', 'example.prestart.out', function(actName, ply, checkResult, mv, cmd, interruptSource)
-// end)

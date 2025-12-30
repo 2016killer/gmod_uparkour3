@@ -209,7 +209,7 @@ function upvaultdl:Think(ply, data, mv, cmd)
 		if isClimbEnd then 
 			data.rhythm = 2
 			data[2].starttime = CurTime()
-			UPar.ActEffRhythmChange(ply, self, data)
+			UPar.ActEffRhythmChange(ply, self, 2)
 		end
 	elseif data.rhythm == 2 then
 		return CallAct('upvault', 'Think', ply, data[2], mv, cmd)

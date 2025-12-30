@@ -120,7 +120,7 @@ The description panel is added internally using this hook.
 This is local.
 
 interruptSource is the name of the interrupting action (UPAction).
-playingData is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
+playingData is a reference, note data safety.
 ```
 ```lua
 UPar.SeqHookAdd('UParActAllowInterrupt_test_lifecycle', 'example.interrupt', function(ply, playingData, interruptSource)
@@ -139,7 +139,7 @@ This is global.
 
 playingName is the name of the action being interrupted.
 interruptSource is the name of the interrupting action (UPAction).
-playingData is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
+playingData is a reference, note data safety.
 ```
 
 ```lua
@@ -157,7 +157,7 @@ end)
 ```note
 This is local.
 
-checkResult is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
+checkResult is a reference, note data safety.
 ```
 ```lua
 -- Stop randomly
@@ -173,7 +173,7 @@ end)
 ```note
 This is global.
 
-checkResult is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
+checkResult is a reference, note data safety.
 ```
 ```lua
 -- Stop all actions randomly
@@ -181,65 +181,6 @@ UPar.SeqHookAdd('UParActPreStartValidate', 'example.prestart.validate', function
 	return math.random() > 0.5
 end)
 ```
-
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActStartOut** + **actName**  
-**@Parameters:** ply **Player**, checkResult **table**  
-
-```note
-This is local.
-
-checkResult is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActStartOut**  
-**@Parameters:** actName **string**, ply **Player**, checkResult **table**  
-
-```note
-This is global.
-
-checkResult is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActClearOut** + **actName**  
-**@Parameters:** ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
-
-```note
-This is local.
-
-playingData is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActClearOut**    
-**@Parameters:** actName **string**, ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
-
-```note
-This is global.
-
-playingData is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur.
-```
-
-	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
-	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActEffRhythmChange** + **actName**  
-**@Parameters:** ply **Player**, effect **UPEffect**, customData **any**
-
-```note
-This is local.
-
-effect is the special effect used by the current action.
-effect is a reference, but it should be treated as a read-only variable; otherwise, unexpected results may occur. 
-
-I haven't figured out how to use this hook yet.
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@Name:** **UParActEffRhythmChange**   
-**@Parameters:** actName **string**, ply **Player**, effect **UPEffect**, customData **any**
 
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParEffVarPreviewColor** + **actName** + **effName**  

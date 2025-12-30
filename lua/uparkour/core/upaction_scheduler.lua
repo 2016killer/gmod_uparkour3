@@ -2,19 +2,28 @@
 	作者:白狼
 	2025 11 5
 --]]
+
+UPar.ACT_EVENT_FLAG = {
+	START_FLAG = 1,
+	CLEAR_FLAG = 2,
+	INTERRUPT_FLAG = 3,
+	RHYTHM_FLAG = 4,
+	END_FLAG = 5,
+}
+
+UPar.MAX_ACT_EVENT = 50
+
 local SeqHookRun = UPar.SeqHookRun
+local SeqHookRunAllSafe = UPar.SeqHookRunAllSafe
 local emptyTable = UPar.emptyTable
 local ActInstances = UPar.ActInstances
 local EffInstances = UPar.EffInstances
-local DeepClone = UPar.DeepClone
 
-local START_FLAG = 1
-local CLEAR_FLAG = 2
-local INTERRUPT_FLAG = 3
-local RHYTHM_FLAG = 4
-local END_FLAG = 5
-local BIT_COUNT = 4
-local MAX_ACT_EVENT = 50
+local START_FLAG = UPar.ACT_EVENT_FLAG.START_FLAG
+local CLEAR_FLAG = UPar.ACT_EVENT_FLAG.CLEAR_FLAG
+local INTERRUPT_FLAG = UPar.ACT_EVENT_FLAG.INTERRUPT_FLAG
+local RHYTHM_FLAG = UPar.ACT_EVENT_FLAG.RHYTHM_FLAG
+local END_FLAG = UPar.ACT_EVENT_FLAG.END_FLAG
 
 local function GetPlyUsingEffect(ply, actName)
 	if actName == nil then
@@ -32,43 +41,36 @@ end
 
 
 local function ActStart(ply, action, checkResult)
-	local actName = action.Name
 	action:Start(ply, checkResult)
 
-	local effect = GetPlyUsingEffect(ply, actName)
+	local effect = GetPlyUsingEffect(ply, action.Name)
 	if effect then effect:Start(ply, checkResult) end
-
-	SeqHookRun('UParActStartOut_' .. actName, ply, checkResult, action.TrackId)
-	SeqHookRun('UParActStartOut', actName, ply, checkResult, action.TrackId)
 end
 
 local function ActClear(ply, playing, playingData, mv, cmd, interruptSource)
-	local playingName = playing.Name
 	playing:Clear(ply, playingData, mv, cmd, interruptSource)
 
-	local effect = GetPlyUsingEffect(ply, playingName)
+	local effect = GetPlyUsingEffect(ply, playing.Name)
 	if effect then effect:Clear(ply, playingData, interruptSource) end
-
-	SeqHookRun('UParActClearOut_' .. playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
-	SeqHookRun('UParActClearOut', playingName, ply, playingData, mv, cmd, interruptSource, playing.TrackId)
 end
 
-local function ActEffRhythmChange(ply, action, customData)
+local function ActEffRhythmChange(ply, action, customData, silent)
 	local actName = action.Name
 
+	local rhythmEvent = {RHYTHM_FLAG, actName, customData}
 	if SERVER then
 		net.Start('UParCallClientAction')
-			net.WriteInt(RHYTHM_FLAG, BIT_COUNT)
-			net.WriteTable({actName, customData})
-			net.WriteInt(END_FLAG, BIT_COUNT)
+			net.WriteTable(rhythmEvent)
+			net.WriteTable({END_FLAG})
 		net.Send(ply)
 	end
 
 	local effect = GetPlyUsingEffect(ply, actName)
 	if effect then effect:Rhythm(ply, customData) end
 
-	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
-	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
+	if not silent then
+		SeqHookRunAllSafe('UParActEvent', {rhythmEvent})
+	end
 end
 
 UPar.GetPlyUsingEffect = GetPlyUsingEffect
@@ -173,6 +175,7 @@ if SERVER then
 	util.AddNetworkString('UParStart')
 
 	local function Trigger(ply, actName, checkResult, ...)
+		-- 并不支持在 Start 或 Clear 中动态改变轨道, 因为他们在 net 上下文中
         if not IsValid(ply) or not ply:IsPlayer() then
 			print(string.format('Invalid ply "%s"', ply))
 			return
@@ -184,58 +187,58 @@ if SERVER then
 			return
 		end
 
-		if action.CV_Disabled and action.CV_Disabled:GetBool() then
+		if action:GetDisabled() then
 			return
 		end
 
 		local trackId = action.TrackId
 		local playing, playingData, playingName = unpack(ply.uptracks[trackId] or emptyTable)
 	
-
-		if playing then
-			if not (SeqHookRun('UParActAllowInterrupt_' .. playingName, ply, playingData, actName)
+		if playing and not (SeqHookRun('UParActAllowInterrupt_' .. playingName, ply, playingData, actName)
 			or SeqHookRun('UParActAllowInterrupt', playingName, ply, playingData, actName)) then
-				return
-			end
+			return
 		end
 
 		checkResult = checkResult or action:Check(ply, ...)
 		if not istable(checkResult) then
 			return
-		else
-			if SeqHookRun('UParActPreStartValidate_' .. actName, ply, checkResult) 
-			or SeqHookRun('UParActPreStartValidate', actName, ply, checkResult) then
-				return
-			end
+		elseif SeqHookRun('UParActPreStartValidate_' .. actName, ply, checkResult) 
+		or SeqHookRun('UParActPreStartValidate', actName, ply, checkResult) then
+			return
 		end
+
+		local eventData = {}
 
 		net.Start('UParCallClientAction')
 		if playing then
 			ply.uptracks[trackId] = nil
 
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({playing.Name, playingData, actName})
+			local clearEvent = {CLEAR_FLAG, playing.Name, playingData, actName}
+			net.WriteTable(clearEvent)
+			table.insert(eventData, clearEvent)
 
 			local succ, err = pcall(ActClear, ply, playing, playingData, nil, nil, actName)
-			if not succ then
-				ErrorNoHaltWithStack(err)
-			end
+			if not succ then ErrorNoHaltWithStack(err) end
 		end
 
-		net.WriteInt(START_FLAG, BIT_COUNT)
-		net.WriteTable({actName, checkResult})
+		local startEvent = {START_FLAG, actName, checkResult}
+		net.WriteTable(startEvent)
+		table.insert(eventData, startEvent)
 		
 		local succ, err = pcall(ActStart, ply, action, checkResult)
 		if not succ then
 			ErrorNoHaltWithStack(err)
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({actName, checkResult, true})
+			local clearEvent = {CLEAR_FLAG, actName, checkResult, true}
+			net.WriteTable(clearEvent)
+			table.insert(eventData, clearEvent)
 		end
 
-		net.WriteInt(END_FLAG, BIT_COUNT)
+		net.WriteTable({END_FLAG})
         net.Send(ply)
 
 		ply.uptracks[trackId] = {action, checkResult, actName}
+
+		SeqHookRunAllSafe('UParActEvent', ply, eventData)
 
 		return checkResult
 	end
@@ -245,15 +248,15 @@ if SERVER then
 			return
 		end
 
-		if #removeData > MAX_ACT_EVENT then
-			ErrorNoHaltWithStack(string.format('[UPar]: Warning: RemoveTracks: removeData count is %d, max is %d', #removeData, MAX_ACT_EVENT))
+		if #removeData > UPar.MAX_ACT_EVENT then
+			ErrorNoHaltWithStack(string.format('[UPar]: Warning: RemoveTracks: removeData count is %d, max is %d', #removeData, UPar.MAX_ACT_EVENT))
 			return
 		end
 
 		for i = #removeData, 1, -1 do
 			local trackId, trackContent, reason = unpack(removeData[i])
 			if trackContent ~= ply.uptracks[trackId] then
-				print(string.format('[UPar]: Warning: track "%s" content changed in other place', trackId))
+				print(string.format('[UPar]: track "%s" content changed in other place', trackId))
 				table.remove(removeData, i)
 			else
 				ply.uptracks[trackId] = nil
@@ -261,7 +264,13 @@ if SERVER then
 		end
 
 		for _, v in ipairs(removeData) do
-			local _, trackContent, reason = unpack(v)
+			local trackId, trackContent, reason = unpack(v)
+
+			if ply.uptracks[trackId] ~= nil then
+				print(string.format('[UPar]: Warning: track "%s" content changed in other place', trackId))
+				continue
+			end
+
 			local playing, playingData, _ = unpack(trackContent or emptyTable)
 
 			if not playing then
@@ -269,24 +278,33 @@ if SERVER then
 			end
 
 			local succ, err = pcall(ActClear, ply, playing, playingData or emptyTable, mv, cmd, reason or false)
-			if not succ then
-				ErrorNoHaltWithStack(err)
-			end
+			if not succ then ErrorNoHaltWithStack(err) end
 		end
+
+		local eventData = {}
 
 		net.Start('UParCallClientAction')
 		for _, v in ipairs(removeData) do
-			local _, trackContent, reason = unpack(v)
+			local trackId, trackContent, reason = unpack(v)
+
+			if ply.uptracks[trackId] ~= nil then
+				print(string.format('[UPar]: Warning: track "%s" content changed in other place', trackId))
+				continue
+			end
+
 			local _, playingData, playingName = unpack(trackContent or emptyTable)
 
 			if not playingName then
 				continue
 			end
-			net.WriteInt(CLEAR_FLAG, BIT_COUNT)
-			net.WriteTable({playingName, playingData or emptyTable, reason or false})
+			local clearEvent = {CLEAR_FLAG, playingName, playingData or emptyTable, reason or false}
+			net.WriteTable(clearEvent)
+			table.insert(eventData, clearEvent)
 		end
-		net.WriteInt(END_FLAG, BIT_COUNT)
+		net.WriteTable({END_FLAG})
 		net.Send(ply)
+
+		SeqHookRunAllSafe('UParActEvent', ply, eventData)
 	end
 
 	local function ForceEndTarget(ply, target)
@@ -350,6 +368,7 @@ if SERVER then
 			if not succ then
 				ErrorNoHaltWithStack(result)
 				table.insert(removeData, {trackId, trackContent, true})
+				break
 			elseif result then
 				table.insert(removeData, {trackId, trackContent, false})
 			end
@@ -378,18 +397,16 @@ elseif CLIENT then
 			return
 		end
 
-		if action.CV_Disabled and action.CV_Disabled:GetBool() then
+		if action:GetDisabled() then
 			return
 		end
 		
 		checkResult = checkResult or action:Check(ply, ...)
 		if not istable(checkResult) then
 			return
-		else
-			if SeqHookRun('UParActPreStartValidate_' .. actName, ply, checkResult) 
-			or SeqHookRun('UParActPreStartValidate', actName, ply, checkResult) then
-				return
-			end
+		elseif SeqHookRun('UParActPreStartValidate_' .. actName, ply, checkResult) 
+		or SeqHookRun('UParActPreStartValidate', actName, ply, checkResult) then
+			return
 		end
 
 		net.Start('UParStart')
@@ -448,19 +465,28 @@ elseif CLIENT then
 	UPar.MoveControl = MoveControl
 	UPar.SetMoveControl = SetMoveControl
 
+	local ACT_EVENT_FLAG_FLIP = table.Flip(UPar.ACT_EVENT_FLAG)
+
     net.Receive('UParCallClientAction', function()
 		local ply = LocalPlayer()
 
-		for i = 1, MAX_ACT_EVENT do
-			local flag = net.ReadInt(BIT_COUNT)
+		local eventData = {}
 
-			if flag == END_FLAG or flag == 0 then
+		for i = 1, UPar.MAX_ACT_EVENT do
+			local batch = net.ReadTable()
+			local eventFlag, actName, data, interruptSource = unpack(batch)
+			if eventFlag == END_FLAG then
+				print(string.format('[UPar]: cl_act: end flag %d', eventFlag))
 				break
 			end
-			
-			local batch = net.ReadTable()
-			local actName = batch[1]
-			local checkResult = batch[2]
+
+			if not ACT_EVENT_FLAG_FLIP[eventFlag] then
+				print(string.format('[UPar]: cl_act: unknown event flag %d', eventFlag))
+				continue
+			end
+
+			table.insert(eventData, batch)
+
 			local action = ActInstances[actName]
 
 			if not action then
@@ -468,29 +494,22 @@ elseif CLIENT then
 				continue
 			end
 
-			if flag == START_FLAG then
-				local succ, err = pcall(ActStart, ply, action, checkResult)
+			if eventFlag == START_FLAG then
+				local succ, err = pcall(ActStart, ply, action, data)
 				if not succ then
 					ErrorNoHaltWithStack(err)
-					succ, err = pcall(ActClear, ply, action, checkResult, nil, nil, true)
-					if not succ then
-						ErrorNoHaltWithStack(err)
-					end
+					succ, err = pcall(ActClear, ply, action, data, nil, nil, true)
+					if not succ then ErrorNoHaltWithStack(err) end
 				end
-			elseif flag == CLEAR_FLAG then
-				local interruptSource = batch[3] or false
-		
-				local succ, err = pcall(ActClear, ply, action, checkResult, nil, nil, interruptSource)
-				if not succ then
-					ErrorNoHaltWithStack(err)
-				end
-			elseif flag == RHYTHM_FLAG then
-				local customData = checkResult
-				local succ, err = pcall(ActEffRhythmChange, ply, action, customData)
-				if not succ then
-					ErrorNoHaltWithStack(err)
-				end
+			elseif eventFlag == CLEAR_FLAG then
+				local succ, err = pcall(ActClear, ply, action, data, nil, nil, interruptSource or false)
+				if not succ then ErrorNoHaltWithStack(err) end
+			elseif eventFlag == RHYTHM_FLAG then
+				local succ, err = pcall(ActEffRhythmChange, ply, action, data)
+				if not succ then ErrorNoHaltWithStack(err) end
 			end
 		end
+
+		SeqHookRunAllSafe('UParActEvent', ply, eventData)
     end)
 end

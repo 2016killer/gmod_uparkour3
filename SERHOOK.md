@@ -122,7 +122,7 @@ end)
 这是局部的。
 
 interruptSource 为中断者 (UPAction) 的名字。
-playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+playingData 是一个引用, 注意数据安全。
 ```
 ```lua
 UPar.SeqHookAdd('UParActAllowInterrupt_test_lifecycle', 'example.interrupt', function(ply, playingData, interruptSource)
@@ -141,7 +141,7 @@ end)
 
 playingName 为被中断的动作的名字。
 interruptSource 为中断者 (UPAction) 的名字。
-playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+playingData 是一个引用, 注意数据安全。
 ```
 
 ```lua
@@ -159,7 +159,7 @@ end)
 ```note
 这是局部的。
 
-checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+checkResult 是一个引用, 注意数据安全。
 ```
 ```lua
 -- 随机停止
@@ -175,7 +175,7 @@ end)
 ```note
 这是全局的。
 
-checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
+checkResult 是一个引用, 注意数据安全。
 ```
 ```lua
 -- 随机停止所有
@@ -183,69 +183,6 @@ UPar.SeqHookAdd('UParActPreStartValidate', 'example.prestart.validate', function
 	return math.random() > 0.5
 end)
 ```
-
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActStartOut** + **actName**  
-**@参数:** ply **Player**, checkResult **table**  
-
-```note
-这是局部的。
-
-checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActStartOut**  
-**@参数:** actName **string**, ply **Player**, checkResult **table**  
-
-```note
-这是全局的。
-
-checkResult 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
-```
-
-
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActClearOut** + **actName**  
-**@参数:** ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
-
-```note
-这是局部的。
-
-playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActClearOut**    
-**@参数:** actName **string**, ply **Player**, playingData **table**, mv **CMoveData**, cmd **CUserCmd**, interruptSource **string** or **bool**
-
-```note
-这是全局的。
-
-playingData 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。
-```
-
-
-
-	SeqHookRun('UParActEffRhythmChange_' .. actName, ply, effect, customData)
-	SeqHookRun('UParActEffRhythmChange', actName, ply, effect, customData)
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActEffRhythmChange** + **actName**  
-**@参数:** ply **Player**, effect **UPEffect**, customData **any**
-
-```note
-这是局部的。
-
-effect 是当前动作使用的特效。
-effect 是一个引用, 但是我们应该将它视为一个只读变量, 否则可能会导致不可预期的结果。 
-
-我还没想好这个钩子怎么用。
-```
-
-![shared](./materials/upgui/shared.jpg)
-**@名字:** **UParActEffRhythmChange**   
-**@参数:** actName **string**, ply **Player**, effect **UPEffect**, customData **any**
-
 
 ![client](./materials/upgui/client.jpg)
 **@名字:** **UParEffVarPreviewColor** + **actName** + **effName**  
