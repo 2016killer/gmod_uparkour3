@@ -88,7 +88,7 @@ hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', function(anim)
 		g_Legs.Sleep = true
 
 		local identity = UPManip.GetEntAnimFadeIdentity(g_Legs.LegEnt)
-		UPar.PushPVMDIterator(identity, tempIter, fadeInData, timeout)
+		UPar.PushPDVMIterator(identity, tempIter, fadeInData, timeout)
 	end
 end)
 
@@ -97,8 +97,8 @@ hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, 
 	print('UParIteratorPop', identity, reason)
 end)
 
-hook.Add('UParPVMDIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
-	print('UParPVMDIteratorPop', identity, reason)
+hook.Add('UParPDVMIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
+	print('UParPDVMIteratorPop', identity, reason)
 end)
 
 hook.Add('VMLegsPreRemove', 'UPExtGmodLegs3Manip', function(anim)

@@ -26,6 +26,8 @@ Sample code can be found in all Lua files containing the keyword "test".
 For UPAction and UPEffect, we should treat them as static containers and must not store any runtime results in them.
 
 The lifecycle synchronization of UPAction and UPEffect is always one-time-only. Since the synchronized data is a table, developers can add custom markers and send it independently if multiple synchronizations are required.
+
+It is not supported to operate the track in Start or Clear. This may cause confusion in the lifecycle, as they usually run within the net.Start context, which is read-only. One can operate the track either in the next frame using a timer or in act's Think.
 ```
 
 ### Data Security

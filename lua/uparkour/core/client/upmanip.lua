@@ -391,7 +391,7 @@ end
 
 UPManip.IsEntAnimFade = function(ent)
 	local identity = UPManip.GetEntAnimFadeIdentity(ent)
-	local iter = UPar.GetPVMDIterator(identity)
+	local iter = UPar.GetPDVMIterator(identity)
 	return !!iter and iter.add.subId == UPManip.FADE_SUB_IDENTITY
 end
 
@@ -407,7 +407,7 @@ function UPManip:AnimFadeIn(ent, target, boneMapping, speed, timeout)
 	local identity = self.GetEntAnimFadeIdentity(ent)
 	local iter = self.AnimFadeIterator
 	
-	return UPar.PushPVMDIterator(identity, iter, data, timeout)
+	return UPar.PushPDVMIterator(identity, iter, data, timeout)
 end
 
 function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
@@ -417,8 +417,8 @@ function UPManip:AnimFadeOut(ent, snapshot, speed, timeout)
 
 	local identity = self.GetEntAnimFadeIdentity(ent)
 
-	local succ = UPar.SetPVMDIterEndTime(identity, CurTime() + timeout)
-	succ = succ and UPar.MergePVMDIterAddiKV(identity, {
+	local succ = UPar.SetPDVMIterEndTime(identity, CurTime() + timeout)
+	succ = succ and UPar.MergePDVMIterAddiKV(identity, {
 		t = 0,
 		speed = speed,
 		target = false,

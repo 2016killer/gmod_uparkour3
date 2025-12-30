@@ -3,18 +3,18 @@
 	2025 12 30
 --]]
 
-UPar.PVMDIterators = UPar.PVMDIterators or {}
-local Iterators = UPar.PVMDIterators
+UPar.PDVMIterators = UPar.PDVMIterators or {}
+local Iterators = UPar.PDVMIterators
 
 local isThinkHookAdded = false
 local thinkHookStartTime = 0
 local THINK_HOOK_KEY = 'upar.iterators'
 local THINK_HOOK = 'PreDrawViewModel'
-local POP_HOOK = 'UParPVMDIteratorPop'
-local PUSH_HOOK = 'UParPVMDIteratorPush'
-local PAUSE_HOOK = 'UParPVMDIteratorPause'
-local END_TIME_CHANGED_HOOK = 'UParPVMDIteratorEndTimeChanged'
-local RESUME_HOOK = 'UParPVMDIteratorResume'
+local POP_HOOK = 'UParPDVMIteratorPop'
+local PUSH_HOOK = 'UParPDVMIteratorPush'
+local PAUSE_HOOK = 'UParPDVMIteratorPause'
+local END_TIME_CHANGED_HOOK = 'UParPDVMIteratorEndTimeChanged'
+local RESUME_HOOK = 'UParPDVMIteratorResume'
 
 local function ThinkCall()
 	local removeThinkFlag = true
@@ -48,7 +48,7 @@ local function ThinkCall()
 	for i = #removeIdentities, 1, -1 do
 		local identity, data, _ = unpack(removeIdentities[i])
 		if Iterators[identity] ~= data then
-			print(string.format('[UPar.PVMDIterators]: warning: iterator "%s" changed in think call', identity))
+			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in think call', identity))
 			table.remove(removeIdentities, i)
 			removeThinkFlag = false
 		else
@@ -60,7 +60,7 @@ local function ThinkCall()
 		local identity, data, reason = unpack(v)
 
 		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.PVMDIterators]: warning: iterator "%s" changed in other', identity))
+			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in other', identity))
 			removeThinkFlag = false
 			continue
 		end
@@ -75,7 +75,7 @@ local function ThinkCall()
 		local identity, data, reason = unpack(v)
 
 		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.PVMDIterators]: warning: iterator "%s" changed in other', identity))
+			print(string.format('[UPar.PDVMIterators]: warning: iterator "%s" changed in other', identity))
 			removeThinkFlag = false
 			continue
 		end
@@ -90,12 +90,12 @@ local function ThinkCall()
 	end
 end
 
-UPar.PushPVMDIterator = function(identity, iterator, addition, timeout, clear)
+UPar.PushPDVMIterator = function(identity, iterator, addition, timeout, clear)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 	if timeout <= 0 then 
-		print('[UPar.PushPVMDIterator]: warning: timeout <= 0!') 
+		print('[UPar.PushPDVMIterator]: warning: timeout <= 0!') 
 		return false
 	end
 
@@ -117,7 +117,7 @@ UPar.PushPVMDIterator = function(identity, iterator, addition, timeout, clear)
 	return true
 end
 
-UPar.PopPVMDIterator = function(identity, silent)
+UPar.PopPDVMIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 
 	local iteratorData = Iterators[identity]
@@ -141,17 +141,17 @@ UPar.PopPVMDIterator = function(identity, silent)
 	return true
 end
 
-UPar.GetPVMDIterator = function(identity)
+UPar.GetPDVMIterator = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity]
 end
 
-UPar.IsPVMDIteratorExist = function(identity)
+UPar.IsPDVMIteratorExist = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	return Iterators[identity] ~= nil
 end
 
-UPar.PausePVMDIterator = function(identity, silent)
+UPar.PausePDVMIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -172,7 +172,7 @@ UPar.PausePVMDIterator = function(identity, silent)
 	return true
 end
 
-UPar.ResumePVMDIterator = function(identity, silent)
+UPar.ResumePDVMIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -202,7 +202,7 @@ UPar.ResumePVMDIterator = function(identity, silent)
 	end
 end
 
-UPar.SetPVMDIterAddiKV = function(identity, ...)
+UPar.SetPDVMIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -225,7 +225,7 @@ UPar.SetPVMDIterAddiKV = function(identity, ...)
 	return true
 end
 
-UPar.GetPVMDIterAddiKV = function(identity, ...)
+UPar.GetPDVMIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -247,7 +247,7 @@ UPar.GetPVMDIterAddiKV = function(identity, ...)
 	return target[keyValue[total - 1]]
 end
 
-UPar.SetPVMDIterEndTime = function(identity, endTime, silent)
+UPar.SetPDVMIterEndTime = function(identity, endTime, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
@@ -263,7 +263,7 @@ UPar.SetPVMDIterEndTime = function(identity, endTime, silent)
 	return true
 end
 
-UPar.MergePVMDIterAddiKV = function(identity, data)
+UPar.MergePDVMIterAddiKV = function(identity, data)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(istable(data), 'data must be a table.')
 
