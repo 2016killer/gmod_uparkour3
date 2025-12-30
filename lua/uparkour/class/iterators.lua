@@ -62,7 +62,10 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
-	if timeout <= 0 then print('[UPar.PushIterator]: warning: timeout <= 0!') end
+	if timeout <= 0 then 
+		print('[UPar.PushIterator]: warning: timeout <= 0!') 
+		return false
+	end
 
 	local old = Iterators[identity]
 	if old then hook.Run('UParIteratorPop', identity, CurTime(), old.add, 'OVERRIDE') end
@@ -78,6 +81,8 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 		isThinkHookAdded = true
 		hook.Add('Think', THINK_HOOK_KEY, ThinkCall)
 	end
+	
+	return true
 end
 
 UPar.PopIterator = function(identity, silent)
@@ -86,9 +91,15 @@ UPar.PopIterator = function(identity, silent)
 	local iteratorData = Iterators[identity]
 	Iterators[identity] = nil
 
-	if not silent and istable(iteratorData) then
+	if not iteratorData then
+		return false
+	end
+
+	if not silent then
 		hook.Run('UParIteratorPop', identity, CurTime(), iteratorData.add, 'MANUAL')
 	end
+	
+	return true
 end
 
 UPar.GetIterator = function(identity)
@@ -101,50 +112,58 @@ UPar.IsIteratorExist = function(identity)
 	return Iterators[identity] ~= nil
 end
 
-UPar.PauseIterator = function(identity)
+UPar.PauseIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
-		return
+		return false
 	end
 	
 	local pauseTime = CurTime()
 	iteratorData.pt = pauseTime
-	hook.Run('UParIteratorPause', identity, pauseTime, iteratorData.add)
+
+	if not silent then
+		hook.Run('UParIteratorPause', identity, pauseTime, iteratorData.add)
+	end
+	
+	return true
 end
 
-UPar.ResumeIterator = function(identity)
+UPar.ResumeIterator = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
-		return
+		return false
 	end
 
 	if not iteratorData.pt then
-		return
+		return false
 	else
 		local resumeTime = CurTime()
 		local pauseTime = iteratorData.pt
 		iteratorData.pt = nil
 		
 		iteratorData.et = resumeTime + (iteratorData.et - pauseTime)
-		hook.Run('UParIteratorResume', identity, resumeTime, iteratorData.add)
+		
+		if not silent then
+			hook.Run('UParIteratorResume', identity, resumeTime, iteratorData.add)
+		end
 
 		if not isThinkHookAdded then
 			thinkHookStartTime = CurTime()
 			isThinkHookAdded = true
 			hook.Add('Think', THINK_HOOK_KEY, ThinkCall)
 		end
+		
+		return true
 	end
 end
-
 
 UPar.SetIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
-		print(string.format('[UPar.SetIterAddiKV]: warning: iterator "%s" not found', identity))
-		return
+		return false
 	end
 
 	local target = iteratorData.add
@@ -163,12 +182,10 @@ UPar.SetIterAddiKV = function(identity, ...)
 	return true
 end
 
-
 UPar.GetIterAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	local iteratorData = Iterators[identity]
 	if not iteratorData then
-		print(string.format('[UPar.GetIterAddiKV]: warning: iterator "%s" not found', identity))
 		return nil
 	end
 
@@ -185,4 +202,36 @@ UPar.GetIterAddiKV = function(identity, ...)
 	end
 
 	return target[keyValue[total - 1]]
+end
+
+UPar.SetIterEndTime = function(identity, endTime, silent)
+	assert(identity ~= nil, 'identity must be a valid value.')
+	local iteratorData = Iterators[identity]
+	if not iteratorData then
+		return false
+	end
+
+	iteratorData.et = endTime
+		
+	if not silent then
+		hook.Run('UParIteratorEndTimeChanged', identity, endTime, iteratorData.add)
+	end
+
+	return true
+end
+
+UPar.MergeIterAddiKV = function(identity, data)
+	assert(identity ~= nil, 'identity must be a valid value.')
+	assert(istable(data), 'data must be a table.')
+
+	local iteratorData = Iterators[identity]
+	if not iteratorData then
+		return false
+	end
+
+	local target = iteratorData.add
+
+	table.Merge(target, data)
+
+	return true
 end
