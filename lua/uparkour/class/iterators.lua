@@ -80,6 +80,7 @@ local function ThinkCall()
 		end
 
 		hook.Run(POP_HOOK, identity, curTime, data.add, reason) 
+		data.add = nil
 	end
 
 	if removeThinkFlag then
@@ -125,9 +126,16 @@ UPar.PopIterator = function(identity, silent)
 		return false
 	end
 
+	if isfunction(iteratorData.clear) then
+		local succ, result = pcall(iteratorData.clear, identity, CurTime(), iteratorData.add, 'MANUAL')
+		if not succ then ErrorNoHaltWithStack(result) end
+	end
+
 	if not silent then
 		hook.Run(POP_HOOK, identity, CurTime(), iteratorData.add, 'MANUAL')
 	end
+
+	iteratorData.add = nil
 	
 	return true
 end

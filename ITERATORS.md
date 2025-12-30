@@ -18,214 +18,135 @@
 
 # 迭代器
 
-## 一、 模块概述
+## 1.  推送渲染迭代器
 ![shared](./materials/upgui/shared.jpg)
-### 1.  核心作用
-该模块是基于 GMOD `Think` 钩子实现的迭代器管理工具，支持迭代器的自动执行、超时管控、暂停恢复及附加数据操作，无需手动循环调用迭代器函数，降低业务开发成本。
-### 2.  适用场景
-- 服务端/客户端的循环业务逻辑（如玩家状态监控、NPC AI 行为、动画淡入淡出、定时任务执行）
-- 需要精准控制执行时长、支持暂停/恢复的异步逻辑
-### 3.  依赖说明
-无第三方依赖，仅依赖 GMOD 内置 API（`CurTime`/`hook`/`istable`/`table.Merge` 等）和 Lua 标准语法，可直接集成使用。
-
-## 二、 核心 API 使用说明
-### 1.  迭代器添加：`UPar.PushIterator`
-![shared](./materials/upgui/shared.jpg)
-**bool** UPar.PushIterator(**identity** identity, **function** iterator, **table** addition, **number** timeout)
-#### 用途
-添加一个新的迭代器（若 `identity` 已存在，会覆盖旧迭代器并触发 `UParIteratorPop` 钩子）
-#### 参数说明
-| 参数名     | 类型       | 必填 | 说明                                                                 |
-|------------|------------|------|----------------------------------------------------------------------|
-| identity   | 任意       | 是   | 迭代器唯一标识（不可为 nil，用于后续查询/操作该迭代器）               |
-| iterator   | 函数       | 是   | 迭代器执行函数（每帧由 `Think` 钩子驱动，参数：dt(帧间隔)、curTime(当前时间)、add(附加数据)） |
-| addition   | 表/任意    | 否   | 迭代器附加数据（自动转为空表，存储业务关联数据）                     |
-| timeout    | 数字       | 是   | 迭代器超时时间（秒，必须大于 0，超时后迭代器自动被移除）             |
-#### 返回值
-`true`（添加成功）/ `false`（timeout ≤ 0，添加失败）
-#### 使用示例
-```lua
--- 示例：添加一个玩家位置监控迭代器
-local playerIterId = "player_pos_monitor_" .. LocalPlayer():SteamID()
-UPar.PushIterator(playerIterId, function(dt, curTime, add)
-    -- 迭代器逻辑：打印玩家当前位置
-    local ply = add.ply
-    if IsValid(ply) then
-        print("玩家位置：" .. tostring(ply:GetPos()))
-    else
-        return true -- 玩家无效，主动终止迭代器
-    end
-end, {ply = LocalPlayer()}, 30) -- 超时时间30秒
+**boolean** UPar.PushRenderIterator(**any** identity, **function** iterator, **any** addition, **number** timeout, **function** clear)
+```note
+用于推送一个渲染迭代器，该迭代器会在 PostRender 帧循环中执行。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型，支持特殊业务需求的自定义类型）；
+2.  iterator：帧循环回调函数，参数为 (dt<帧间隔>, curTime<当前时间>, add<附加数据>)；
+3.  addition：附加数据，非表类型会自动转为空表；
+4.  timeout：超时时间（秒，必须大于 0，否则返回 false）；
+5.  clear：迭代器清理回调函数，参数为 (identity, curTime, add, reason<清理原因>)。
+当同名 identity 已存在时，会先触发 UParRenderIteratorPop 钩子并覆盖旧迭代器；
+若当前无有效迭代器，会自动添加 PostRender 钩子；
+返回 true 表示推送成功，返回 false 表示超时参数不合法（<=0）。
 ```
 
-### 2.  迭代器移除：`UPar.PopIterator`
+## 2.  手动移除渲染迭代器
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.PopIterator(**identity** identity, **bool** silent)
-#### 用途
-手动移除指定标识的迭代器
-#### 参数说明
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| silent     | 布尔   | 否   | 静默模式（true：不触发 `UParIteratorPop` 钩子；false/默认：触发钩子） |
-#### 返回值
-`true`（迭代器存在并成功移除）/ `false`（迭代器不存在）
-#### 使用示例
-```lua
--- 示例：手动移除玩家位置监控迭代器（非静默模式）
-local playerIterId = "player_pos_monitor_" .. LocalPlayer():SteamID()
-local isRemoved = UPar.PopIterator(playerIterId, false)
-if isRemoved then
-    print("迭代器已成功移除")
-end
+**boolean** UPar.PopRenderIterator(**any** identity, **boolean** silent)
+```note
+用于手动移除指定标识的渲染迭代器。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  silent：是否静默执行，为 true 时不触发 UParRenderIteratorPop 钩子。
+若迭代器存在，会先执行清理回调（clear），再根据 silent 参数决定是否触发钩子，最后返回 true；
+若迭代器不存在，直接返回 false；
+移除后会自动置空迭代器的附加数据（add），减少内存冗余。
 ```
 
-### 3.  迭代器查询
-#### （1） `UPar.GetIterator`
+## 3.  获取渲染迭代器数据
 ![shared](./materials/upgui/shared.jpg)
-**table/nil** UPar.GetIterator(**identity** identity)
-##### 用途
-获取指定迭代器的完整数据（包含函数、结束时间、附加数据等）
-##### 参数
-`identity`：迭代器唯一标识（不可为 nil）
-##### 返回值
-迭代器数据表格（存在）/ nil（不存在）
-##### 示例
-```lua
-local iterData = UPar.GetIterator(playerIterId)
-if iterData then
-    print("迭代器结束时间：" .. iterData.et)
-end
+**table/nil** UPar.GetRenderIterator(**any** identity)
+```note
+用于获取指定标识对应的渲染迭代器完整数据。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）。
+若迭代器存在，返回迭代器数据表（包含字段：f<回调函数>、et<结束时间>、add<附加数据>、clear<清理回调>、pt<暂停时间>）；
+若迭代器不存在，返回 nil。
 ```
 
-#### （2） `UPar.IsIteratorExist`
+## 4.  判断渲染迭代器是否存在
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.IsIteratorExist(**identity** identity)
-##### 用途
-判断指定迭代器是否存在
-##### 参数
-`identity`：迭代器唯一标识（不可为 nil）
-##### 返回值
-`true`（存在）/ `false`（不存在）
-##### 示例
-```lua
-if UPar.IsIteratorExist(playerIterId) then
-    print("迭代器存在，可执行后续操作")
-end
+**boolean** UPar.IsRenderIteratorExist(**any** identity)
+```note
+用于快速判断指定标识的渲染迭代器是否已存在。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）。
+若迭代器存在，返回 true；若迭代器不存在，返回 false。
 ```
 
-### 4.  迭代器暂停/恢复
-#### （1） `UPar.PauseIterator`
+## 5.  暂停渲染迭代器
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.PauseIterator(**identity** identity, **bool** silent)
-##### 用途
-暂停指定迭代器（暂停后不再执行迭代器函数）
-##### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| silent     | 布尔   | 否   | 静默模式（true：不触发 `UParIteratorPause` 钩子；false/默认：触发钩子） |
-##### 返回值
-`true`（暂停成功）/ `false`（迭代器不存在）
-##### 示例
-```lua
--- 静默暂停迭代器
-UPar.PauseIterator(playerIterId, true)
+**boolean/number** UPar.PauseRenderIterator(**any** identity, **boolean** silent)
+```note
+用于暂停指定标识的渲染迭代器，暂停后迭代器不再参与 PostRender 帧循环执行。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  silent：是否静默执行，为 true 时不触发 UParRenderIteratorPause 钩子。
+返回值说明：
+1.  false：迭代器不存在；
+2.  0：迭代器已处于暂停状态（Lua 中为真值，适配 succ = succ and xxx 链式判断）；
+3.  true：迭代器暂停成功。
+暂停时会记录当前时间（pt 字段），用于恢复时补偿超时时间。
 ```
 
-#### （2） `UPar.ResumeIterator`
+## 6.  恢复渲染迭代器
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.ResumeIterator(**identity** identity, **bool** silent)
-##### 用途
-恢复已暂停的迭代器（自动补偿超时时间，抵消暂停时长）
-##### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| silent     | 布尔   | 否   | 静默模式（true：不触发 `UParIteratorResume` 钩子；false/默认：触发钩子） |
-##### 返回值
-`true`（恢复成功）/ `false`（迭代器不存在/未暂停）
-##### 示例
-```lua
--- 非静默恢复迭代器
-UPar.ResumeIterator(playerIterId, false)
+**boolean/number** UPar.ResumeRenderIterator(**any** identity, **boolean** silent)
+```note
+用于恢复已暂停的指定标识渲染迭代器。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  silent：是否静默执行，为 true 时不触发 UParRenderIteratorResume 钩子。
+返回值说明：
+1.  false：迭代器不存在；
+2.  0：迭代器未处于暂停状态（Lua 中为真值，适配 succ = succ and xxx 链式判断）；
+3.  true：迭代器恢复成功。
+恢复时会自动补偿超时时间（新结束时间 = 恢复时间 + 剩余超时时间），保证超时逻辑准确；
+若当前无有效迭代器，恢复后会自动添加 PostRender 钩子。
 ```
 
-### 5.  附加数据操作
-#### （1） `UPar.SetIterAddiKV`
+## 7.  设置迭代器嵌套附加数据
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.SetIterAddiKV(**identity** identity, ...)
-##### 用途
-给迭代器附加数据设置**多级嵌套键值**
-##### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| ...        | 任意   | 是   | 可变参数（至少2个，格式：多级键路径 + 目标键 + 赋值内容）             |
-##### 返回值
-`true`（设置成功）/ `false`（迭代器不存在/嵌套路径无效）
-##### 示例
-```lua
--- 给迭代器附加数据设置：add.player.pos.x = 100
-UPar.SetIterAddiKV(playerIterId, "player", "pos", "x", 100)
+**boolean** UPar.SetRenderIterAddiKV(**any** identity, **...** varargs)
+```note
+用于设置渲染迭代器的嵌套附加数据，支持多级键路径赋值。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  varargs：变长参数，至少需要 1 个键 + 1 个值（例如：SetRenderIterAddiKV(ident, "a", "b", 10) 对应 add.a.b = 10）。
+若中间嵌套键对应的表不存在，直接返回 false；
+若迭代器不存在，返回 false；
+若设置成功，返回 true；
+不支持自动创建嵌套表，仅支持已有嵌套路径的赋值。
 ```
 
-#### （2） `UPar.GetIterAddiKV`
+## 8.  获取迭代器嵌套附加数据
 ![shared](./materials/upgui/shared.jpg)
-**any/nil** UPar.GetIterAddiKV(**identity** identity, ...)
-##### 用途
-查询迭代器附加数据的**多级嵌套键值**
-##### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| ...        | 任意   | 是   | 可变参数（至少2个，格式：多级键路径 + 目标键）                       |
-##### 返回值
-目标键对应的值（存在）/ nil（迭代器不存在/嵌套路径无效/键不存在）
-##### 示例
-```lua
--- 查询：add.player.pos.x
-local xPos = UPar.GetIterAddiKV(playerIterId, "player", "pos", "x")
+**any/nil** UPar.GetRenderIterAddiKV(**any** identity, **...** varargs)
+```note
+用于获取渲染迭代器的嵌套附加数据，支持多级键路径查询。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  varargs：变长参数，至少需要 1 个键（例如：GetRenderIterAddiKV(ident, "a", "b") 对应查询 add.a.b）。
+若中间嵌套键对应的表不存在，返回 nil；
+若迭代器不存在，返回 nil；
+若查询成功，返回对应键的值。
 ```
 
-#### （3） `UPar.MergeIterAddiKV`
+## 9.  设置迭代器超时结束时间
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.MergeIterAddiKV(**identity** identity, **table** data)
-##### 用途
-批量合并键值对到迭代器附加数据（浅层合并）
-##### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| data       | 表     | 是   | 待合并的源表（键值对会覆盖附加数据同名键，新增异名键）               |
-##### 返回值
-`true`（合并成功）/ `false`（迭代器不存在）
-##### 示例
-```lua
--- 批量更新附加数据顶层字段
-UPar.MergeIterAddiKV(playerIterId, {
-    hp = 150,
-    mp = 100,
-    state = "alive"
-})
+**boolean** UPar.SetRenderIterEndTime(**any** identity, **number** endTime, **boolean** silent)
+```note
+用于直接设置指定渲染迭代器的超时结束时间。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  endTime：新的超时结束时间（时间戳格式）；
+3.  silent：是否静默执行，为 true 时不触发 UParRenderIteratorEndTimeChanged 钩子。
+若迭代器存在，设置结束时间并返回 true；
+若迭代器不存在，返回 false。
 ```
 
-### 6.  迭代器结束时间修改：`UPar.SetIterEndTime`
+## 10. 合并迭代器附加数据
 ![shared](./materials/upgui/shared.jpg)
-**bool** UPar.SetIterEndTime(**identity** identity, **number** endTime, **bool** silent)
-#### 用途
-动态修改迭代器的绝对结束时间
-#### 参数
-| 参数名     | 类型   | 必填 | 说明                                                                 |
-|------------|--------|------|----------------------------------------------------------------------|
-| identity   | 任意   | 是   | 迭代器唯一标识                                                       |
-| endTime    | 数字   | 是   | 新的绝对结束时间（需传入 `CurTime() + 相对秒数`，而非直接传相对秒数） |
-| silent     | 布尔   | 否   | 静默模式（true：不触发 `UParIteratorEndTimeChanged` 钩子；false/默认：触发钩子） |
-#### 返回值
-`true`（修改成功）/ `false`（迭代器不存在）
-#### 示例
-```lua
--- 给迭代器延长10秒超时时间
-local newEndTime = CurTime() + 10
-UPar.SetIterEndTime(playerIterId, newEndTime, false)
+**boolean** UPar.MergeRenderIterAddiKV(**any** identity, **table** data)
+```note
+用于合并渲染迭代器的附加数据，基于 GLua table.Merge 方法实现（浅合并）。
+参数说明：
+1.  identity：迭代器唯一标识（任意非空类型）；
+2.  data：待合并的附加数据（必须为表类型，否则断言报错）。
+若迭代器存在，合并数据并返回 true；
+若迭代器不存在，返回 false。
 ```
