@@ -69,7 +69,7 @@ local function ActEffRhythmChange(ply, action, customData, silent)
 	if effect then effect:Rhythm(ply, customData) end
 
 	if not silent then
-		SeqHookRunAllSafe('UParActEvent', {rhythmEvent})
+		SeqHookRunAllSafe('UParActEvent', ply, {rhythmEvent})
 	end
 end
 
@@ -505,7 +505,7 @@ elseif CLIENT then
 				local succ, err = pcall(ActClear, ply, action, data, nil, nil, interruptSource or false)
 				if not succ then ErrorNoHaltWithStack(err) end
 			elseif eventFlag == RHYTHM_FLAG then
-				local succ, err = pcall(ActEffRhythmChange, ply, action, data)
+				local succ, err = pcall(ActEffRhythmChange, ply, action, data, true)
 				if not succ then ErrorNoHaltWithStack(err) end
 			end
 		end

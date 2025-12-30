@@ -35,3 +35,10 @@ if SERVER then
 	// 	return math.random() > 0.5
 	// end)
 end
+
+// UPar.SeqHookAdd('UParActEvent', 'network.debug', function(ply, event)
+// 	local curtime = CurTime()
+// 	print(string.format('-------------------%s----------------', curtime))
+// 	PrintTable(event)
+// 	print(string.format('-------------------%s----------------', curtime))
+// end)
