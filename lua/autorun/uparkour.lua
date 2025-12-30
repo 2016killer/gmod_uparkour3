@@ -324,10 +324,10 @@ UPar.DeepInject = DeepInject
 
 UPar.LoadLuaFiles('class')
 UPar.LoadLuaFiles('core')
+UPar.LoadLuaFiles('extend')
 UPar.LoadLuaFiles('actions')
 UPar.LoadLuaFiles('effects')
 UPar.LoadLuaFiles('effectseasy')
-UPar.LoadLuaFiles('extend')
 UPar.LoadLuaFiles('widget', 'CLIENT')
 UPar.LoadLuaFiles('gui', 'CLIENT')
 UPar.LoadLuaFiles('version_compat')
@@ -340,10 +340,10 @@ concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function(ply)
 	
 	UPar.LoadLuaFiles('class')
 	UPar.LoadLuaFiles('core')
+	UPar.LoadLuaFiles('extend')
 	UPar.LoadLuaFiles('actions')
 	UPar.LoadLuaFiles('effects')
 	UPar.LoadLuaFiles('effectseasy')
-	UPar.LoadLuaFiles('extend')
 	UPar.LoadLuaFiles('widget', 'CLIENT')
 	UPar.LoadLuaFiles('gui', 'CLIENT')
 	UPar.LoadLuaFiles('version_compat')
@@ -351,11 +351,24 @@ concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function(ply)
 end)
 
 concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args)
-	if args[1] then
-		local tar = UPar[args[1]]
-		print(tar)
-		if istable(tar) then PrintTable(tar) end
-	else
-		PrintTable(UPar)
+	if SERVER and not ply:IsAdmin() then
+		PrintMessage(HUD_PRINTTALK, 'Only super admin can use this command')
+		return
 	end
+	
+	local target = _G
+	local total = #args
+	local lastKey = args[total] or 'UPar'
+
+	for i = 1, total - 1 do
+		local key = args[i]
+		target = target[key]
+		if not istable(target) then
+			return 
+		end
+	end
+	target = target[lastKey]
+	
+	print(target)
+	if istable(target) then PrintTable(target) end
 end)

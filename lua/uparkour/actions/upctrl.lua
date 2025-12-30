@@ -6,7 +6,6 @@
 -- ==================== 总控制 ===============
 local CallAct = UPar.CallAct
 local GetActKeyValue = UPar.GetActKeyValue
-local Trigger = UPar.Trigger
 
 local controller = UPAction:Register('upctrl', {
 	AAAACreat = '白狼',
@@ -89,7 +88,7 @@ function controller:Trigger(ply, actFlag)
 	if bit.band(actFlag, VAULTDL_FLAG) ~= 0 and CallAct('upvaultdl', 'GetDisabled') == false then
 		lowObsTrace, lowClimbTrace = CallAct('uplowclimb', 'Detector', ply)
 		if lowObsTrace and lowClimbTrace then
-			local succ = Trigger(ply, 'upvaultdl', nil, lowObsTrace, lowClimbTrace, refVel)
+			local succ = UPar.Trigger(ply, 'upvaultdl', nil, lowObsTrace, lowClimbTrace, refVel)
 			if succ then return succ end
 		else
 			lowObsTrace, lowClimbTrace = true, true
@@ -100,10 +99,10 @@ function controller:Trigger(ply, actFlag)
 		if lowClimbTrace ~= true then
 			if lowClimbTrace then
 				local moveData = CallAct('uplowclimb', 'GetMoveData', ply, lowObsTrace, lowClimbTrace, refVel)
-				local succ = Trigger(ply, 'uplowclimb', moveData)
+				local succ = UPar.Trigger(ply, 'uplowclimb', moveData)
 				if succ then return succ end
 			else
-				local succ = Trigger(ply, 'uplowclimb', nil, nil, nil, refVel)
+				local succ = UPar.Trigger(ply, 'uplowclimb', nil, nil, nil, refVel)
 				if succ then return succ end
 			end
 		end
@@ -115,7 +114,7 @@ function controller:Trigger(ply, actFlag)
 	if bit.band(actFlag, VAULTDH_FLAG) ~= 0 and CallAct('upvaultdh', 'GetDisabled') == false then
 		highObsTrace, highClimbTrace = CallAct('uphighclimb', 'Detector', ply)
 		if highObsTrace and highClimbTrace then
-			local succ = Trigger(ply, 'upvaultdh', nil, highObsTrace, highClimbTrace, refVel)
+			local succ = UPar.Trigger(ply, 'upvaultdh', nil, highObsTrace, highClimbTrace, refVel)
 			if succ then return succ end
 		else
 			highObsTrace, highClimbTrace = true, true
@@ -126,10 +125,10 @@ function controller:Trigger(ply, actFlag)
 		if highClimbTrace ~= true then
 			if highClimbTrace then
 				local moveData = CallAct('uphighclimb', 'GetMoveData', ply, highObsTrace, highClimbTrace, refVel)
-				local succ = Trigger(ply, 'uphighclimb', moveData)
+				local succ = UPar.Trigger(ply, 'uphighclimb', moveData)
 				if succ then return succ end
 			else
-				local succ = Trigger(ply, 'uphighclimb', nil, nil, nil, refVel)
+				local succ = UPar.Trigger(ply, 'uphighclimb', nil, nil, nil, refVel)
 				if succ then return succ end
 			end
 		end
