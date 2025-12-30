@@ -254,10 +254,10 @@ if CLIENT then
 				if label == 'SpeedPredi' then
 					local ply = LocalPlayer()
 			
-					local startspeedf = Vector(UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_start_speed_f']:GetString())
-					local endspeedf = Vector(UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_end_speed_f']:GetString())
-					local enableStartSpeedRef = UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_enable_start_refspeed']:GetBool()
-					local enableEndSpeedRef = UPar.GetActKeyValue('upvaultdh', 'ConVars')['upvtdh_enable_end_refspeed']:GetBool()
+					local startspeedf = Vector(UPar.GetActKV('upvaultdh', 'ConVars')['upvtdh_start_speed_f']:GetString())
+					local endspeedf = Vector(UPar.GetActKV('upvaultdh', 'ConVars')['upvtdh_end_speed_f']:GetString())
+					local enableStartSpeedRef = UPar.GetActKV('upvaultdh', 'ConVars')['upvtdh_enable_start_refspeed']:GetBool()
+					local enableEndSpeedRef = UPar.GetActKV('upvaultdh', 'ConVars')['upvtdh_enable_end_refspeed']:GetBool()
 					
 					local moveVec = Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 					local moveVec2 = Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
@@ -288,7 +288,7 @@ if CLIENT then
 				elseif cvName == 'upvtdh_ehlen_f'then
 					local min, max = LocalPlayer():GetCollisionBounds()
 					local plyHeight = max[3] - min[3]
-					local cvar = UPar.GetActKeyValue('upvaultdh', 'ConVars')[cvName]
+					local cvar = UPar.GetActKV('upvaultdh', 'ConVars')[cvName]
 
 					value = math.Round(plyHeight * cvar:GetFloat(), 2)
 				end

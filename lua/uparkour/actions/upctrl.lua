@@ -5,7 +5,7 @@
 
 -- ==================== 总控制 ===============
 local CallAct = UPar.CallAct
-local GetActKeyValue = UPar.GetActKeyValue
+local GetActKV = UPar.GetActKV
 
 local controller = UPAction:Register('upctrl', {
 	AAAACreat = '白狼',
@@ -301,7 +301,7 @@ if CLIENT then
 				end
 
 				self.NextThinkTime = CurTime() + 0.5
-				local cvar = UPar.GetActKeyValue('upctrl', 'ConVars')[cvName]
+				local cvar = UPar.GetActKV('upctrl', 'ConVars')[cvName]
 				local value = nil
 				if cvName == 'upctrl_los_cos' then
 					value = math.Round(math.acos(controller.ConVars.upctrl_los_cos:GetFloat()) * 180 / math.pi, 2)

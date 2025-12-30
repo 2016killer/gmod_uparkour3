@@ -62,16 +62,13 @@ UPar.PushIterator = function(identity, iterator, addition, timeout)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
-
-	if timeout <= 0 then
-		print('[UPar.PushIterator]: warning: timeout <= 0!')
-	end
+	if timeout <= 0 then print('[UPar.PushIterator]: warning: timeout <= 0!') end
 
 	local old = Iterators[identity]
 	if old then hook.Run('UParIteratorPop', identity, CurTime(), old.add, 'OVERRIDE') end
 
 	local endtime = timeout + CurTime()
-	
+	addition = istable(addition) and addition or {}
 	hook.Run('UParIteratorPush', identity, endtime, addition)
 
 	Iterators[identity] = {f = iterator, et = endtime, add = addition}
@@ -139,4 +136,53 @@ UPar.ResumeIterator = function(identity)
 			hook.Add('Think', THINK_HOOK_KEY, ThinkCall)
 		end
 	end
+end
+
+
+UPar.SetIterAddiKV = function(identity, ...)
+	assert(identity ~= nil, 'identity must be a valid value.')
+	local iteratorData = Iterators[identity]
+	if not iteratorData then
+		print(string.format('[UPar.SetIterAddiKV]: warning: iterator "%s" not found', identity))
+		return
+	end
+
+	local target = iteratorData.add
+
+	local total = select('#', ...)
+	assert(total >= 2, 'at least 2 arguments required')
+
+	local keyValue = {...}
+	
+	for i = 1, total - 2 do
+		target = target[keyValue[i]]
+		if not istable(target) then return false end
+	end
+
+	target[keyValue[total - 1]] = keyValue[total]
+	return true
+end
+
+
+UPar.GetIterAddiKV = function(identity, ...)
+	assert(identity ~= nil, 'identity must be a valid value.')
+	local iteratorData = Iterators[identity]
+	if not iteratorData then
+		print(string.format('[UPar.GetIterAddiKV]: warning: iterator "%s" not found', identity))
+		return nil
+	end
+
+	local target = iteratorData.add
+
+	local total = select('#', ...)
+	assert(total >= 2, 'at least 2 arguments required')
+
+	local keyValue = {...}
+	
+	for i = 1, total - 2 do
+		target = target[keyValue[i]]
+		if not istable(target) then return nil end
+	end
+
+	return target[keyValue[total - 1]]
 end

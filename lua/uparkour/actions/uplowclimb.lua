@@ -206,13 +206,13 @@ if CLIENT then
 				self.NEXT = CurTime() + 0.5
 
 				local value = nil
-				local cvar = UPar.GetActKeyValue('uplowclimb', 'ConVars')[cvName]
+				local cvar = UPar.GetActKV('uplowclimb', 'ConVars')[cvName]
 				if cvName == 'uplc_speed_f' then
 					local ply = LocalPlayer()
 					local cvarVal = Vector(cvar:GetString())
 					local moveVec = Vector(ply:GetJumpPower(), ply:GetWalkSpeed(), 0)
 					local moveVec2 = Vector(ply:GetJumpPower(), 0, ply:GetRunSpeed())
-					local enableRefSpeed = UPar.GetActKeyValue('uplowclimb', 'ConVars').uplc_refspeed_enable:GetBool()
+					local enableRefSpeed = UPar.GetActKV('uplowclimb', 'ConVars').uplc_refspeed_enable:GetBool()
 
 					if enableRefSpeed then
 						value = string.format('max(%s, %s) ~ 0,    max(%s, %s) ~ 0', 

@@ -93,7 +93,7 @@ UPar.CallAct = function(actName, methodName, ...)
 	return method(action, ...)
 end
 
-UPar.GetActKeyValue = function(actName, key)
+UPar.GetActKV = function(actName, key)
     local action = ActInstances[actName]
     if not action then
 		print(string.format('not found act named "%s"', actName))
@@ -125,7 +125,7 @@ UPar.CallEff = function(actName, effName, methodName, ...)
 	return method(effect, ...)
 end
 
-UPar.GetEffKeyValue = function(actName, effName, key)
+UPar.GetEffKV = function(actName, effName, key)
     local effects = EffInstances[actName]
     if not effects then
 		print(string.format('not found effs in act "%s"', actName))
@@ -157,7 +157,7 @@ UPar.CallPlyUsingEff = function(actName, methodName, ply, ...)
 	return method(effect, ...)
 end
 
-UPar.GetPlyUsingEffKeyValue = function(actName, key, ply)
+UPar.GetPlyUsingEffKV = function(actName, key, ply)
     local effect = GetPlyUsingEffect(ply, actName)
     if not effect then
 		print(string.format('not found eff "USING" in act "%s" for ply "%s"', actName, ply))
