@@ -8,7 +8,7 @@ local Iterators = UPar.RenderIterators
 
 local isThinkHookAdded = false
 local thinkHookStartTime = 0
-local THINK_HOOK_KEY = 'upar.iterators'
+local THINK_HOOK_IDENTITY = 'upar.iterators'
 local THINK_HOOK = 'PostDrawOpaqueRenderables'
 local POP_HOOK = 'UParRenderIteratorPop'
 local PUSH_HOOK = 'UParRenderIteratorPush'
@@ -85,7 +85,7 @@ local function ThinkCall()
 	end
 
 	if removeThinkFlag then
-		hook.Remove(THINK_HOOK, THINK_HOOK_KEY)
+		hook.Remove(THINK_HOOK, THINK_HOOK_IDENTITY)
 		isThinkHookAdded = false
 	end
 end
@@ -111,7 +111,7 @@ UPar.PushRenderIterator = function(identity, iterator, addition, timeout, clear)
 	if not isThinkHookAdded then
 		thinkHookStartTime = CurTime()
 		isThinkHookAdded = true
-		hook.Add(THINK_HOOK, THINK_HOOK_KEY, ThinkCall)
+		hook.Add(THINK_HOOK, THINK_HOOK_IDENTITY, ThinkCall)
 	end
 	
 	return true
@@ -195,7 +195,7 @@ UPar.ResumeRenderIterator = function(identity, silent)
 		if not isThinkHookAdded then
 			thinkHookStartTime = CurTime()
 			isThinkHookAdded = true
-			hook.Add(THINK_HOOK, THINK_HOOK_KEY, ThinkCall)
+			hook.Add(THINK_HOOK, THINK_HOOK_IDENTITY, ThinkCall)
 		end
 		
 		return true
