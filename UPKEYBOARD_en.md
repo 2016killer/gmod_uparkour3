@@ -39,18 +39,6 @@ The registered key binding can be found in the Q menu.
 UPKeyboard.Register('example', '[33,65]')
 ```
 
-![client](./materials/upgui/client.jpg)
-**table** UPKeyboard.GetKeys(**string** flag)
-```note
-Returns the list of bound keys as an integer array.
-```
-
-![client](./materials/upgui/client.jpg)
-UPKeyboard.SetKeys(**string** flag, **table** or **string** keys)
-```note
-Sets the list of bound keys, which can be either an integer array or a JSON string.
-```
-
 ## SeqHook
 ![client](./materials/upgui/client.jpg)
 **@Name:** **UParKeyPress**  

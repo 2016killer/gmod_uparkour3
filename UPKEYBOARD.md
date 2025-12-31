@@ -41,18 +41,6 @@ UPKeyboard.Register(**string** flag, **string** default, **string** label=flag)
 UPKeyboard.Register('example', '[33,65]')
 ```
 
-![client](./materials/upgui/client.jpg)
-**table** UPKeyboard.GetKeys(**string** flag)
-```note
-返回按键列表, 是一个int数组
-```
-
-![client](./materials/upgui/client.jpg)
-UPKeyboard.SetKeys(**string** flag, **table** or **string** keys)
-```note
-设置按键列表, 可以是一个int数组, 也可以是JSON字符串
-```
-
 ## SeqHook
 ![client](./materials/upgui/client.jpg)
 **@名字:** **UParKeyPress**  

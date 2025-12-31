@@ -24,6 +24,10 @@ local SeqHookRunAllSafe = UPar.SeqHookRunAllSafe
 local upkeycheck_interval = CreateClientConVar('upkeycheck_interval', '0.03', true, false, '')
 local nextThinkTime = 0
 local interval = upkeycheck_interval:GetFloat()
+local ThinkLock = false
+local THINK_HOOK_IDENTITY = 'upkeyboard.check'
+local KEY_PRESS_HOOK_IDENTITY = 'upkeyboard.check'
+local KEY_RELEASE_HOOK_IDENTITY = 'upkeyboard.check'
 
 cvars.AddChangeCallback('upkeycheck_interval', function(name, old, new)
     local newVal = tonumber(new)
@@ -54,33 +58,7 @@ UPKeyboard.Register = function(flag, default, label)
     hook.Run('UParRegisterKey', flag, label, default)
 end
 
-UPKeyboard.GetKeys = function(flag)
-    assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
-    if not KeySet[flag] then return nil end
-    local keys = util.JSONToTable(KeySet[flag]:GetString())
-    return istable(keys) and keys or nil
-end
-
-UPKeyboard.SetKeys = function(flag, keys)
-    assert(isstring(flag), string.format('Invalid flag "%s" (not a string)', flag))
-
-    local val = nil
-    if isstring(keys) then
-        val = keys
-    elseif istable(keys) and table.IsSequential(keys) then
-        val = util.TableToJSON(keys) or '[0]'
-    else
-        print(string.format('[UPKeyEvent]: Invalid keys "%s" (not a string or sequential table)', keys))
-        return
-    end
-
-    if not KeySet[flag] then Register(flag, val, flag) end
-
-    KeySet[flag]:SetString(val)
-end
-
-
-hook.Add('Think', 'upkeyboard.check', function()
+local function Check()
     local curTime = RealTime()
     if curTime < nextThinkTime then
         return
@@ -127,6 +105,37 @@ hook.Add('Think', 'upkeyboard.check', function()
     if not table.IsEmpty(ReleasedSet) then
         SeqHookRunAllSafe('UParKeyRelease', ReleasedSet)
     end
+end
+
+hook.Add('Think', THINK_HOOK_IDENTITY, function()
+    if ThinkLock then return end
+    Check()
+end)
+
+print(565656)
+hook.Add('KeyPress', KEY_PRESS_HOOK_IDENTITY, function(ply, key)
+    print(IsFirstTimePredicted())
+    if not game.SinglePlayer() and not IsFirstTimePredicted() then 
+        return 
+    end
+
+    ThinkLock = true
+    local succ, err = pcall(Check)
+    if not succ then ErrorNoHaltWithStack(err) end
+    print('KeyPress', key)
+    ThinkLock = false
+end)
+
+hook.Add('KeyRelease', KEY_RELEASE_HOOK_IDENTITY, function(ply, key)
+    if not game.SinglePlayer() and not IsFirstTimePredicted() then 
+        return 
+    end
+
+    ThinkLock = true
+    local succ, err = pcall(Check)
+    if not succ then ErrorNoHaltWithStack(err) end
+    print('KeyRelease', key)
+    ThinkLock = false
 end)
 
 UPKeyboard.ClearKeyState = function()
