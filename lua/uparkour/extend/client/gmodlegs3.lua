@@ -67,7 +67,7 @@ g_GmodLeg3Faker = g_GmodLeg3Faker or nil
 
 local function InitGmodLeg3Faker()
 	if not g_Legs then
-		print('[UPExt]: GmodLegs3 not install')
+		print('[UPExt]: [Gmod Legs 3] not install!')
 		return false
 	end
 
@@ -75,77 +75,77 @@ local function InitGmodLeg3Faker()
 		g_GmodLeg3Faker = UPar.DeepClone(g_Legs)
 		g_GmodLeg3Faker.LegEnt = nil	
 	end
+	g_GmodLeg3Faker:SetUp()
 
-	g_GmodLeg3Faker:SetUP()
+    hook.Add('UpdateAnimation', 'GML:UpdateAnimation', function(ply, velocity, maxseqgroundspeed)
+		if ply == LocalPlayer() then
+			local self = g_GmodLeg3Faker
+            if IsValid(self.LegEnt) then
+                self:Think(maxseqgroundspeed)
+				if (string.lower(LocalPlayer():GetLegModel()) != string.lower(self.LegEnt:GetModel())) then
+                    self:SetUp()
+				end
+            else
+				self:SetUp()
+			end
+        end
+    end)
 
 	return true
 end
 
 local function GmodLeg3FakeRender(self)
-	// // local GmodLeg3Fake = self
-	// local VMLegsParentFake = g_VMLegsParentFake 
+	// local GmodLeg3Fake = self
 
-	// -- 同步 VMLegs 动画
-	// local cycle = VMLegs.Cycle
-	// if isnumber(cycle) then VMLegsParentFake:SetCycle(cycle) end
-
-	// // if IsFirstTimePredicted() then
-	// self.t = math.Clamp((self.t or 0) + FrameTime() * (self.speed or 1), 0, 1)
-	// // else
-	// // 	self.t = self.t or 0
-	// // end
-
-	// if self.lastTarget ~= self.target then
-	// 	self.t = 0
+	// if IsFirstTimePredicted() then
+	self.t = math.Clamp((self.t or 0) + FrameTime() * (self.speed or 1), 0, 1)
+	// else
+	// 	self.t = self.t or 0
 	// end
 
-	// if IsValid(self.target) then
-	// 	self.target:SetupBones()
-	// 	self:SetupBones()
-	// 	UPManip.LerpBoneWorld(self, self.t, self.snapshot or emptyTable, self.target, 
-	// 	UPManip.BoneMappingCollect['VMLegs'], 
-	// 	UPManip.BoneKeysCollect['VMLegs'])
-	// end
+	if self.lastTarget ~= self.target then
+		self.t = 0
+	end
 
-	// // local matrix = Matrix()
-	// // matrix:SetTranslation(Vector(999, 999, 999))
-	// // matrix:SetAngles(Angle(100, 20, 30))
-	// // cam.PushModelMatrix(matrix, true)
-	// // 	self:DrawModel()
-	// // cam.PopModelMatrix()
+	if IsValid(self.target) then
+		self.target:SetupBones()
+		self:SetupBones()
+		UPManip:LerpBoneWorld(self, self.t, self.snapshot or emptyTable, self.target, 'VMLegs', 'VMLegs')
+	end
 
-	// cam.Start3D(EyePos(), EyeAngles())
-	// 	self:SetRenderOrigin(g_Legs.RenderPos)
-	// 	self:SetRenderOrigin(g_Legs.RenderAngle)
-	// 	self:SetupBones()
+	// local matrix = Matrix()
+	// matrix:SetTranslation(Vector(999, 999, 999))
+	// matrix:SetAngles(Angle(100, 20, 30))
+	// cam.PushModelMatrix(matrix, true)
 	// 	self:DrawModel()
-	// 	self:SetRenderOrigin(nil)
-	// 	self:SetRenderAngles(nil)
-	// cam.End3D()
-
-
-	// self.lastTarget = self.target
+	// cam.PopModelMatrix()
+	self:DrawModel()
+	self.lastTarget = self.target
 end
 
 local function StartManip()
-	// if not Condition() then
-	// 	return false
-	// end
+	if not VMLegs then
+		print('[UPExt]: GmodLegs3Manip: [VManip Base] not install!')
+		return false
+	end
 
-	// local succ = InitGmodLeg3Faker()
+	if not IsValid(VMLegs.LegModel) or not IsValid(VMLegs.LegParent) then
+		print('[UPExt]: GmodLegs3Manip: VMLegs has not been started yet.!')
+		return false
+	end
 
-	// if not succ then
-	// 	print('[UPExt]: GmodLegs3Manip: InitFaker failed!')
-	// 	return false
-	// end
+	local succ = InitGmodLeg3Faker()
 
-	// VMLegs.LegModel:SetNoDraw(true)
-	// g_Legs.LegEnt:SetupBones()
+	if not succ then
+		print('[UPExt]: GmodLegs3Manip: InitFaker failed!')
+		return false
+	end
 
-	// GmodLeg3Fake.snapshot = UPManip.Snapshot(g_Legs.LegEnt, UPManip.BoneMappingCollect['VMLegs'])
-	// GmodLeg3Fake.target = g_VMLegsParentFake
-	// GmodLeg3Fake.lastTarget = nil
-	// GmodLeg3Fake.RenderOverride = GmodLeg3FakeRender
+	VMLegs.LegModel:SetNoDraw(true)
+	g_GmodLeg3Faker.snapshot = UPManip.Snapshot(g_GmodLeg3Faker.LegEnt, 'VMLegs')
+	g_GmodLeg3Faker.target = g_VMLegsParentFake
+	g_GmodLeg3Faker.lastTarget = nil
+
 end
 
 local function ClearManip()

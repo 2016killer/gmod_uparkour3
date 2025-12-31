@@ -198,10 +198,81 @@ local function GetBoneMappingKeysSorted(ent, boneMapping, useLRU2)
 	return keys
 end
 
-local function LerpBoneWorld(ent, t, snapshot, target, boneMapping, boneKeys)
+
+UPManip.SetBonePosition = SetBonePosition
+UPManip.UnpackBMData = UnpackBMData
+UPManip.GetBoneMappingKeysSorted = GetBoneMappingKeysSorted
+UPManip.GetBonesFamilyLevel = GetBonesFamilyLevel
+UPManip.BoneMappingCollect = UPManip.BoneMappingCollect or {}
+UPManip.BoneKeysCollect = UPManip.BoneKeysCollect or {}
+
+
+function UPManip:GetBoneKeys(boneKeys)
+	assert(isstring(boneKeys) or istable(boneKeys), 'boneKeys must be string or table')
+	
+	if isstring(boneKeys) then
+		local name = boneKeys
+		boneKeys = self.BoneKeysCollect[name]
+
+		if not istable(boneKeys) then
+			print(string.format('[UPManip.GetBoneKeys]: can not find boneKeys named "%s"', name))
+			return emptyTable
+		end
+	end
+
+	if table.IsEmpty(boneKeys) then
+		print('[UPManip.GetBoneKeys]: boneKeys is empty')
+	end
+
+	return boneKeys
+end
+
+function UPManip:GetBoneMapping(boneMapping)
+	assert(isstring(boneMapping) or istable(boneMapping), 'boneMapping must be string or table')
+	
+	if isstring(boneMapping) then
+		local name = boneMapping
+		boneMapping = self.BoneMappingCollect[name]
+
+		if not istable(boneMapping) then
+			print(string.format('[UPManip.GetBoneMapping]: can not find boneMapping named "%s"', name))
+			return emptyTable
+		end
+	end
+
+	if table.IsEmpty(boneMapping) then
+		print('[UPManip.GetBoneMapping]: boneMapping is empty')
+	end
+
+	return boneMapping
+end
+
+function UPManip:Snapshot(ent, boneMapping)
+	local snapshot = {}
+	boneMapping = self:GetBoneMapping(boneMapping)
+
+	for boneName, _ in pairs(boneMapping) do
+		local boneId = ent:LookupBone(boneName)
+		if not boneId then continue end
+		local boneMat = ent:GetBoneMatrix(boneId)
+		if not boneMat then continue end
+		snapshot[boneName] = {
+			boneMat:GetTranslation(),
+			boneMat:GetAngles(),
+			boneMat:GetScale(),
+		}
+	end
+	
+	return snapshot
+end
+
+
+function UPManip:LerpBoneWorld(ent, t, snapshot, target, boneMapping, boneKeys)
 	-- 在调用前最好使用 ent:SetupBones(), 否则可能获得错误数据
 	-- 每帧都要更新
-
+	boneKeys = self:GetBoneKeys(boneKeys)
+	boneMapping = self:GetBoneMapping(boneMapping)
+	
 	for i, boneName in pairs(boneKeys) do
 		local data = boneMapping[boneName]
 		local boneId = ent:LookupBone(boneName)
@@ -235,93 +306,4 @@ local function LerpBoneWorld(ent, t, snapshot, target, boneMapping, boneKeys)
 		ent:ManipulateBoneScale(boneId, newScale)
 		SetBonePosition(ent, boneId, newPos, newAng)
 	end
-end
-
-UPManip.SetBonePosition = SetBonePosition
-UPManip.UnpackBMData = UnpackBMData
-UPManip.LerpBoneWorld = LerpBoneWorld
-UPManip.GetBoneMappingKeysSorted = GetBoneMappingKeysSorted
-UPManip.GetBonesFamilyLevel = GetBonesFamilyLevel
-UPManip.BoneMappingCollect = UPManip.BoneMappingCollect or {}
-UPManip.BoneKeysCollect = UPManip.BoneKeysCollect or {}
-
-UPManip.ClearManip = function(ent, snapshotManip)
-	if not isentity(ent) or not IsValid(ent) then
-		print(string.format('[UPManip.ClearManip]: invaild ent "%s"', ent))
-		return
-	end
-
-	local snapshotSafe = nil
-	if istable(snapshotManip) then
-		snapshotSafe = {}
-		for boneId, transformArray in pairs(snapshotManip) do
-			if not isnumber(boneId) or not istable(transformArray) then continue end
-			local tarManipPos, tarManipAng, tarManipScale = unpack(transformArray)
-			snapshotSafe[boneId] = {
-				isvector(tarManipPos) and tarManipPos or zerovec,
-				isangle(tarManipAng) and tarManipAng or zeroang,
-				isvector(tarManipScale) and tarManipScale or diagonalvec
-			}
-		end
-	end
-
-	LerpBoneManip(1, ent, snapshotSafe)
-end
-
-UPManip.LerpBoneManip = function(t, ent, snapshotManip)
-	if istable(snapshotManip) then
-		for boneId, transformArray in pairs(snapshotManip) do
-			local curManipPos = ent:GetManipulateBonePosition(boneId)
-			local curManipAng = ent:GetManipulateBoneAngles(boneId)
-			local curManipScale = ent:GetManipulateBoneScale(boneId)
-
-			local tarManipPos, tarManipAng, tarManipScale = unpack(transformArray)
-
-			ent:ManipulateBonePosition(boneId, LerpVector(t, curManipPos, tarManipPos))
-			ent:ManipulateBoneAngles(boneId, LerpAngle(t, curManipAng, tarManipAng))
-			ent:ManipulateBoneScale(boneId, LerpVector(t, curManipScale, tarManipScale))
-		end
-	else
-		for i = 0, ent:GetBoneCount() - 1 do
-			local curManipPos = ent:GetManipulateBonePosition(i)
-			local curManipAng = ent:GetManipulateBoneAngles(i)
-			local curManipScale = ent:GetManipulateBoneScale(i)
-
-			ent:ManipulateBoneAngles(i, LerpAngle(t, curManipAng, zeroang))
-			ent:ManipulateBonePosition(i, LerpVector(t, curManipPos, zerovec))
-			ent:ManipulateBoneScale(i, LerpVector(t, curManipScale, diagonalvec))
-		end
-	end
-end
-
-UPManip.SnapshotManip = function(ent, boneMapping)
-	local snapshot = {}
-	for boneName, _ in pairs(boneMapping) do
-		local boneId = ent:LookupBone(boneName)
-		if not boneId then continue end
-		snapshot[boneId] = {
-			ent:GetManipulateBonePosition(boneId),
-			ent:GetManipulateBoneAngles(boneId),
-			ent:GetManipulateBoneScale(boneId),
-		}
-	end
-	
-	return snapshot
-end
-
-UPManip.Snapshot = function(ent, boneMapping)
-	local snapshot = {}
-	for boneName, _ in pairs(boneMapping) do
-		local boneId = ent:LookupBone(boneName)
-		if not boneId then continue end
-		local boneMat = ent:GetBoneMatrix(boneId)
-		if not boneMat then continue end
-		snapshot[boneName] = {
-			boneMat:GetTranslation(),
-			boneMat:GetAngles(),
-			boneMat:GetScale(),
-		}
-	end
-	
-	return snapshot
 end

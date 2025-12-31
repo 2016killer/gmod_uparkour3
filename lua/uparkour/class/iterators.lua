@@ -2,15 +2,15 @@
 	作者:白狼
 	2025 12 20
 	豆包改造:支持自定义帧循环钩子，默认Think，兼容原有逻辑
+	调整说明：保留固定钩子标识、break逻辑、原有removeCurrentHookFlag逻辑
 --]]
 UPar.Iterators = UPar.Iterators or {}
 local Iterators = UPar.Iterators
 
--- 【改造1】：用表存储每个钩子的运行状态（替代原有单个isThinkHookAdded/thinkHookStartTime）
--- 结构：hookStatus[hookName] = { startTime = number }
+-- 存储每个钩子的运行状态：hookStatus[hookName] = { startTime = number }
 local hookStatus = {}
 
-local FRAME_HOOK_IDENTITY = 'upar.iterators'
+local FRAME_HOOK_IDENTITY = 'upar.iterators' -- 固定标识，支持不同event批量删除
 local DEFAULT_HOOK_NAME = 'Think' -- 默认帧循环钩子
 local POP_HOOK = 'UParIteratorPop'
 local PUSH_HOOK = 'UParIteratorPush'
@@ -18,12 +18,16 @@ local PAUSE_HOOK = 'UParIteratorPause'
 local END_TIME_CHANGED_HOOK = 'UParIteratorEndTimeChanged'
 local RESUME_HOOK = 'UParIteratorResume'
 
--- 【改造2】：重构钩子回调函数，支持指定钩子名称，仅处理该钩子下的迭代器
+-- 【保留你的设计】：钩子回调函数，使用 break 避免迭代器重写导致校验失效
 local function FrameCall(hookName)
 	local removeCurrentHookFlag = true
 	local curTime = CurTime()
 	local hookState = hookStatus[hookName]
-	if not hookState then return end -- 异常防护：钩子状态不存在直接返回
+	if not hookState then 
+		print(string.format('[UPar.Iterators]: warning: hookState "%s" not found', hookName))
+		hook.Remove(hookName, FRAME_HOOK_IDENTITY)
+		return 
+	end
 	
 	local dt = curTime - hookState.startTime
 	hookState.startTime = curTime
@@ -35,7 +39,7 @@ local function FrameCall(hookName)
 			ErrorNoHaltWithStack(string.format('iterator "%s" hookName "%s" mismatch, expect "%s"', identity, data.hn, hookName))
 			table.insert(removeIdentities, {identity, data, 'HOOK_MISMATCH'})
 			removeCurrentHookFlag = false
-			break
+			break -- 保留break：防止clear中重写迭代器导致后续校验失败
 		end
 
 		if data.pt then 
@@ -50,7 +54,7 @@ local function FrameCall(hookName)
 		if not succ then
 			ErrorNoHaltWithStack(result)
 			table.insert(removeIdentities, {identity, data, 'ERROR'})
-			break
+			break -- 保留break：防止错误扩散及迭代器重写问题
 		elseif result then
 			table.insert(removeIdentities, {identity, data, nil})
 		elseif curTime > edtime then
@@ -62,7 +66,7 @@ local function FrameCall(hookName)
 	for i = #removeIdentities, 1, -1 do
 		local identity, data, reason = unpack(removeIdentities[i])
 		if Iterators[identity] ~= data then
-			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in think call', identity))
+			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
 			table.remove(removeIdentities, i)
 			removeCurrentHookFlag = false
 		else
@@ -94,7 +98,8 @@ local function FrameCall(hookName)
 			continue
 		end
 
-		hook.Run(POP_HOOK, identity, curTime, data.add, reason) 
+		local succ, result = pcall(hook.Run, POP_HOOK, identity, curTime, data.add, reason) 
+		if not succ then ErrorNoHaltWithStack(result) end
 		data.add = nil
 	end
 
@@ -110,22 +115,22 @@ local function __Internal_StartFrameLoop(hookName)
 		hookState.startTime = CurTime()
 	else
 		hookState = {startTime = CurTime()}
-		hook.Add(hookName, FRAME_HOOK_IDENTITY, function() FrameCall(hookName) end)
 		hookStatus[hookName] = hookState
 	end
+	hook.Add(hookName, FRAME_HOOK_IDENTITY, function() FrameCall(hookName) end)
 end
 
--- 【改造3】：PushIterator增加hookName参数，默认DEFAULT_HOOK_NAME（兼容原有调用）
+-- PushIterator：保持兼容，新增同名迭代器覆盖提示（不影响核心逻辑）
 UPar.PushIterator = function(identity, iterator, addition, timeout, clear, hookName)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
 	assert(isstring(hookName) or hookName == nil, 'hookName must be a string or nil.')
 
-	-- 默认 Think
+	-- 默认 Think 帧循环
 	hookName = hookName or DEFAULT_HOOK_NAME
 	if timeout <= 0 then 
-		print('[UPar.PushIterator]: warning: timeout <= 0!') 
+		print(string.format('[UPar.PushIterator]: warning: iterator "%s" timeout <= 0!', identity))
 		return false
 	end
 
