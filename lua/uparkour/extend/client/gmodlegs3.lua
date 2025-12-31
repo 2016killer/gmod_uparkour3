@@ -63,8 +63,6 @@ UPManip.BoneKeysCollect['VMLegs'] = {
 	'ValveBiped.Bip01_R_Toe0'
 }
 
-
-
 g_GmodLeg3Faker = g_GmodLeg3Faker or nil
 
 local function InitGmodLeg3Faker()
@@ -84,62 +82,62 @@ local function InitGmodLeg3Faker()
 end
 
 local function GmodLeg3FakeRender(self)
-	// local GmodLeg3Fake = self
-	local VMLegsParentFake = g_VMLegsParentFake 
+	// // local GmodLeg3Fake = self
+	// local VMLegsParentFake = g_VMLegsParentFake 
 
-	-- 同步 VMLegs 动画
-	local cycle = VMLegs.Cycle
-	if isnumber(cycle) then VMLegsParentFake:SetCycle(cycle) end
+	// -- 同步 VMLegs 动画
+	// local cycle = VMLegs.Cycle
+	// if isnumber(cycle) then VMLegsParentFake:SetCycle(cycle) end
 
-	// if IsFirstTimePredicted() then
-	self.t = math.Clamp((self.t or 0) + FrameTime() * (self.speed or 1), 0, 1)
-	// else
-	// 	self.t = self.t or 0
+	// // if IsFirstTimePredicted() then
+	// self.t = math.Clamp((self.t or 0) + FrameTime() * (self.speed or 1), 0, 1)
+	// // else
+	// // 	self.t = self.t or 0
+	// // end
+
+	// if self.lastTarget ~= self.target then
+	// 	self.t = 0
 	// end
 
-	if self.lastTarget ~= self.target then
-		self.t = 0
-	end
+	// if IsValid(self.target) then
+	// 	self.target:SetupBones()
+	// 	self:SetupBones()
+	// 	UPManip.LerpBoneWorld(self, self.t, self.snapshot or emptyTable, self.target, 
+	// 	UPManip.BoneMappingCollect['VMLegs'], 
+	// 	UPManip.BoneKeysCollect['VMLegs'])
+	// end
 
-	if IsValid(self.target) then
-		self.target:SetupBones()
-		self:SetupBones()
-		UPManip.LerpBoneWorld(self, self.t, self.snapshot or emptyTable, self.target, 
-		UPManip.BoneMappingCollect['VMLegs'], 
-		UPManip.BoneKeysCollect['VMLegs'])
-	end
+	// // local matrix = Matrix()
+	// // matrix:SetTranslation(Vector(999, 999, 999))
+	// // matrix:SetAngles(Angle(100, 20, 30))
+	// // cam.PushModelMatrix(matrix, true)
+	// // 	self:DrawModel()
+	// // cam.PopModelMatrix()
 
-	// local matrix = Matrix()
-	// matrix:SetTranslation(Vector(999, 999, 999))
-	// matrix:SetAngles(Angle(100, 20, 30))
-	// cam.PushModelMatrix(matrix, true)
+	// cam.Start3D(EyePos(), EyeAngles())
+	// 	self:SetRenderOrigin(g_Legs.RenderPos)
+	// 	self:SetRenderOrigin(g_Legs.RenderAngle)
+	// 	self:SetupBones()
 	// 	self:DrawModel()
-	// cam.PopModelMatrix()
-
-	cam.Start3D(EyePos(), EyeAngles())
-		self:SetRenderOrigin(g_Legs.RenderPos)
-		self:SetRenderOrigin(g_Legs.RenderAngle)
-		self:SetupBones()
-		self:DrawModel()
-		self:SetRenderOrigin(nil)
-		self:SetRenderAngles(nil)
-	cam.End3D()
+	// 	self:SetRenderOrigin(nil)
+	// 	self:SetRenderAngles(nil)
+	// cam.End3D()
 
 
-	self.lastTarget = self.target
+	// self.lastTarget = self.target
 end
 
 local function StartManip()
-	if not Condition() then
-		return false
-	end
+	// if not Condition() then
+	// 	return false
+	// end
 
-	local succ = InitGmodLeg3Faker()
+	// local succ = InitGmodLeg3Faker()
 
-	if not succ then
-		print('[UPExt]: GmodLegs3Manip: InitFaker failed!')
-		return false
-	end
+	// if not succ then
+	// 	print('[UPExt]: GmodLegs3Manip: InitFaker failed!')
+	// 	return false
+	// end
 
 	// VMLegs.LegModel:SetNoDraw(true)
 	// g_Legs.LegEnt:SetupBones()
@@ -151,9 +149,9 @@ local function StartManip()
 end
 
 local function ClearManip()
-	g_VMLegsParentFake:SetupBones()
-	g_GmodLeg3Fake.snapshot = UPManip.Snapshot(g_VMLegsParentFake, UPManip.BoneMappingCollect['VMLegs'])
-	g_GmodLeg3Fake.target = g_Legs.LegEnt
+	// g_VMLegsParentFake:SetupBones()
+	// g_GmodLeg3Fake.snapshot = UPManip.Snapshot(g_VMLegsParentFake, UPManip.BoneMappingCollect['VMLegs'])
+	// g_GmodLeg3Fake.target = g_Legs.LegEnt
 end
 
 hook.Add('VMLegsPostPlayAnim', 'UPExtGmodLegs3Manip', StartManip)

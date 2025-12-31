@@ -20,7 +20,6 @@
 
 --]]
 
-AddCSLuaFile()
 UPar = UPar or {}
 UPar.Version = '3.0.0 alpha'
 
@@ -144,46 +143,6 @@ UPar.printinputs = function(flag, ...)
 		local v = inputs[i]
 		print(string.format('%s: %s', i, v))
 		if istable(v) then PrintTable(v) end
-	end
-end
-
-UPar.LoadLuaFiles = function(path, location)
-	if location == 'CLIENT' and SERVER then
-		return
-	end
-
-	if location == 'SERVER' and CLIENT then
-		return
-	end
-
-	local sharedDir = string.format('uparkour/%s/', path)
-	local sharedFiles = file.Find(sharedDir .. '*.lua', 'LUA')
-
-	for _, filename in pairs(sharedFiles) do
-		local path = sharedDir .. filename
-		include(path)
-		AddCSLuaFile(path)
-		print('[UPar]: LoadLua:' .. path)
-	end
-
-	if CLIENT then
-		local clientDir = string.format('uparkour/%s/client/', path)
-		local clientFiles = file.Find(clientDir .. '*.lua', 'LUA')
-
-		for _, filename in pairs(clientFiles) do
-			local path = clientDir .. filename
-			include(path)
-			print('[UPar]: LoadLua:' .. path)
-		end
-	elseif SERVER then
-		local serverDir = string.format('uparkour/%s/server/', path)
-		local serverFiles = file.Find(serverDir .. '*.lua', 'LUA')
-
-		for _, filename in pairs(serverFiles) do
-			local path = serverDir .. filename
-			include(path)
-			print('[UPar]: LoadLua:' .. path)
-		end
 	end
 end
 
@@ -322,35 +281,69 @@ end
 UPar.DeepClone = DeepClone
 UPar.DeepInject = DeepInject
 
-UPar.LoadLuaFiles('class')
-UPar.LoadLuaFiles('core')
-UPar.LoadLuaFiles('extend')
-UPar.LoadLuaFiles('actions')
-UPar.LoadLuaFiles('effects')
-UPar.LoadLuaFiles('effectseasy')
-UPar.LoadLuaFiles('widget', 'CLIENT')
-UPar.LoadLuaFiles('gui', 'CLIENT')
-UPar.LoadLuaFiles('version_compat')
-UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
-
-concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), function(ply)
-	if SERVER and not ply:IsSuperAdmin() then
+local function ReloadAll(ply)
+	if SERVER and ply and not (isentity(ply) and IsValid(ply) and ply:IsPlayer() and ply:IsSuperAdmin()) then
+		PrintMessage(HUD_PRINTTALK, 'You are not super admin, can not reload all lua files')
 		return
 	end
-	
-	UPar.LoadLuaFiles('class')
-	UPar.LoadLuaFiles('core')
-	UPar.LoadLuaFiles('extend')
-	UPar.LoadLuaFiles('actions')
-	UPar.LoadLuaFiles('effects')
-	UPar.LoadLuaFiles('effectseasy')
-	UPar.LoadLuaFiles('widget', 'CLIENT')
-	UPar.LoadLuaFiles('gui', 'CLIENT')
-	UPar.LoadLuaFiles('version_compat')
-	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
-end)
 
-concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args)
+	local function tempInclude(subDir)
+		local dir = string.format('uparkour/%s/', subDir)
+		local files = file.Find(dir .. '*.lua', 'LUA')
+
+		
+		for _, filename in pairs(files) do
+			local luaFile = dir .. filename
+			include(luaFile)
+			print('[UPar]: Include: ' .. luaFile)
+		end
+	end
+
+	local function tempAddCSLuaFile(subDir)
+		if CLIENT then return end
+		local dir = string.format('uparkour/%s/', subDir)
+		local files = file.Find(dir .. '*.lua', 'LUA')
+
+		
+		for _, filename in pairs(files) do
+			local luaFile = dir .. filename
+			AddCSLuaFile(luaFile)
+			print('[UPar]: AddCSLuaFile: ' .. luaFile)
+		end
+	end
+
+	local function tempHandle(tarDir, side)
+		if SERVER and side == 'SERVER' then
+			tempInclude(tarDir)
+			tempInclude(tarDir .. '/server')
+		elseif SERVER and side == 'SHARED' then
+			tempInclude(tarDir)
+			tempInclude(tarDir .. '/server')
+			tempAddCSLuaFile(tarDir)
+			tempAddCSLuaFile(tarDir .. '/client')
+		elseif SERVER and side == 'CLIENT' then
+			tempAddCSLuaFile(tarDir)
+			tempAddCSLuaFile(tarDir .. '/client')
+		elseif CLIENT and (side == 'CLIENT' or side == 'SHARED') then
+			tempInclude(tarDir)
+			tempInclude(tarDir .. '/client')
+		end
+	end
+
+	tempHandle('class', 'SHARED')
+	tempHandle('core', 'SHARED')
+	tempHandle('extend', 'SHARED')
+	tempHandle('actions', 'SHARED')
+	tempHandle('effects', 'SHARED')
+	tempHandle('effectseasy', 'SHARED')
+	tempHandle('widget', 'CLIENT')
+	tempHandle('gui', 'CLIENT')
+	tempHandle('version_compat', 'SHARED')
+	UPar.SeqHookRunAllSafe('UParVersionCompat', UPar.Version)
+
+end
+
+local function Debug(ply, cmd, args)
 	if SERVER and not ply:IsAdmin() then
 		PrintMessage(HUD_PRINTTALK, 'Only super admin can use this command')
 		return
@@ -371,4 +364,13 @@ concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), function(ply, cmd, args
 	
 	print(target)
 	if istable(target) then PrintTable(target) end
-end)
+end
+
+concommand.Add('up_reload_' .. (SERVER and 'sv' or 'cl'), ReloadAll)
+concommand.Add('up_debug_' .. (SERVER and 'sv' or 'cl'), Debug)
+
+ReloadAll()
+AddCSLuaFile()
+
+ReloadAll = nil
+Debug = nil

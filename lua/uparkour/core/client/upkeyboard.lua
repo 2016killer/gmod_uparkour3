@@ -112,9 +112,7 @@ hook.Add('Think', THINK_HOOK_IDENTITY, function()
     Check()
 end)
 
-print(565656)
 hook.Add('KeyPress', KEY_PRESS_HOOK_IDENTITY, function(ply, key)
-    print(IsFirstTimePredicted())
     if not game.SinglePlayer() and not IsFirstTimePredicted() then 
         return 
     end
@@ -122,7 +120,6 @@ hook.Add('KeyPress', KEY_PRESS_HOOK_IDENTITY, function(ply, key)
     ThinkLock = true
     local succ, err = pcall(Check)
     if not succ then ErrorNoHaltWithStack(err) end
-    print('KeyPress', key)
     ThinkLock = false
 end)
 
@@ -134,7 +131,6 @@ hook.Add('KeyRelease', KEY_RELEASE_HOOK_IDENTITY, function(ply, key)
     ThinkLock = true
     local succ, err = pcall(Check)
     if not succ then ErrorNoHaltWithStack(err) end
-    print('KeyRelease', key)
     ThinkLock = false
 end)
 
