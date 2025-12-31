@@ -35,14 +35,7 @@ local function FrameCall(hookName)
 	local removeIdentities = {}
 	
 	for identity, data in pairs(Iterators) do
-		if data.hn ~= hookName then
-			ErrorNoHaltWithStack(string.format('iterator "%s" hookName "%s" mismatch, expect "%s"', identity, data.hn, hookName))
-			table.insert(removeIdentities, {identity, data, 'HOOK_MISMATCH'})
-			removeCurrentHookFlag = false
-			break -- 保留break：防止clear中重写迭代器导致后续校验失败
-		end
-
-		if data.pt then 
+		if data.hn ~= hookName or data.pt then 
 			continue
 		end
 

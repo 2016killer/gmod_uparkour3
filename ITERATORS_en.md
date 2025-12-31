@@ -18,152 +18,62 @@
 
 # Iterators 
 
-There are actually two iterator systems:
-1. RenderIterators: Used to execute iterators in the PostDrawOpaqueRenderables frame loop.
-2. Iterators: Used to execute iterators in the Think frame loop. 
-UPar.PushIterator and UPar.PushRenderIterator are isomorphic.
-
-## 1.  Push Iterator
-![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.PushIterator(**any** identity, **function** iterator, **any** addition, **number** timeout, **function** clear)
+## 1. Push Iterator
+**boolean** UPar.PushIterator(**any** identity, **function** iterator, **any** addition, **number** timeout, **function** clear=nil, **string** hookName="Think")
 ```note
-Used to push a iterator, which will be executed in the Think frame loop.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type, supporting custom types for special business requirements);
-2.  iterator: Frame loop callback function with parameters (dt<delta time>, curTime<current time>, add<additional data>);
-3.  addition: Additional data, non-table types will be automatically converted to empty tables;
-4.  timeout: Timeout duration (in seconds, must be greater than 0, otherwise returns false);
-5.  clear: Iterator cleanup callback function with parameters (identity, curTime, add, reason<cleanup reason>).
-
-If an iterator with the same identity already exists, the UParIteratorPop hook will be triggered first and the old iterator will be overwritten.
-If there are no valid iterators currently, the Think hook will be automatically added.
-Returns true if the push is successful, and returns false if the timeout parameter is invalid (<= 0).
+Used to push a new iterator into the iterator manager. If an iterator with the specified identity already exists, it will first trigger the UParIteratorPop hook for the old iterator (marked with reason "OVERRIDE") and override the old iterator. Uses the Think frame loop hook by default, automatically starts the corresponding frame loop listening logic, and the timeout must be a value greater than 0.
 ```
 
-## 2.  Pop Iterator Manually
-![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.PopIterator(**any** identity, **boolean** silent)
+## 2. Pop Iterator
+**boolean** UPar.PopIterator(**any** identity, **boolean** silent=false)
 ```note
-Used to manually remove the iterator with the specified identifier.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParIteratorPop hook will not be triggered when set to true.
-
-If the iterator exists, the cleanup callback (clear) will be executed first, then the hook will be triggered or not according to the silent parameter, and finally returns true.
-If the iterator does not exist, returns false directly.
-The additional data (add) of the iterator will be automatically nullified after removal to reduce memory redundancy.
+Used to manually remove the iterator with the specified identity. Before removal, it will first execute the iterator's clear callback function (if it exists). In non-silent mode (silent=false), it will trigger the UParIteratorPop hook (marked with reason "MANUAL"). Returns false if the iterator does not exist.
 ```
 
-## 3.  Get Iterator Data
-![shared](./materials/upgui/shared.jpg)
-**table/nil** UPar.GetIterator(**any** identity)
+## 3. Get Iterator Data
+**table** UPar.GetIterator(**any** identity)
 ```note
-Used to obtain the complete data of the iterator corresponding to the specified identifier.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type).
-
-If the iterator exists, returns the iterator data table (including fields: f<callback function>, et<end time>, add<additional data>, clear<cleanup callback>, pt<pause time>).
-If the iterator does not exist, returns nil.
+Used to retrieve the complete stored data of the iterator with the specified identity. The returned table includes fields: f (iterator function), et (absolute timeout time), add (additional data), clear (cleanup callback), hn (bound hook name), and pt (pause time, optional). Returns nil if the iterator does not exist.
 ```
 
-## 4.  Check If Iterator Exists
-![shared](./materials/upgui/shared.jpg)
+## 4. Check Iterator Existence
 **boolean** UPar.IsIteratorExist(**any** identity)
 ```note
-Used to quickly determine whether the iterator with the specified identifier exists.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type).
-
-Returns true if the iterator exists, and returns false if the iterator does not exist.
+Used to quickly check if the iterator with the specified identity exists in the iterator manager. Returns true if it exists, false otherwise.
 ```
 
-## 5.  Pause Iterator
-![shared](./materials/upgui/shared.jpg)
-**boolean/number** UPar.PauseIterator(**any** identity, **boolean** silent)
+## 5. Pause Iterator
+**boolean** UPar.PauseIterator(**any** identity, **boolean** silent=false)
 ```note
-Used to pause the iterator with the specified identifier; the iterator will no longer participate in the Think frame loop execution after pausing.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParIteratorPause hook will not be triggered when set to true.
-
-Return Value Description:
-1.  false: The iterator does not exist;
-2.  0: The iterator is already in a paused state (a truthy value in Lua, adapted for chained judgment like succ = succ and xxx);
-3.  true: The iterator is paused successfully.
-
-The current time (pt field) will be recorded when pausing, which is used to compensate the timeout duration when resuming.
+Used to pause the iterator with the specified identity. Paused iterators will not execute logic in the frame loop, and the pause time will be recorded. In non-silent mode (silent=false), it will trigger the UParIteratorPause hook. Returns false if the iterator does not exist.
 ```
 
-## 6.  Resume Iterator
-![shared](./materials/upgui/shared.jpg)
-**boolean/number** UPar.ResumeIterator(**any** identity, **boolean** silent)
+## 6. Resume Iterator
+**boolean** UPar.ResumeIterator(**any** identity, **boolean** silent=false)
 ```note
-Used to resume the paused iterator with the specified identifier.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  silent: Whether to execute silently, the UParIteratorResume hook will not be triggered when set to true.
-
-Return Value Description:
-1.  false: The iterator does not exist;
-2.  0: The iterator is not in a paused state (a truthy value in Lua, adapted for chained judgment like succ = succ and xxx);
-3.  true: The iterator is resumed successfully.
-
-The timeout duration will be automatically compensated when resuming (new end time = resume time + remaining timeout duration) to ensure the accuracy of the timeout logic.
-If there are no valid iterators currently, the Think hook will be automatically added after resumption.
+Used to resume the paused iterator with the specified identity. It will automatically compensate for the pause duration (update the iterator's absolute timeout time) and restart the corresponding frame loop listening. In non-silent mode (silent=false), it will trigger the UParIteratorResume hook. Returns false if the iterator does not exist or is not in a paused state.
 ```
 
-## 7.  Set Nested Additional Data of Iterator
-![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.SetIterAddiKV(**any** identity, **...** varargs)
+## 7. Set Nested KV in Iterator Additional Data
+**boolean** UPar.SetIterAddiKV(**any** identity, **any** ...)
 ```note
-Used to set the nested additional data of the iterator, supporting assignment with multi-level key paths.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  varargs: Variable arguments, requiring at least 1 key + 1 value (e.g.: SetIterAddiKV(ident, "a", "b", 10) corresponds to add.a.b = 10).
-
-Returns false directly if the table corresponding to the intermediate nested key does not exist.
-Returns false if the iterator does not exist.
-Returns true if the setting is successful.
-Does not support automatic creation of nested tables, only supports assignment for existing nested paths.
+Used to set multi-level nested key-value pairs in the iterator's additional data. At least 2 parameters are required (supports multi-level table indexing; the last two parameters are the target key and corresponding value respectively). Returns false if the iterator does not exist or the nested table path is invalid.
 ```
 
-## 8.  Get Nested Additional Data of Iterator
-![shared](./materials/upgui/shared.jpg)
-**any/nil** UPar.GetIterAddiKV(**any** identity, **...** varargs)
+## 8. Get Nested KV from Iterator Additional Data
+**any** UPar.GetIterAddiKV(**any** identity, **any** ...)
 ```note
-Used to obtain the nested additional data of the iterator, supporting query with multi-level key paths.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  varargs: Variable arguments, requiring at least 1 key (e.g.: GetIterAddiKV(ident, "a", "b") corresponds to querying add.a.b).
-
-Returns nil if the table corresponding to the intermediate nested key does not exist.
-Returns nil if the iterator does not exist.
-Returns the value of the corresponding key if the query is successful.
+Used to retrieve multi-level nested key-value pairs from the iterator's additional data. At least 2 parameters are required (supports multi-level table indexing; the last parameter is the target key). Returns nil if the iterator does not exist or the nested table path is invalid.
 ```
 
-## 9.  Set Iterator Timeout End Time
-![shared](./materials/upgui/shared.jpg)
-**boolean** UPar.SetIterEndTime(**any** identity, **number** endTime, **boolean** silent)
+## 9. Set Iterator Timeout Time
+**boolean** UPar.SetIterEndTime(**any** identity, **number** endTime, **boolean** silent=false)
 ```note
-Used to directly set the timeout end time of the specified iterator.
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  endTime: New timeout end time (in timestamp format);
-3.  silent: Whether to execute silently, the UParIteratorEndTimeChanged hook will not be triggered when set to true.
-
-Returns true if the iterator exists and the end time is set successfully.
-Returns false if the iterator does not exist.
+Used to modify the absolute timeout time of the iterator with the specified identity (endTime must be a numeric absolute time, not a relative duration). In non-silent mode (silent=false), it will trigger the UParIteratorEndTimeChanged hook. Returns false if the iterator does not exist.
 ```
 
 ## 10. Merge Iterator Additional Data
-![shared](./materials/upgui/shared.jpg)
 **boolean** UPar.MergeIterAddiKV(**any** identity, **table** data)
 ```note
-Used to merge the additional data of the iterator, implemented based on the GLua table.Merge method (shallow merge).
-Parameter Description:
-1.  identity: Unique identifier of the iterator (any non-nil type);
-2.  data: Additional data to be merged (must be a table type, otherwise an assertion error will be thrown).
-
-Returns true if the iterator exists and the data is merged successfully.
-Returns false if the iterator does not exist.
+Used to merge the iterator's additional data, implemented based on the GLua table.Merge method (shallow merge: only merges top-level key-value pairs, no recursive merging for deep tables). Returns false if the iterator does not exist or the incoming merge data is not a table.
 ```
