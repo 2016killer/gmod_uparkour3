@@ -150,7 +150,7 @@ UPar.GetVecPunch = function()
 	return vecOff, vecVel
 end
 
-local CALC_HOOK_KEY = 'upunch.calc'
+local CALC_HOOK_IDENTITY = 'upunch.calc'
 
 local function UPunchCalcView(ply, pos, angles, fov)
 	local view = GAMEMODE:CalcView(ply, pos, angles, fov) 
@@ -177,11 +177,11 @@ end
 
 hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime, addition)
 	if identity == VEC_PUNCH_ITERATOR_ID then
-		hook.Add('CalcView', CALC_HOOK_KEY, UPunchCalcView)
+		hook.Add('CalcView', CALC_HOOK_IDENTITY, UPunchCalcView)
 		return true
 	elseif identity == ANG_PUNCH_ITERATOR_ID or identity == VEC_PUNCH_WORLD_ITERATOR_ID then
-		hook.Add('CalcView', CALC_HOOK_KEY, UPunchCalcView)
-		hook.Add('CalcViewModelView', CALC_HOOK_KEY, UPunchCalcViewModelView)
+		hook.Add('CalcView', CALC_HOOK_IDENTITY, UPunchCalcView)
+		hook.Add('CalcViewModelView', CALC_HOOK_IDENTITY, UPunchCalcViewModelView)
 		return true
 	end
 	
@@ -193,7 +193,7 @@ hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, 
 	and not UPar.IsIteratorExist(ANG_PUNCH_ITERATOR_ID)  
 	and not UPar.IsIteratorExist(VEC_PUNCH_WORLD_ITERATOR_ID)
 	then
-		hook.Remove('CalcView', CALC_HOOK_KEY)
-		hook.Remove('CalcViewModelView', CALC_HOOK_KEY)
+		hook.Remove('CalcView', CALC_HOOK_IDENTITY)
+		hook.Remove('CalcViewModelView', CALC_HOOK_IDENTITY)
 	end
 end)
