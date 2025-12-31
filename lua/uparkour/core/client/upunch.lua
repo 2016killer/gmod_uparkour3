@@ -7,9 +7,9 @@ local zeroang = UPar.zeroang
 
 local angVel = Vector()
 local angOff = Vector()
-local ANG_PUNCH_ITERATOR_ID = 'upunch.ang'
+local ANG_PUNCH_FRAMELOOP_ID = 'upunch.ang'
 
-local function AngPunchIterator(dt, curTime)
+local function AngPunchFrameLoop(dt, curTime)
 	local angacc = -(angOff * 50 + 10 * angVel)
 	angOff = angOff + angVel * dt 
 	angVel = angVel + angacc * dt	
@@ -33,7 +33,7 @@ UPar.AngPunch = function(vel, off, timeout)
 	angOff = angOff + off
 	angVel = angVel + vel
 
-	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, nil, timeout)
+	UPar.PushFrameLoop(ANG_PUNCH_FRAMELOOP_ID, AngPunchFrameLoop, nil, timeout)
 end
 
 UPar.SetAngPunch = function(vel, off, timeout)
@@ -47,7 +47,7 @@ UPar.SetAngPunch = function(vel, off, timeout)
 	angOff = off
 	angVel = vel
 
-	UPar.PushIterator(ANG_PUNCH_ITERATOR_ID, AngPunchIterator, nil, timeout)
+	UPar.PushFrameLoop(ANG_PUNCH_FRAMELOOP_ID, AngPunchFrameLoop, nil, timeout)
 end
 
 UPar.GetAngPunch = function()
@@ -57,8 +57,8 @@ end
 
 local vecVelWorld = Vector()
 local vecOffWorld = Vector()
-local VEC_PUNCH_WORLD_ITERATOR_ID = 'upunch.vec.world'
-local function VecPunchWorldIterator(dt, curTime)
+local VEC_PUNCH_WORLD_FRAMELOOP_ID = 'upunch.vec.world'
+local function VecPunchWorldFrameLoop(dt, curTime)
 	local vecacc = -(vecOffWorld * 50 + 10 * vecVelWorld)
 	vecOffWorld = vecOffWorld + vecVelWorld * dt 
 	vecVelWorld = vecVelWorld + vecacc * dt	
@@ -81,7 +81,7 @@ UPar.VecPunchWorld = function(vel, off, timeout)
 	vecOffWorld = vecOffWorld + off
 	vecVelWorld = vecVelWorld + vel
 
-	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, nil, timeout)
+	UPar.PushFrameLoop(VEC_PUNCH_WORLD_FRAMELOOP_ID, VecPunchWorldFrameLoop, nil, timeout)
 end
 
 UPar.SetVecPunchWorld = function(vel, off, timeout)
@@ -95,7 +95,7 @@ UPar.SetVecPunchWorld = function(vel, off, timeout)
 	vecOffWorld = off
 	vecVelWorld = vel
 
-	UPar.PushIterator(VEC_PUNCH_WORLD_ITERATOR_ID, VecPunchWorldIterator, nil, timeout)
+	UPar.PushFrameLoop(VEC_PUNCH_WORLD_FRAMELOOP_ID, VecPunchWorldFrameLoop, nil, timeout)
 end
 
 UPar.GetVecPunchWorld = function()
@@ -105,8 +105,8 @@ end
 
 local vecVel = Vector()
 local vecOff = Vector()
-local VEC_PUNCH_ITERATOR_ID = 'upunch.vec'
-local function VecPunchIterator(dt, curTime)
+local VEC_PUNCH_FRAMELOOP_ID = 'upunch.vec'
+local function VecPunchFrameLoop(dt, curTime)
 	local vecacc = -(vecOff * 50 + 10 * vecVel)
 	vecOff = vecOff + vecVel * dt 
 	vecVel = vecVel + vecacc * dt	
@@ -129,7 +129,7 @@ UPar.VecPunch = function(vel, off, timeout)
 	vecOff = vecOff + off
 	vecVel = vecVel + vel
 
-	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, nil, timeout)
+	UPar.PushFrameLoop(VEC_PUNCH_FRAMELOOP_ID, VecPunchFrameLoop, nil, timeout)
 end
 
 UPar.SetVecPunch = function(vel, off, timeout)
@@ -143,7 +143,7 @@ UPar.SetVecPunch = function(vel, off, timeout)
 	vecOff = off
 	vecVel = vel
 	
-	UPar.PushIterator(VEC_PUNCH_ITERATOR_ID, VecPunchIterator, nil, timeout)
+	UPar.PushFrameLoop(VEC_PUNCH_FRAMELOOP_ID, VecPunchFrameLoop, nil, timeout)
 end
 
 UPar.GetVecPunch = function()
@@ -175,11 +175,11 @@ local function UPunchCalcViewModelView(wep, vm, oP, oA, p, a)
 	return wp + vecOffWorld, wa + Angle(angOff.x, angOff.y, angOff.z)
 end
 
-hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime, addition)
-	if identity == VEC_PUNCH_ITERATOR_ID then
+hook.Add('UParPushFrameLoop', 'upunch.start', function(identity, endtime, addition)
+	if identity == VEC_PUNCH_FRAMELOOP_ID then
 		hook.Add('CalcView', CALC_HOOK_IDENTITY, UPunchCalcView)
 		return true
-	elseif identity == ANG_PUNCH_ITERATOR_ID or identity == VEC_PUNCH_WORLD_ITERATOR_ID then
+	elseif identity == ANG_PUNCH_FRAMELOOP_ID or identity == VEC_PUNCH_WORLD_FRAMELOOP_ID then
 		hook.Add('CalcView', CALC_HOOK_IDENTITY, UPunchCalcView)
 		hook.Add('CalcViewModelView', CALC_HOOK_IDENTITY, UPunchCalcViewModelView)
 		return true
@@ -187,11 +187,11 @@ hook.Add('UParIteratorPush', 'upunch.start', function(identity, endtime, additio
 	
 end)
 
-hook.Add('UParIteratorPop', 'upunch.out', function(identity, endtime, addition, reason)
+hook.Add('UParPopFrameLoop', 'upunch.out', function(identity, endtime, addition, reason)
 	if reason == 'OVERRIDE' then return end
-	if not UPar.IsIteratorExist(VEC_PUNCH_ITERATOR_ID)
-	and not UPar.IsIteratorExist(ANG_PUNCH_ITERATOR_ID)  
-	and not UPar.IsIteratorExist(VEC_PUNCH_WORLD_ITERATOR_ID)
+	if not UPar.IsFrameLoopExist(VEC_PUNCH_FRAMELOOP_ID)
+	and not UPar.IsFrameLoopExist(ANG_PUNCH_FRAMELOOP_ID)  
+	and not UPar.IsFrameLoopExist(VEC_PUNCH_WORLD_FRAMELOOP_ID)
 	then
 		hook.Remove('CalcView', CALC_HOOK_IDENTITY)
 		hook.Remove('CalcViewModelView', CALC_HOOK_IDENTITY)

@@ -4,27 +4,27 @@
 	豆包改造:支持自定义帧循环钩子，默认Think，兼容原有逻辑
 	调整说明：保留固定钩子标识、break逻辑、原有removeCurrentHookFlag逻辑
 --]]
-UPar.Iterators = UPar.Iterators or {}
-local Iterators = UPar.Iterators
+UPar.FrameLoop = UPar.FrameLoop or {}
+local FrameLoop = UPar.FrameLoop
 
 -- 存储每个钩子的运行状态：hookStatus[hookName] = { startTime = number }
 local hookStatus = {}
 
-local FRAME_HOOK_IDENTITY = 'upar.iterators' -- 固定标识，支持不同event批量删除
+local FRAME_HOOK_IDENTITY = 'upar.frameLoop' -- 固定标识，支持不同event批量删除
 local DEFAULT_HOOK_NAME = 'Think' -- 默认帧循环钩子
-local POP_HOOK = 'UParIteratorPop'
-local PUSH_HOOK = 'UParIteratorPush'
-local PAUSE_HOOK = 'UParIteratorPause'
-local END_TIME_CHANGED_HOOK = 'UParIteratorEndTimeChanged'
-local RESUME_HOOK = 'UParIteratorResume'
+local POP_HOOK = 'UParPopFrameLoop'
+local PUSH_HOOK = 'UParPushFrameLoop'
+local PAUSE_HOOK = 'UParPauseFrameLoop'
+local END_TIME_CHANGED_HOOK = 'UParFrameLoopEndTimeChanged'
+local RESUME_HOOK = 'UParResumeFrameLoop'
 
--- 【保留你的设计】：钩子回调函数，使用 break 避免迭代器重写导致校验失效
+-- 【保留你的设计】：钩子回调函数，使用 break 避免帧循环重写导致校验失效
 local function FrameCall(hookName)
 	local removeCurrentHookFlag = true
 	local curTime = CurTime()
 	local hookState = hookStatus[hookName]
 	if not hookState then 
-		print(string.format('[UPar.Iterators]: warning: hookState "%s" not found', hookName))
+		print(string.format('[UPar.FrameLoop]: warning: hookState "%s" not found', hookName))
 		hook.Remove(hookName, FRAME_HOOK_IDENTITY)
 		return 
 	end
@@ -34,7 +34,7 @@ local function FrameCall(hookName)
 	
 	local removeIdentities = {}
 	
-	for identity, data in pairs(Iterators) do
+	for identity, data in pairs(FrameLoop) do
 		if data.hn ~= hookName or data.pt then 
 			continue
 		end
@@ -47,7 +47,7 @@ local function FrameCall(hookName)
 		if not succ then
 			ErrorNoHaltWithStack(result)
 			table.insert(removeIdentities, {identity, data, 'ERROR'})
-			break -- 保留break：防止错误扩散及迭代器重写问题
+			break -- 保留break：防止错误扩散及帧循环重写问题
 		elseif result then
 			table.insert(removeIdentities, {identity, data, nil})
 		elseif curTime > edtime then
@@ -55,23 +55,23 @@ local function FrameCall(hookName)
 		end
 	end
 
-	-- 多次遍历防止交叉感染，先校验迭代器数据是否未被篡改
+	-- 多次遍历防止交叉感染，先校验帧循环数据是否未被篡改
 	for i = #removeIdentities, 1, -1 do
 		local identity, data, reason = unpack(removeIdentities[i])
-		if Iterators[identity] ~= data then
-			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
+		if FrameLoop[identity] ~= data then
+			print(string.format('[UPar.FrameLoop]: warning: iterator "%s" changed in other', identity))
 			table.remove(removeIdentities, i)
 			removeCurrentHookFlag = false
 		else
-			Iterators[identity] = nil
+			FrameLoop[identity] = nil
 		end
 	end
 
 	for _, v in ipairs(removeIdentities) do
 		local identity, data, reason = unpack(v)
 
-		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
+		if FrameLoop[identity] ~= nil then
+			print(string.format('[UPar.FrameLoop]: warning: iterator "%s" changed in other', identity))
 			removeCurrentHookFlag = false
 			continue
 		end
@@ -85,8 +85,8 @@ local function FrameCall(hookName)
 	for _, v in ipairs(removeIdentities) do
 		local identity, data, reason = unpack(v)
 
-		if Iterators[identity] ~= nil then
-			print(string.format('[UPar.Iterators]: warning: iterator "%s" changed in other', identity))
+		if FrameLoop[identity] ~= nil then
+			print(string.format('[UPar.FrameLoop]: warning: iterator "%s" changed in other', identity))
 			removeCurrentHookFlag = false
 			continue
 		end
@@ -113,8 +113,7 @@ local function __Internal_StartFrameLoop(hookName)
 	hook.Add(hookName, FRAME_HOOK_IDENTITY, function() FrameCall(hookName) end)
 end
 
--- PushIterator：保持兼容，新增同名迭代器覆盖提示（不影响核心逻辑）
-UPar.PushIterator = function(identity, iterator, addition, timeout, clear, hookName)
+UPar.PushFrameLoop = function(identity, iterator, addition, timeout, clear, hookName)
 	assert(isfunction(iterator), 'iterator must be a function.')
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(isnumber(timeout), 'timeout must be a number.')
@@ -123,18 +122,18 @@ UPar.PushIterator = function(identity, iterator, addition, timeout, clear, hookN
 	-- 默认 Think 帧循环
 	hookName = hookName or DEFAULT_HOOK_NAME
 	if timeout <= 0 then 
-		print(string.format('[UPar.PushIterator]: warning: iterator "%s" timeout <= 0!', identity))
+		print(string.format('[UPar.PushFrameLoop]: warning: iterator "%s" timeout <= 0!', identity))
 		return false
 	end
 
-	local old = Iterators[identity]
+	local old = FrameLoop[identity]
 	if old then hook.Run(POP_HOOK, identity, CurTime(), old.add, 'OVERRIDE') end
 
 	local endtime = timeout + CurTime()
 	addition = istable(addition) and addition or {}
 	hook.Run(PUSH_HOOK, identity, endtime, addition)
 
-	Iterators[identity] = {
+	FrameLoop[identity] = {
 		f = iterator, 
 		et = endtime, 
 		add = addition, 
@@ -147,93 +146,93 @@ UPar.PushIterator = function(identity, iterator, addition, timeout, clear, hookN
 	return true
 end
 
-UPar.PopIterator = function(identity, silent)
+UPar.PopFrameLoop = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
 
-	local iteratorData = Iterators[identity]
-	Iterators[identity] = nil
+	local frameData = FrameLoop[identity]
+	FrameLoop[identity] = nil
 
-	if not iteratorData then
+	if not frameData then
 		return false
 	end
 
-	if isfunction(iteratorData.clear) then
-		local succ, result = pcall(iteratorData.clear, identity, CurTime(), iteratorData.add, 'MANUAL')
+	if isfunction(frameData.clear) then
+		local succ, result = pcall(frameData.clear, identity, CurTime(), frameData.add, 'MANUAL')
 		if not succ then ErrorNoHaltWithStack(result) end
 	end
 
 	if not silent then
-		hook.Run(POP_HOOK, identity, CurTime(), iteratorData.add, 'MANUAL')
+		hook.Run(POP_HOOK, identity, CurTime(), frameData.add, 'MANUAL')
 	end
 
-	iteratorData.add = nil
+	frameData.add = nil
 	
 	return true
 end
 
-UPar.GetIterator = function(identity)
+UPar.GetFrameLoop = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	return Iterators[identity]
+	return FrameLoop[identity]
 end
 
-UPar.IsIteratorExist = function(identity)
+UPar.IsFrameLoopExist = function(identity)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	return Iterators[identity] ~= nil
+	return FrameLoop[identity] ~= nil
 end
 
-UPar.PauseIterator = function(identity, silent)
+UPar.PauseFrameLoop = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return false
 	end
 	
 	local pauseTime = CurTime()
-	iteratorData.pt = pauseTime
+	frameData.pt = pauseTime
 
 	if not silent then
-		hook.Run(PAUSE_HOOK, identity, pauseTime, iteratorData.add)
+		hook.Run(PAUSE_HOOK, identity, pauseTime, frameData.add)
 	end
 	
 	return true
 end
 
-UPar.ResumeIterator = function(identity, silent)
+UPar.ResumeFrameLoop = function(identity, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return false
 	end
 
-	if not iteratorData.pt then
+	if not frameData.pt then
 		return false
 	else
 		local resumeTime = CurTime()
-		local pauseTime = iteratorData.pt
-		iteratorData.pt = nil
+		local pauseTime = frameData.pt
+		frameData.pt = nil
 		
 		-- 更新超时时间：补偿暂停时长
-		iteratorData.et = resumeTime + (iteratorData.et - pauseTime)
+		frameData.et = resumeTime + (frameData.et - pauseTime)
 		
 		if not silent then
-			hook.Run(RESUME_HOOK, identity, resumeTime, iteratorData.add)
+			hook.Run(RESUME_HOOK, identity, resumeTime, frameData.add)
 		end
 
-		local hookName = iteratorData.hn
+		local hookName = frameData.hn
 		__Internal_StartFrameLoop(hookName)
 		
 		return true
 	end
 end
 
-UPar.SetIterAddiKV = function(identity, ...)
+UPar.SetFrameLoopAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return false
 	end
 
-	local target = iteratorData.add
+	local target = frameData.add
 
 	local total = select('#', ...)
 	assert(total >= 2, 'at least 2 arguments required')
@@ -249,14 +248,14 @@ UPar.SetIterAddiKV = function(identity, ...)
 	return true
 end
 
-UPar.GetIterAddiKV = function(identity, ...)
+UPar.GetFrameLoopAddiKV = function(identity, ...)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return nil
 	end
 
-	local target = iteratorData.add
+	local target = frameData.add
 
 	local total = select('#', ...)
 	assert(total >= 2, 'at least 2 arguments required')
@@ -271,32 +270,32 @@ UPar.GetIterAddiKV = function(identity, ...)
 	return target[keyValue[total - 1]]
 end
 
-UPar.SetIterEndTime = function(identity, endTime, silent)
+UPar.SetFrameLoopEndTime = function(identity, endTime, silent)
 	assert(identity ~= nil, 'identity must be a valid value.')
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return false
 	end
 
-	iteratorData.et = endTime
+	frameData.et = endTime
 		
 	if not silent then
-		hook.Run(END_TIME_CHANGED_HOOK, identity, endTime, iteratorData.add)
+		hook.Run(END_TIME_CHANGED_HOOK, identity, endTime, frameData.add)
 	end
 
 	return true
 end
 
-UPar.MergeIterAddiKV = function(identity, data)
+UPar.MergeFrameLoopAddiKV = function(identity, data)
 	assert(identity ~= nil, 'identity must be a valid value.')
 	assert(istable(data), 'data must be a table.')
 
-	local iteratorData = Iterators[identity]
-	if not iteratorData then
+	local frameData = FrameLoop[identity]
+	if not frameData then
 		return false
 	end
 
-	table.Merge(iteratorData.add, data)
+	table.Merge(frameData.add, data)
 	
 	return true
 end

@@ -13,7 +13,7 @@
 <a href="./CUSTOMEFFECT.md">自定义特效</a>  
 <a href="./UPMANIP.md">骨骼操纵</a>  
 <a href="./UPKEYBOARD.md">键盘</a>  
-<a href="./ITERATORS.md">迭代器</a>  
+<a href="./FRAMELOOP.md">帧循环</a>  
 
 
 ## 简介
@@ -43,7 +43,7 @@ UPAction 、 UPEffect 生命周期的同步永远是一次性的。 因为同步
 
 1. 增加动作编辑器自定义面板支持。
 2. 重构生命周期, 删去大部分小概率用到的参数, 动作可以多轨道并行。
-3. 新增迭代器支持。
+3. 新增帧循环支持。
 4. 新增 UPManip API, 可以直接操纵骨骼, 但运算量较大。
 5. 新增按键绑定与事件支持。
 6. 可以创建更多的自定义特效

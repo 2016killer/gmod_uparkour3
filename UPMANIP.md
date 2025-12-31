@@ -13,7 +13,7 @@
 <a href="./CUSTOMEFFECT.md">自定义特效</a>  
 <a href="./UPMANIP.md">骨骼操纵</a>  
 <a href="./UPKEYBOARD.md">键盘</a>  
-<a href="./ITERATORS.md">迭代器</a>  
+<a href="./FRAMELOOP.md">帧循环</a>  
 
 # UPManip 骨骼操纵
 ```note

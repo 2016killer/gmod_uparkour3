@@ -142,7 +142,7 @@ local function StartManip()
 	end
 
 	VMLegs.LegModel:SetNoDraw(true)
-	g_GmodLeg3Faker.snapshot = UPManip.Snapshot(g_GmodLeg3Faker.LegEnt, 'VMLegs')
+	g_GmodLeg3Faker.snapshot = UPManip:Snapshot(g_GmodLeg3Faker.LegEnt, 'VMLegs')
 	g_GmodLeg3Faker.target = g_VMLegsParentFake
 	g_GmodLeg3Faker.lastTarget = nil
 
@@ -150,7 +150,7 @@ end
 
 local function ClearManip()
 	// g_VMLegsParentFake:SetupBones()
-	// g_GmodLeg3Fake.snapshot = UPManip.Snapshot(g_VMLegsParentFake, UPManip.BoneMappingCollect['VMLegs'])
+	// g_GmodLeg3Fake.snapshot = UPManip:Snapshot(g_VMLegsParentFake, UPManip.BoneMappingCollect['VMLegs'])
 	// g_GmodLeg3Fake.target = g_Legs.LegEnt
 end
 

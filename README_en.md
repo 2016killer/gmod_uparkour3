@@ -13,7 +13,7 @@
 <a href="./CUSTOMEFFECT_en.md">Custom Effect</a>  
 <a href="./UPMANIP_en.md">UPManip</a>  
 <a href="./UPKEYBOARD_en.md">UPKeyboard</a>  
-<a href="./ITERATORS_en.md">Iterators</a>  
+<a href="./FRAMELOOP_en.md">FrameLoop</a>  
 
 ## Introduction
 
@@ -45,7 +45,7 @@ All other extensible features follow this same pattern.
 
 1. Add support for **custom panels in the Action Editor**.
 2. **Refactor the lifecycle**: remove most rarely used parameters, and enable **multi-track parallel execution of actions**.
-3. Add new **iterator support**.
+3. Add new **FrameLoop support**.
 4. Add the new **UPManip API** for direct bone manipulation (note: this has relatively high computational overhead).
 5. Add new **key binding and event support**.
 6. Enable the creation of **more custom special effects**.
