@@ -16,6 +16,11 @@
 <a href="./FRAMELOOP_en.md">FrameLoop</a>  
 
 ## Introduction
+```
+Due to the bloated commit history, this repository is deprecated. All future updates will be made in the new repository.
+```
+
+
 
 ### Example
 Use the command `developer 1;up_reload_sv;up_reload_cl` to load examples.  
@@ -70,4 +75,4 @@ Contribution: Part of the code and English documentation
 - Author: 白狼 2322012547@qq.com
 - Translator: Miss DouBao
 - Date: December 10, 2025
-- Version: 3.0.0
+- Version: 3.0.0 Alpha
